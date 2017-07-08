@@ -3,13 +3,9 @@
 
 @TestOn('node')
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
-import 'package:node_interop/node_interop.dart';
 import 'package:test/test.dart';
 
 import 'setup.dart';
-
-final platform = new NodePlatform();
-final Map<String, String> env = platform.environment;
 
 void main() {
   group('Database', () {
