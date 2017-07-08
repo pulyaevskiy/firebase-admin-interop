@@ -1,7 +1,7 @@
 name: firebase_admin_interop
 description: Interop for Firebase Admin Node SDK
 version: 0.0.1
-#homepage: https://www.example.com
+homepage: https://github.com/pulyaevskiy/firebase-admin-interop
 author: Anatoly Pulyaevskiy <anatoly.pulyaevskiy@gmail.com>
 
 environment:
@@ -12,9 +12,3 @@ dependencies:
 
 dev_dependencies:
   test: ^0.12.24
-
-transformers:
-  - $dart2js:
-      $include: "example/firebase_admin_interop_example.dart" 
-  - node_interop:
-      include: "**/*.dart.js"
