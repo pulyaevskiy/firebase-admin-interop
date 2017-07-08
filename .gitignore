@@ -13,3 +13,4 @@ doc/api/
 
 tool/build_example.sh
 *.json
+!example/package.json

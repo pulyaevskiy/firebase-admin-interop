@@ -1,0 +1,8 @@
+{
+    "name": "admin",
+    "description": "Firebase Admin Interop Example",
+    "dependencies": {
+        "firebase-admin": "~4.2.1"
+    },
+    "private": true
+}
