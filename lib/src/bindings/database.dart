@@ -5,8 +5,9 @@
 library firebase_admin_interop.bindings.database;
 
 import 'package:js/js.dart';
-import 'core.dart';
 import 'package:node_interop/node_interop.dart';
+
+import 'core.dart';
 
 @JS()
 @anonymous
