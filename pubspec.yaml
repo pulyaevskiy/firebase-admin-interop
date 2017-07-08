@@ -15,5 +15,6 @@ dev_dependencies:
 
 transformers:
   - $dart2js:
-      $include: "bin/firebase_admin_interop_example.dart" 
-  - node_interop
+      $include: "example/firebase_admin_interop_example.dart" 
+  - node_interop:
+      include: "**/*.dart.js"

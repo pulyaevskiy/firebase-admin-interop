@@ -1,16 +1,14 @@
-# firebase_admin_interop
+# Firebase Admin Interop Library for Dart
 
-A library for Dart developers. It is awesome.
+This library provides JS bindings and necessary abstractions for Firebase Admin 
+Node SDK.
+
+> Please note that it's currently a proof-of-concept-preview version so it 
+> lacks many features, tests and documentation.
 
 ## Usage
 
-A simple usage example:
-
-    import 'package:firebase_admin_interop/firebase_admin_interop.dart';
-
-    main() {
-      var awesome = new Awesome();
-    }
+See `example/` folder.
 
 ## Features and bugs
 

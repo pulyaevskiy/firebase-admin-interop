@@ -1,0 +1,9 @@
+sudo: false
+
+language: dart
+
+before_install:
+  - nvm install node
+  - node --version
+script:
+  - pub run test --platform node

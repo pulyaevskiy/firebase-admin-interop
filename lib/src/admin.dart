@@ -40,6 +40,8 @@ class App {
 
   String get name => _inner.name;
 
+  Database database() => new Database(_inner.database());
+
   Future<Null> delete() => jsPromiseToFuture(_inner.delete());
 }
 
