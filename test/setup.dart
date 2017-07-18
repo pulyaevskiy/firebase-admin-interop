@@ -13,10 +13,14 @@ App initFirebaseApp() {
   installNodeModules();
 
   var admin = new FirebaseAdmin();
-  return admin.initializeApp(new AppOptions(
-    credential: admin.credential.cert(appCredentials),
-    databaseUrl: env['FIREBASE_DATABASE_URL'],
-  ));
+  return admin.initializeApp(
+    credential: admin.credential.cert(
+      projectId: env['FIREBASE_PROJECT_ID'],
+      clientEmail: env['FIREBASE_CLIENT_EMAIL'],
+      privateKey: env['FIREBASE_PRIVATE_KEY'].replaceAll(r'\n', '\n'),
+    ),
+    databaseURL: env['FIREBASE_DATABASE_URL'],
+  );
 }
 
 void installNodeModules() {
@@ -34,14 +38,6 @@ void installNodeModules() {
   ChildProcess childProcess = require('child_process');
   print('Installing node modules');
   childProcess.execSync('npm install', new ExecOptions(cwd: cwd));
-}
-
-Map<String, String> get appCredentials {
-  return {
-    'project_id': env['FIREBASE_PROJECT_ID'],
-    'client_email': env['FIREBASE_CLIENT_EMAIL'],
-    'private_key': env['FIREBASE_PRIVATE_KEY'].replaceAll(r'\n', '\n'),
-  };
 }
 
 const packageJson = '''

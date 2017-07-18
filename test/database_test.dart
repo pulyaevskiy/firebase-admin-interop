@@ -27,5 +27,18 @@ void main() {
       var snapshot = await ref.once('value');
       expect(snapshot.val(), value);
     });
+
+    test('DataSnapshot.forEach', () async {
+      var db = app.database();
+      await db.ref('/forEachTest/ch1').set(1);
+      await db.ref('/forEachTest/ch2').set(2);
+      var snapshot = await db.ref('/forEachTest').once('value');
+      var values = [];
+      snapshot.forEach((child) {
+        int val = child.val();
+        values.add(val);
+      });
+      expect(values, [1, 2]);
+    });
   });
 }

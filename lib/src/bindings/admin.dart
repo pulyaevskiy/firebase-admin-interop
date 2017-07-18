@@ -18,7 +18,7 @@ abstract class JsFirebaseAdmin {
   external static String get SDK_VERSION;
   external JsCredential get credential;
   external JsApp app([String name]);
-  external JsApp initializeApp(options, [name]);
+  external JsApp initializeApp(options, [String name]);
   external JsDatabase database([app]);
 }
 

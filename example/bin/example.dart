@@ -4,12 +4,19 @@
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 import 'package:node_interop/node_interop.dart';
 
+final NodePlatform platform = new NodePlatform();
+final Map<String, String> env = platform.environment;
+
 main() async {
   var admin = new FirebaseAdmin();
-  App app = admin.initializeApp(new AppOptions(
-    credential: admin.credential.cert(appCredentials),
-    databaseUrl: env['FIREBASE_DATABASE_URL'],
-  ));
+  App app = admin.initializeApp(
+    credential: admin.credential.cert(
+      projectId: env['FIREBASE_PROJECT_ID'],
+      clientEmail: env['FIREBASE_CLIENT_EMAIL'],
+      privateKey: env['FIREBASE_PRIVATE_KEY'].replaceAll(r'\n', '\n'),
+    ),
+    databaseURL: env['FIREBASE_DATABASE_URL'],
+  );
 
   var ref = app.database().ref('/test');
   print('Ref: ${ref.key}');
@@ -26,15 +33,4 @@ main() async {
   print('Value: ${snapshot.val()}');
 
   await app.delete(); // releases all open connections
-}
-
-final NodePlatform platform = new NodePlatform();
-final Map<String, String> env = platform.environment;
-
-Map<String, String> get appCredentials {
-  return {
-    'project_id': env['FIREBASE_PROJECT_ID'],
-    'client_email': env['FIREBASE_CLIENT_EMAIL'],
-    'private_key': env['FIREBASE_PRIVATE_KEY'].replaceAll(r'\n', '\n'),
-  };
 }
