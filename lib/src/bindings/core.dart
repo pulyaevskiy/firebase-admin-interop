@@ -10,15 +10,13 @@ import 'package:node_interop/node_interop.dart';
 import 'database.dart';
 
 @JS()
-@anonymous
 abstract class JsApp {
   external String get name;
   external JsDatabase database();
-  external JsPromise delete();
+  external Promise delete();
 }
 
 @JS()
-@anonymous
 abstract class JsAppOptions {
   external JsCredential get credential;
   external String get databaseURL;
@@ -26,7 +24,6 @@ abstract class JsAppOptions {
 }
 
 @JS()
-@anonymous
 abstract class JsCredential {
   external JsAccessToken getAccessToken();
   // TODO: Is there a way to model below methods as static, as described in Node API docs?
@@ -36,7 +33,6 @@ abstract class JsCredential {
 }
 
 @JS()
-@anonymous
 abstract class JsAccessToken {
   external String get access_token;
   external num get expires_in;

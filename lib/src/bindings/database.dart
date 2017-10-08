@@ -10,7 +10,6 @@ import 'package:node_interop/node_interop.dart';
 import 'core.dart';
 
 @JS()
-@anonymous
 abstract class JsDatabase {
   external JsApp get app;
   // Static members
@@ -24,25 +23,22 @@ abstract class JsDatabase {
 }
 
 @JS()
-@anonymous
 abstract class JsServerValue {
   external num get TIMESTAMP;
 }
 
 @JS()
-@anonymous
 abstract class JsReference {
   external String get key;
   external JsReference get parent;
   external JsReference get root;
   external JsReference child(String path);
-  external JsPromise once(String eventType,
+  external Promise once(String eventType,
       [successCallback, failureCallbackOrContext, context]);
-  external JsPromise set(value, [onComplete]);
+  external Promise set(value, [onComplete]);
 }
 
 @JS()
-@anonymous
 abstract class JsDataSnapshot {
   external String get key;
   external JsReference get ref;
