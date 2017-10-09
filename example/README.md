@@ -19,11 +19,11 @@ export FIREBASE_DATABASE_URL="https://my-project-id.firebaseio.com"
 ### 3. Build
 
 ```bash
-$ pub build bin
+$ pub build node/
 ```
 
 ### 4. Run
 
 ```bash
-$ node build/bin/example.dart.js
+$ node build/node/example.dart.js
 ```

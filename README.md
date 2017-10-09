@@ -2,11 +2,10 @@
 
 [![Build Status](https://travis-ci.org/pulyaevskiy/firebase-admin-interop.svg?branch=master)](https://travis-ci.org/pulyaevskiy/firebase-admin-interop)
 
-This library provides JS bindings and necessary abstractions for Firebase Admin 
-Node SDK.
+This library provides JS bindings and necessary abstractions for
+Firebase Admin Node SDK.
 
-> Please note that it's currently a proof-of-concept-preview version so it 
-> lacks many features, tests and documentation.
+> This project is a work-in-progress.
 
 ## Usage
 

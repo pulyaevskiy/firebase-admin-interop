@@ -17,6 +17,7 @@ abstract class JsApp {
 }
 
 @JS()
+@anonymous
 abstract class JsAppOptions {
   external JsCredential get credential;
   external String get databaseURL;

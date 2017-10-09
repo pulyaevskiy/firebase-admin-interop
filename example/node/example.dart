@@ -4,8 +4,7 @@
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 import 'package:node_interop/node_interop.dart';
 
-final NodePlatform platform = new NodePlatform();
-final Map<String, String> env = platform.environment;
+final Map<String, String> env = node.platform.environment;
 
 main() async {
   var admin = new FirebaseAdmin();

@@ -2,10 +2,15 @@ import 'package:node_interop/node_interop.dart';
 import 'package:node_interop/test.dart';
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 
-final platform = new NodePlatform();
-final Map<String, String> env = platform.environment;
+final Map<String, String> env = node.platform.environment;
 
 App initFirebaseApp() {
+  if (!env.containsKey('FIREBASE_PROJECT_ID') ||
+      !env.containsKey('FIREBASE_CLIENT_EMAIL') ||
+      !env.containsKey('FIREBASE_PRIVATE_KEY') ||
+      !env.containsKey('FIREBASE_DATABASE_URL'))
+    throw new StateError('Environment variables are not set.');
+
   installNodeModules({"firebase-admin": "~4.2.1"});
 
   var admin = new FirebaseAdmin();

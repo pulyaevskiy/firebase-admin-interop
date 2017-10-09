@@ -1,6 +1,5 @@
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
-
 @JS()
 library firebase_admin_interop.bindings.admin;
 
@@ -13,7 +12,6 @@ import 'database.dart';
 JsFirebaseAdmin requireFirebaseAdmin() => require('firebase-admin');
 
 @JS()
-@anonymous
 abstract class JsFirebaseAdmin {
   external static String get SDK_VERSION;
   external JsCredential get credential;

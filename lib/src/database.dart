@@ -9,7 +9,7 @@ import 'package:node_interop/node_interop.dart';
 import 'bindings/core.dart';
 import 'bindings/database.dart';
 
-/// Firebase Realime Database service.
+/// Firebase Realtime Database service.
 class Database {
   final JsDatabase _inner;
 
