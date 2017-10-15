@@ -25,8 +25,8 @@ class FirebaseAdmin {
   /// Creates and initializes a Firebase [App] instance.
   ///
   /// The app is initialized with provided `credential` and `databaseURL`.
-  /// A valid credential can be obtained from [Credential.cert] or
-  /// [Credential.certFromPath].
+  /// A valid credential can be obtained from [CredentialService.cert] or
+  /// [CredentialService.certFromPath].
   ///
   /// The `name` argument allows using multiple Firebase applications at the same
   /// time. If omitted then default app name is used.
@@ -45,8 +45,8 @@ class FirebaseAdmin {
   ///
   /// See also:
   ///   * [App]
-  ///   * [Credential.cert]
-  ///   * [Credential.certFromPath]
+  ///   * [CredentialService.cert]
+  ///   * [CredentialService.certFromPath]
   App initializeApp({
     @required js.Credential credential,
     @required String databaseURL,
@@ -63,9 +63,9 @@ class FirebaseAdmin {
   }
 
   /// Credential service of this admin instance.
-  Credential get credential =>
-      _credential ??= new Credential._(_inner.credential);
-  Credential _credential;
+  CredentialService get credential =>
+      _credential ??= new CredentialService._(_inner.credential);
+  CredentialService _credential;
 
   /// Returns the [Database] service associated with default [App] when called
   /// without arguments. Otherwise returns [Database] service of specified
@@ -97,10 +97,10 @@ class App {
 }
 
 /// Firebase Admin credential service.
-class Credential {
-  final js.Credential _inner;
+class CredentialService {
+  final js.CredentialService _inner;
 
-  Credential._(this._inner);
+  CredentialService._(this._inner);
 
   /// Creates app certificate from service account key parameters.
   js.Credential cert({
