@@ -6,17 +6,16 @@ import 'dart:js' as js;
 
 import 'package:node_interop/node_interop.dart';
 
-import 'bindings/core.dart';
-import 'bindings/database.dart';
+import 'bindings.dart' as js;
 
 /// Firebase Realtime Database service.
 class Database {
-  final JsDatabase _inner;
+  final js.Database _inner;
 
   Database(this._inner);
 
   /// The Firebase app of this database.
-  JsApp get app => _inner.app;
+  js.App get app => _inner.app;
 
   void goOffline() {
     _inner.goOffline();
@@ -30,7 +29,7 @@ class Database {
 }
 
 class Reference {
-  final JsReference _inner;
+  final js.Reference _inner;
 
   Reference._(this._inner);
 
@@ -66,7 +65,7 @@ class Reference {
 /// Any time you read data from the Database, you receive the data as a
 /// `DataSnapshot`.
 class DataSnapshot {
-  final JsDataSnapshot _inner;
+  final js.DataSnapshot _inner;
 
   DataSnapshot._(this._inner);
 
@@ -103,7 +102,7 @@ class DataSnapshot {
   /// key (unless priorities are used, in which case, results are returned
   /// by priority).
   bool forEach(bool action(DataSnapshot child)) {
-    bool wrapper(JsDataSnapshot child) {
+    bool wrapper(js.DataSnapshot child) {
       var snapshot = new DataSnapshot._(child);
       return action(snapshot);
     }

@@ -5,8 +5,7 @@ import 'dart:async';
 import 'package:meta/meta.dart';
 import 'package:node_interop/node_interop.dart';
 
-import 'bindings/admin.dart';
-import 'bindings/core.dart';
+import 'bindings.dart' as js;
 import 'database.dart';
 
 const kDefaultAppName = '[DEFAULT]';
@@ -16,10 +15,10 @@ const kDefaultAppName = '[DEFAULT]';
 /// To start using Firebase services initialize a Firebase application
 /// with [initializeApp] method.
 class FirebaseAdmin {
-  final JsFirebaseAdmin _inner;
+  final js.FirebaseAdmin _inner;
   FirebaseAdmin._(this._inner);
 
-  factory FirebaseAdmin() => new FirebaseAdmin._(requireFirebaseAdmin());
+  factory FirebaseAdmin() => new FirebaseAdmin._(js.requireFirebaseAdmin());
 
   final Map<String, App> _apps = new Map();
 
@@ -49,13 +48,13 @@ class FirebaseAdmin {
   ///   * [Credential.cert]
   ///   * [Credential.certFromPath]
   App initializeApp({
-    @required JsCredential credential,
+    @required js.Credential credential,
     @required String databaseURL,
     String name: kDefaultAppName,
   }) {
     if (_apps.containsKey(name)) return _apps[name];
 
-    var jsOptions = new JsAppOptions(
+    var jsOptions = new js.AppOptions(
       credential: credential,
       databaseURL: databaseURL,
     );
@@ -81,7 +80,7 @@ class FirebaseAdmin {
 /// Represents initialized Firebase application and provides access to the
 /// app's services.
 class App {
-  final JsApp _inner;
+  final js.App _inner;
 
   App._(this._inner);
 
@@ -99,17 +98,17 @@ class App {
 
 /// Firebase Admin credential service.
 class Credential {
-  final JsCredential _inner;
+  final js.Credential _inner;
 
   Credential._(this._inner);
 
   /// Creates app certificate from service account key parameters.
-  JsCredential cert({
+  js.Credential cert({
     String projectId,
     String clientEmail,
     String privateKey,
   }) {
-    return _inner.cert(new JsServiceAccountConfig(
+    return _inner.cert(new js.ServiceAccountConfig(
       project_id: projectId,
       client_email: clientEmail,
       private_key: privateKey,
@@ -117,5 +116,5 @@ class Credential {
   }
 
   /// Creates app certificate from service account key file specified by `path`.
-  JsCredential certFromPath(String path) => _inner.cert(path);
+  js.Credential certFromPath(String path) => _inner.cert(path);
 }
