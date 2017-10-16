@@ -2,7 +2,7 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:js' as js;
+import 'dart:js';
 
 import 'package:node_interop/node_interop.dart';
 
@@ -107,7 +107,7 @@ class DataSnapshot {
       return action(snapshot);
     }
 
-    return _inner.forEach(js.allowInterop(wrapper));
+    return _inner.forEach(allowInterop(wrapper));
   }
 
   bool hasChild(String path) => _inner.hasChild(path);
@@ -116,8 +116,8 @@ class DataSnapshot {
 
   dynamic val() {
     var value = _inner.val();
-    if (value is js.JsObject) {
-      return jsObjectToMap(value);
+    if (value is JsObject) {
+      return dartify(value);
     }
     return value;
   }
