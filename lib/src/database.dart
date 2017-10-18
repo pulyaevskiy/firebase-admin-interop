@@ -4,70 +4,232 @@
 import 'dart:async';
 import 'dart:js';
 
+import 'package:built_value/serializer.dart';
 import 'package:node_interop/node_interop.dart';
 
+import 'app.dart';
 import 'bindings.dart' as js;
+import 'serializers.dart';
 
 /// Firebase Realtime Database service.
 class Database {
-  final js.Database _inner;
+  final js.Database nativeInstance;
 
-  Database(this._inner);
+  /// The app associated with this Database instance.
+  final App app;
 
-  /// The Firebase app of this database.
-  js.App get app => _inner.app;
+  Database.forApp(this.app) : nativeInstance = app.nativeInstance.database();
 
-  void goOffline() {
-    _inner.goOffline();
-  }
+  /// Disconnects from the server (all Database operations will be completed
+  /// offline).
+  void goOffline() => nativeInstance.goOffline();
 
-  void goOnline() {
-    _inner.goOnline();
-  }
+  /// Reconnects to the server and synchronizes the offline Database state with
+  /// the server state.
+  void goOnline() => nativeInstance.goOnline();
 
-  Reference ref([String path]) => new Reference._(_inner.ref(path));
+  /// Returns a [Reference] representing the location in the Database
+  /// corresponding to the provided [path]. If no path is provided, the
+  /// Reference will point to the root of the Database.
+  Reference ref([String path]) => new Reference(nativeInstance.ref(path));
+
+  /// Returns a [Reference] representing the location in the Database
+  /// corresponding to the provided Firebase URL.
+  Reference refFromUrl(String url) =>
+      new Reference(nativeInstance.refFromURL(url));
 }
 
-class Reference {
-  final js.Reference _inner;
+/// Sorts and filters the data at a [Database] location so only a subset of the
+/// child data is included.
+///
+/// This can be used to order a collection of data by some attribute (for
+/// example, height of dinosaurs) as well as to restrict a large list of items
+/// (for example, chat messages) down to a number suitable for synchronizing to
+/// the client. Queries are created by chaining together one or more of the
+/// filter methods defined here.
+///
+/// Just as with a [Reference], you can receive data from a [Query] by using
+/// the [on] method. You will only receive events and [DataSnapshot]s for the
+/// subset of the data that matches your query.
+///
+/// See also:
+///   - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
+class Query {
+  final js.Query nativeInstance;
 
-  Reference._(this._inner);
+  Query(this.nativeInstance);
 
-  String get key => _inner.key;
-  Reference get parent => new Reference._(_inner.parent);
-  Reference get root => new Reference._(_inner.root);
-  Reference child(String path) => new Reference._(_inner.child(path));
-  Future<DataSnapshot> once(String eventType) {
-    return jsPromiseToFuture(_inner.once(eventType))
-        .then((jsSnapshot) => new DataSnapshot._(jsSnapshot));
+  /// Listens for exactly one event of the specified [eventType], and then stops
+  /// listening.
+  Future<DataSnapshot<T>> once<T>(String eventType,
+      [Serializer<T> serializer]) {
+    return jsPromiseToFuture(nativeInstance.once(eventType))
+        .then((snapshot) => new DataSnapshot(snapshot, serializer));
+  }
+}
+
+/// A Reference represents a specific location in your [Database] and can be
+/// used for reading or writing data to that Database location.
+class Reference extends Query {
+  Reference(js.Reference nativeInstance) : super(nativeInstance);
+
+  @override
+  js.Reference get nativeInstance => super.nativeInstance;
+
+  /// The last part of this Reference's path.
+  ///
+  /// For example, "ada" is the key for `https://<DB>.firebaseio.com/users/ada`.
+  /// The key of a root [Reference] is `null`.
+  String get key => nativeInstance.key;
+
+  /// The parent location of this Reference.
+  ///
+  /// The parent of a root Reference is `null`.
+  Reference get parent => new Reference(nativeInstance.parent);
+
+  /// The root [Reference] of the [Database].
+  Reference get root => new Reference(nativeInstance.root);
+
+  /// Gets a [Reference] for the location at the specified relative [path].
+  ///
+  /// The relative [path] can either be a simple child name (for example, "ada")
+  /// or a deeper slash-separated path (for example, "ada/name/first").
+  Reference child(String path) => new Reference(nativeInstance.child(path));
+
+  /// Returns an [OnDisconnect] object.
+  ///
+  /// For more information on how to use it see
+  /// [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities).
+  dynamic onDisconnect() {
+    throw new UnimplementedError();
   }
 
-  Future<Null> set(value) {
-    var jsValue;
-    if (value is String ||
-        value is double ||
-        value is int ||
-        value is bool ||
-        value == null) {
-      jsValue = value;
-    } else {
-      throw new UnsupportedError(
-          'Unsupported value type: ${value.runtimeType}');
-    }
-
-    var promise = _inner.set(jsValue);
-    return jsPromiseToFuture(promise);
+  /// Generates a new child location using a unique key and returns its
+  /// [FutureReference].
+  ///
+  /// This is the most common pattern for adding data to a collection of items.
+  ///
+  /// If you provide a [value] to [push], the value will be written to the
+  /// generated location. If you don't pass a value, nothing will be written to
+  /// the Database and the child will remain empty (but you can use the
+  /// [FutureReference] elsewhere).
+  ///
+  /// Optional [serializer], if provided, is used to serialize [value] in
+  /// JSON-compatible format.
+  ///
+  /// The unique key generated by this method are ordered by the current time,
+  /// so the resulting list of items will be chronologically sorted. The keys
+  /// are also designed to be unguessable (they contain 72 random bits of
+  /// entropy).
+  FutureReference push<T>([T value, Serializer<T> serializer]) {
+    var futureRef;
+    if (value != null) {
+      // TODO: Maybe a good idea to implement JsObjectSerializerPlugin to avoid extra jsify() call below
+      value = (serializer != null)
+          ? serializers.serializeWith(serializer, value)
+          : value;
+      futureRef = nativeInstance.push(jsify(value));
+    } else
+      futureRef = nativeInstance.push();
+    return new FutureReference(nativeInstance, jsPromiseToFuture(futureRef));
   }
+
+  /// Removes the data at this Database location.
+  ///
+  /// Any data at child locations will also be deleted.
+  ///
+  /// The effect of the remove will be visible immediately and the corresponding
+  /// event 'value' will be triggered. Synchronization of the remove to the
+  /// Firebase servers will also be started, and the returned [Future] will
+  /// resolve when complete.
+  Future<Null> remove() => jsPromiseToFuture(nativeInstance.remove());
+
+  /// Writes data to this Database location.
+  ///
+  /// This will overwrite any data at this location and all child locations.
+  ///
+  /// Optional [serializer], if provided, is used to serialize [value] in
+  /// JSON-compatible format.
+  ///
+  /// The effect of the write will be visible immediately, and the corresponding
+  /// events ("value", "child_added", etc.) will be triggered. Synchronization
+  /// of the data to the Firebase servers will also be started, and the returned
+  /// [Future] will resolve when complete.
+  ///
+  /// Passing `null` for the new value is equivalent to calling [remove];
+  /// namely, all data at this location and all child locations will be deleted.
+  ///
+  /// [setValue] will remove any priority stored at this location, so if priority is
+  /// meant to be preserved, you need to use [setWithPriority] instead.
+  ///
+  /// Note that modifying data with [setValue] will cancel any pending transactions
+  /// at that location, so extreme care should be taken if mixing [setValue] and
+  /// [transaction] to modify the same data.
+  ///
+  /// A single [setValue] will generate a single "value" event at the location
+  /// where the `setValue()` was performed.
+  Future<Null> setValue<T>(T value, [Serializer<T> serializer]) {
+    value = (serializer != null)
+        ? serializers.serializeWith(serializer, value)
+        : value;
+    // TODO: avoid extra jsify with custom serializer plugin.
+    return jsPromiseToFuture(nativeInstance.set(jsify(value)));
+  }
+
+  /// Sets a priority for the data at this Database location.
+  ///
+  /// Applications need not use priority but can order collections by ordinary
+  /// properties.
+  ///
+  /// See also:
+  /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
+  Future<Null> setPriority(priority) =>
+      jsPromiseToFuture(nativeInstance.setPriority(priority));
+
+  /// Writes data the Database location. Like [setValue] but also specifies the
+  /// [priority] for that data.
+  ///
+  /// Applications need not use priority but can order collections by ordinary
+  /// properties.
+  ///
+  /// See also:
+  /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
+  Future<Null> setWithPriority<T>(T value, priority,
+      [Serializer<T> serializer]) {
+    value = (serializer != null)
+        ? serializers.serializeWith(serializer, value)
+        : value;
+    // TODO: avoid extra jsify with custom serializer plugin.
+    return jsPromiseToFuture(
+        nativeInstance.setWithPriority(jsify(value), priority));
+  }
+}
+
+/// A special [Reference] which notifies when it's written to the database.
+///
+/// This reference is returned from [Reference.push] and has only one extra
+/// property [done] - a [Future] which is resolved when data is written to
+/// the database.
+///
+/// For more details see documentation for [Reference.push].
+class FutureReference extends Reference {
+  final Future<Null> done;
+  FutureReference(js.ThenableReference nativeInstance, this.done)
+      : super(nativeInstance);
 }
 
 /// A `DataSnapshot` contains data from a [Database] location.
 ///
 /// Any time you read data from the Database, you receive the data as a
-/// `DataSnapshot`.
-class DataSnapshot {
-  final js.DataSnapshot _inner;
+/// [DataSnapshot].
+class DataSnapshot<T> {
+  final js.DataSnapshot nativeInstance;
 
-  DataSnapshot._(this._inner);
+  /// Optional [Serializer] used to deserialize value retrieved from this data
+  /// snapshot.
+  final Serializer<T> serializer;
+
+  DataSnapshot(this.nativeInstance, [this.serializer]);
 
   /// The key (last part of the path) of the location of this `DataSnapshot`.
   ///
@@ -76,22 +238,24 @@ class DataSnapshot {
   /// `DataSnapshot` will return the key for the location that generated it.
   /// However, accessing the key on the root URL of a `Database` will return
   /// `null`.
-  String get key => _inner.key;
+  String get key => nativeInstance.key;
 
-  /// The [Reference] for the location that generated this `DataSnapshot`.
-  Reference get ref => new Reference._(_inner.ref);
+  /// The [Reference] for the location that generated this [DataSnapshot].
+  Reference get ref => new Reference(nativeInstance.ref);
 
-  /// Gets `DataSnapshot` for the location at the specified relative `path`.
+  /// Gets [DataSnapshot] for the location at the specified relative [path].
   ///
-  /// The relative path can either be a simple child name (for example, "ada") or
-  /// a deeper, slash-separated path (for example, "ada/name/first"). If the child
-  /// location has no data, an empty `DataSnapshot` (that is, a `DataSnapshot`
-  /// whose value is `null`) is returned.
-  DataSnapshot child(String path) => new DataSnapshot._(_inner.child(path));
+  /// The relative path can either be a simple child name (for example, "ada")
+  /// or a deeper, slash-separated path (for example, "ada/name/first"). If the
+  /// child location has no data, an empty DataSnapshot (that is, a
+  /// DataSnapshot whose value is `null`) is returned.
+  DataSnapshot<S> child<S>(String path, [Serializer<S> serializer]) =>
+      new DataSnapshot(nativeInstance.child(path), serializer);
 
-  /// Returns true if this `DataSnapshot` contains any data.
-  /// It is slightly more efficient than using snapshot.val() !== null.
-  bool exists() => _inner.exists();
+  /// Returns `true` if this DataSnapshot contains any data.
+  ///
+  /// It is slightly more efficient than using `snapshot.val() !== null`.
+  bool exists() => nativeInstance.exists();
 
   /// Enumerates the top-level children in this `DataSnapshot`.
   ///
@@ -101,24 +265,37 @@ class DataSnapshot {
   /// If no explicit orderBy*() method is used, results are returned ordered by
   /// key (unless priorities are used, in which case, results are returned
   /// by priority).
-  bool forEach(bool action(DataSnapshot child)) {
+  bool forEach<S>(bool action(DataSnapshot<S> child),
+      [Serializer<S> serializer]) {
     bool wrapper(js.DataSnapshot child) {
-      var snapshot = new DataSnapshot._(child);
-      return action(snapshot);
+      return action(new DataSnapshot(child, serializer));
     }
 
-    return _inner.forEach(allowInterop(wrapper));
+    return nativeInstance.forEach(allowInterop(wrapper));
   }
 
-  bool hasChild(String path) => _inner.hasChild(path);
-  bool hasChildren() => _inner.hasChildren();
-  int numChildren() => _inner.numChildren();
+  bool hasChild(String path) => nativeInstance.hasChild(path);
+  bool hasChildren() => nativeInstance.hasChildren();
+  int numChildren() => nativeInstance.numChildren();
 
-  dynamic val() {
-    var value = _inner.val();
-    if (value is JsObject) {
-      return dartify(value);
-    }
-    return value;
+  T _value;
+
+  /// Returns value stored in this data snapshot.
+  ///
+  /// The raw value is deserialized with [serializer] if it's set.
+  T val() {
+    if (_value != null) return _value;
+    if (!exists()) return null; // Don't attempt to deserialize empty snapshot.
+
+    var dartifiedValue = dartify(nativeInstance.val());
+    if (serializer != null) {
+      _value = serializers.deserializeWith(serializer, dartifiedValue);
+    } else
+      _value = dartifiedValue;
+    return _value;
   }
+
+  // NOTE: intentionally not following JS library name – using Dart convention.
+  /// Returns a JSON-serializable representation of this data snapshot.
+  Object toJson() => dartify(nativeInstance.toJSON());
 }

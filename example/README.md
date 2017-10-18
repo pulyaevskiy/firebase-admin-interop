@@ -25,5 +25,5 @@ $ pub build node/
 ### 4. Run
 
 ```bash
-$ node build/node/example.dart.js
+$ node build/node/built_values.dart.js
 ```

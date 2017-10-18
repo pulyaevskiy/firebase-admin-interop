@@ -1,69 +1,89 @@
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 @JS()
-library firebase_admin_interop.bindings;
+library firebase_admin;
 
+import 'dart:js';
+
+import 'package:firestore_interop/firestore_interop.dart';
 import 'package:js/js.dart';
 import 'package:node_interop/node_interop.dart';
 
-FirebaseAdmin requireFirebaseAdmin() => require('firebase-admin');
+export 'package:firestore_interop/firestore_interop.dart'
+    show Firestore, FieldPath, FieldValue, GeoPoint;
 
-/// Global namespace from which all the Firebase Admin services are accessed.
+void initFirebaseAdmin() {
+  if (context.hasProperty('FirebaseAdmin')) return;
+  context['FirebaseAdmin'] = context.callMethod('require', ['firebase-admin']);
+}
+
+// admin =======================================================================
+
+const defaultAppName = '[DEFAULT]';
+
+/// Creates and initializes a Firebase app instance.
+@JS('FirebaseAdmin.initializeApp')
+external App initializeApp(options, [String name]);
+
+/// The current SDK version.
+@JS('FirebaseAdmin.SDK_VERSION')
+external String get SDK_VERSION;
+
+/// A (read-only) array of all initialized apps.
+@JS('FirebaseAdmin.apps')
+external List<App> get apps;
+
+/// Retrieves a Firebase [App] instance.
 ///
-/// Access via [requireFirebaseAdmin].
-@JS()
-abstract class FirebaseAdmin {
-  /// The current SDK version.
-  external static String get SDK_VERSION;
+/// When called with no arguments, the default app is returned. When an app
+/// [name] is provided, the app corresponding to that name is returned.
+///
+/// An exception is thrown if the app being retrieved has not yet been
+/// initialized.
+@JS('FirebaseAdmin.app')
+external App app([String name]);
 
-  /// A (read-only) array of all initialized apps.
-  external List<App> get apps;
+/// Gets the [Database] service for the default app or a given [app].
+@JS('FirebaseAdmin.database')
+external Database database([App app]);
 
-  /// Credential service used by Firebase.
-  external CredentialService get credential;
+/// Gets the [Firestore] client for the default app or a given [app].
+@JS('FirebaseAdmin.firestore')
+external Firestore firestore([App app]);
 
-  /// Retrieves a Firebase app instance.
-  ///
-  /// When called with no arguments, the default app is returned. When an app
-  /// name is provided, the app corresponding to that name is returned.
-  ///
-  /// An exception is thrown if the app being retrieved has not yet been
-  /// initialized.
-  external App app([String name]);
+@JS('FirebaseAdmin.FirebaseError')
+abstract class FirebaseError extends JsError {}
 
-  /// Creates and initializes a Firebase app instance.
-  external App initializeApp(AppOptions options, [String name]);
-
-  /// Gets the [Database] service for the default app or a given [app].
-  external Database database([App app]);
-
-  /// Gets the [FirestoreService] service for the default app or a given [app].
-  external FirestoreService firestore([App app]);
+@JS('FirebaseAdmin.FirebaseArrayIndexError')
+abstract class FirebaseArrayIndexError {
+  external FirebaseError get error;
+  external num get index;
 }
 
-/// Credentials service used by Firebase.
-@JS()
-abstract class CredentialService {
-  /// Returns a [Credential] created from the Google Application Default
-  /// Credentials that grants admin access to Firebase services.
-  ///
-  /// This credential can be used in the call to [FirebaseAdmin.initializeApp].
-  external Credential applicationDefault();
+// admin.credential ============================================================
 
-  /// Returns [Credential] created from the provided service account that grants
-  /// admin access to Firebase services.
-  ///
-  /// This credential can be used in the call to [FirebaseAdmin.initializeApp].
-  /// [credentials] must be a path to a service account key JSON file or an
-  /// object representing a service account key.
-  external Credential cert(credentials);
+/// Returns a [Credential] created from the Google Application Default
+/// Credentials (ADC) that grants admin access to Firebase services.
+///
+/// This credential can be used in the call to [initializeApp].
+@JS('FirebaseAdmin.credential.applicationDefault')
+external Credential applicationDefaultCredential();
 
-  /// Returns [Credential] created from the provided refresh token that grants
-  /// admin access to Firebase services.
-  ///
-  /// This credential can be used in the call to [FirebaseAdmin.initializeApp].
-  external Credential refreshToken(refreshTokenPathOrObject);
-}
+/// Returns [Credential] created from the provided service account that grants
+/// admin access to Firebase services.
+///
+/// This credential can be used in the call to [initializeApp].
+/// [credentials] must be a path to a service account key JSON file or an
+/// object representing a service account key.
+@JS('FirebaseAdmin.credential.cert')
+external Credential cert(credentials);
+
+/// Returns [Credential] created from the provided refresh token that grants
+/// admin access to Firebase services.
+///
+/// This credential can be used in the call to [initializeApp].
+@JS('FirebaseAdmin.credential.refreshToken')
+external Credential refreshToken(refreshTokenPathOrObject);
 
 @JS()
 @anonymous
@@ -76,50 +96,9 @@ abstract class ServiceAccountConfig {
       {String project_id, String client_email, String private_key});
 }
 
-/// A Firebase app holds the initialization information for a collection of
-/// services.
-@JS()
-abstract class App {
-  /// The name for this app.
-  ///
-  /// The default app's name is `[DEFAULT]`.
-  external String get name;
-
-  /// The (read-only) configuration options for this app. These are the original
-  /// parameters given in [FirebaseAdmin.initializeApp].
-  external AppOptions get options;
-
-  /// Gets the [Auth] service for the current app.
-  external Auth auth();
-
-  /// Gets the [Database] service for the current app.
-  external Database database();
-
-  /// Renders this app unusable and frees the resources of all associated
-  /// services.
-  external Promise delete();
-
-  /// Gets the [FirestoreService] service for the current app.
-  external FirestoreService firestore();
-}
-
-@JS()
-@anonymous
-abstract class AppOptions {
-  external Credential get credential;
-  external String get databaseURL;
-  external factory AppOptions({Credential credential, String databaseURL});
-}
-
-/// The Firebase Auth service interface.
-@JS()
-abstract class Auth {
-  // TODO: add bindings for Auth service interface.
-}
-
 /// Interface which provides Google OAuth2 access tokens used to authenticate
 /// with Firebase services.
-@JS()
+@JS('FirebaseAdmin.credential.Credential')
 abstract class Credential {
   /// Returns a Google OAuth2 [AccessToken] object used to authenticate with
   /// Firebase services.
@@ -129,6 +108,7 @@ abstract class Credential {
 /// Google OAuth2 access token object used to authenticate with Firebase
 /// services.
 @JS()
+@anonymous
 abstract class AccessToken {
   /// The actual Google OAuth2 access token.
   external String get access_token;
@@ -137,32 +117,106 @@ abstract class AccessToken {
   external num get expires_in;
 }
 
-// TODO: Wait until https://github.com/dart-lang/sdk/issues/30969 is resolved.
-@JS()
-abstract class DatabaseService {
-  /// A placeholder value for auto-populating the current timestamp (time since
-  /// the Unix epoch, in milliseconds) as determined by the Firebase servers.
-  external ServerValues get ServerValue;
+// admin.app ===================================================================
 
-  /// Logs debugging information to the console.
-  external enableLogging([dynamic logger, bool persistent]);
+/// A Firebase app holds the initialization information for a collection of
+/// services.
+@JS('FirebaseAdmin.app.App')
+abstract class App {
+  /// The name for this app.
+  ///
+  /// The default app's name is `[DEFAULT]`.
+  external String get name;
+
+  /// The (read-only) configuration options for this app. These are the original
+  /// parameters given in [initializeApp].
+  external AppOptions get options;
+
+  /// Gets the [Auth] service for this app.
+  external Auth auth();
+
+  /// Gets the [Database] service for this app.
+  external Database database();
+
+  /// Renders this app unusable and frees the resources of all associated
+  /// services.
+  external Promise delete();
+
+  /// Gets the [Firestore] client for this app.
+  external Firestore firestore();
 }
 
-/// The Firebase Database service interface.
-///
-/// Access via [FirebaseAdmin.database].
+/// Available options to pass to [initializeApp].
+@JS('FirebaseAdmin.app.AppOptions')
+@anonymous
+abstract class AppOptions {
+  /// A [Credential] object used to authenticate the Admin SDK.
+  ///
+  /// You can obtain a credential via one of the following methods:
+  ///
+  /// - [applicationDefaultCredential]
+  /// - [cert]
+  /// - [refreshToken]
+  external Credential get credential;
+
+  /// The URL of the Realtime Database from which to read and write data.
+  external String get databaseURL;
+
+  /// The ID of the Google Cloud project associated with the App.
+  external String get projectId;
+
+  /// The name of the default Cloud Storage bucket associated with the App.
+  external String get storageBucket;
+
+  /// Creates new instance of [AppOptions].
+  external factory AppOptions({
+    Credential credential,
+    String databaseURL,
+    String projectId,
+    String storageBucket,
+  });
+}
+
+// admin.auth ==================================================================
+
+/// The Firebase Auth service interface.
 @JS()
+abstract class Auth {
+  // TODO: add definitions for Auth interface.
+}
+
+// admin.database ==============================================================
+
+/// A placeholder value for auto-populating the current timestamp (time since
+/// the Unix epoch, in milliseconds) as determined by the Firebase servers.
+@JS('FirebaseAdmin.database.ServerValue')
+external ServerValue get databaseServerValue;
+
+@JS()
+@anonymous
+abstract class ServerValue {
+  external num get TIMESTAMP;
+}
+
+/// Logs debugging information to the console.
+@JS('FirebaseAdmin.database.enableLogging')
+external databaseEnableLogging([dynamic logger, bool persistent]);
+
+/// The Firebase Database interface.
+///
+/// Access via [database].
+@JS('FirebaseAdmin.database.Database')
 abstract class Database {
-  /// The app associated with this Database service instance.
+  /// The app associated with this Database instance.
   external App get app;
 
   /// Disconnects from the server (all Database operations will be completed
   /// offline).
-  external goOffline();
+  external void goOffline();
 
   /// Reconnects to the server and synchronizes the offline Database state with
   /// the server state.
-  external goOnline();
+  external void goOnline();
 
   /// Returns a [Reference] representing the location in the Database
   /// corresponding to the provided [path]. If no path is provided, the
@@ -174,14 +228,9 @@ abstract class Database {
   external Reference refFromURL(String url);
 }
 
-@JS()
-abstract class ServerValues {
-  external num get TIMESTAMP;
-}
-
 /// A Reference represents a specific location in your [Database] and can be
 /// used for reading or writing data to that Database location.
-@JS()
+@JS('FirebaseAdmin.database.Reference')
 abstract class Reference extends Query {
   /// The last part of this Reference's path.
   ///
@@ -281,7 +330,7 @@ abstract class Reference extends Query {
       [onComplete(JsError error)]);
 }
 
-@JS()
+@JS('FirebaseAdmin.database.ThenableReference')
 abstract class ThenableReference extends Reference implements Promise {}
 
 /// Allows you to write or clear data when your client disconnects from the
@@ -301,7 +350,7 @@ abstract class ThenableReference extends Reference implements Promise {}
 /// Note that `onDisconnect` operations are only triggered once. If you want an
 /// operation to occur each time a disconnect occurs, you'll need to
 /// re-establish the onDisconnect operations each time you reconnect.
-@JS()
+@JS('FirebaseAdmin.database.OnDisconnect')
 abstract class OnDisconnect {
   /// Cancels all previously queued `onDisconnect()` set or update events for
   /// this location and all children.
@@ -378,7 +427,7 @@ abstract class OnDisconnect {
 ///
 /// See also:
 ///   - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-@JS()
+@JS('FirebaseAdmin.database.Query')
 abstract class Query {
   /// Returns a `Reference` to the [Query]'s location.
   external Reference get ref;
@@ -555,7 +604,7 @@ abstract class Query {
 /// A DataSnapshot is an efficiently generated, immutable copy of the data at a
 /// Database location. It cannot be modified and will never change (to modify
 /// data, you always call the [set] method on a [Reference] directly).
-@JS()
+@JS('FirebaseAdmin.database.DataSnapshot')
 abstract class DataSnapshot {
   /// The key (last part of the path) of the location of this DataSnapshot.
   ///
@@ -644,81 +693,4 @@ abstract class DataSnapshot {
   /// also return `null`, indicating that the DataSnapshot is empty (contains
   /// no data).
   external dynamic val();
-}
-
-@JS()
-abstract class FirestoreService {
-  /// Gets reference to constructor for `FieldPath` JavaScript object.
-  ///
-  /// To create a new FieldPath use `callConstructor` from js package:
-  ///
-  ///     import 'package:js/js_util.dart';
-  ///
-  ///     void main() {
-  ///       // ...get admin instance, then:
-  ///       var firestore = admin.firestore();
-  ///       var fieldPath = callConstructor(firestore.FieldPath, ['my', 'path']);
-  ///     }
-
-  external dynamic get FieldPath;
-
-  /// Provides access to sentinel values that can be used when writing document
-  /// fields with `set()` or `update()`.
-  external FieldValues get FieldValue;
-
-  /// Gets reference to constructor for `GeoPoint` JavaScript object.
-  ///
-  /// To create a new GeoPoint use `callConstructor` from js package:
-  ///
-  ///     import 'package:js/js_util.dart';
-  ///
-  ///     void main() {
-  ///       // ...get admin instance, then:
-  ///       var firestore = admin.firestore();
-  ///       var fieldPath = callConstructor(firestore.FieldGeoPointPath, [53.9273, 123.4567]);
-  ///     }
-  external dynamic get GeoPoint;
-
-  /// Returns a special sentinel `FieldPath` to refer to the ID of a document.
-  /// It can be used in queries to sort or filter by the document ID.
-  // TODO: is there a way to annotate return type with FieldType without analyzer complaining?
-  external dynamic documentId();
-}
-
-/// A [FieldPath] refers to a field in a document.
-///
-/// The path may consist of a single field name (referring to a top-level field
-/// in the document), or a list of field names (referring to a nested field in
-/// the document).
-///
-/// Create a [FieldPath] by providing field names. If more than one field name
-/// is provided, the path will point to a nested field in a document.
-@JS()
-abstract class FieldPath {}
-
-/// Sentinel values that can be used when writing document fields with `set()`
-/// or `update()`.
-@JS()
-abstract class FieldValues {
-  /// Returns a sentinel for use with update() to mark a field for deletion.
-  external /* static */ FieldValue delete();
-
-  /// Returns a sentinel used with `set()` or `update()` to include a
-  /// server-generated timestamp in the written data.
-  external /* static */ FieldValue serverTimestamp();
-}
-
-@JS()
-abstract class FieldValue {}
-
-/// An immutable object representing a geo point in Cloud Firestore.
-///
-/// The geo point is represented as latitude/longitude pair.
-@JS()
-abstract class GeoPoint {
-  /// Latitude values are in the range of -90 to 90.
-  external num get latitude;
-
-  /// Longitude values are in the range of -180 to 180.
-  external num get longitude;
 }
