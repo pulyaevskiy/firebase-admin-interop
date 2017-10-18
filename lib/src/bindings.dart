@@ -272,7 +272,7 @@ abstract class Reference extends Query {
   /// so the resulting list of items will be chronologically sorted. The keys
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
-  external ThenableReference push([value, onComplete(JsError error)]);
+  external ThenableReference<Null> push([value, onComplete(JsError error)]);
 
   /// Removes the data at this Database location.
   ///
@@ -331,7 +331,7 @@ abstract class Reference extends Query {
 }
 
 @JS('FirebaseAdmin.database.ThenableReference')
-abstract class ThenableReference extends Reference implements Promise {}
+abstract class ThenableReference<T> extends Reference implements Promise<T> {}
 
 /// Allows you to write or clear data when your client disconnects from the
 /// [Database] server. These updates occur whether your client disconnects

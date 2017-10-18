@@ -85,10 +85,12 @@ class Reference extends Query {
   /// The parent location of this Reference.
   ///
   /// The parent of a root Reference is `null`.
-  Reference get parent => new Reference(nativeInstance.parent);
+  Reference get parent => _parent ??= new Reference(nativeInstance.parent);
+  Reference _parent;
 
   /// The root [Reference] of the [Database].
-  Reference get root => new Reference(nativeInstance.root);
+  Reference get root => _root ??= new Reference(nativeInstance.root);
+  Reference _root;
 
   /// Gets a [Reference] for the location at the specified relative [path].
   ///
@@ -122,16 +124,20 @@ class Reference extends Query {
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
   FutureReference push<T>([T value, Serializer<T> serializer]) {
-    var futureRef;
     if (value != null) {
-      // TODO: Maybe a good idea to implement JsObjectSerializerPlugin to avoid extra jsify() call below
       value = (serializer != null)
           ? serializers.serializeWith(serializer, value)
           : value;
-      futureRef = nativeInstance.push(jsify(value));
-    } else
-      futureRef = nativeInstance.push();
-    return new FutureReference(nativeInstance, jsPromiseToFuture(futureRef));
+      // TODO: avoid `jsify` call with custom serializer plugin.
+      var futureRef = nativeInstance.push(jsify(value));
+      return new FutureReference(futureRef, jsPromiseToFuture(futureRef));
+    } else {
+      // JS side returns regular Reference if value is not provided, but
+      // we still convert it to FutureReference to be consistent with declared
+      // return type.
+      var newRef = nativeInstance.push();
+      return new FutureReference(newRef, new Future.value());
+    }
   }
 
   /// Removes the data at this Database location.
@@ -268,7 +274,7 @@ class DataSnapshot<T> {
   bool forEach<S>(bool action(DataSnapshot<S> child),
       [Serializer<S> serializer]) {
     bool wrapper(js.DataSnapshot child) {
-      return action(new DataSnapshot(child, serializer));
+      return action(new DataSnapshot<S>(child, serializer));
     }
 
     return nativeInstance.forEach(allowInterop(wrapper));
