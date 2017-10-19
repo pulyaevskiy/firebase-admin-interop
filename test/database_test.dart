@@ -1,18 +1,30 @@
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
+import 'package:built_value/standard_json_plugin.dart';
 @TestOn('node')
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 import 'package:test/test.dart';
 
 import 'setup.dart';
+import 'src/serializers.dart';
+import 'src/values.dart';
 
 void main() {
   App app = initFirebaseApp();
+  FirebaseAdmin.instance.registerSerializers(serializers);
 
   group('Database', () {
     tearDownAll(() {
       return app.delete();
+    });
+
+    group('Serializers', () {
+      test('adding extra StandardJsonPlugin', () {
+        var builder = serializers.toBuilder();
+        builder.addPlugin(new StandardJsonPlugin());
+        FirebaseAdmin.instance.registerSerializers(builder.build());
+      });
     });
 
     group('Query', () {
@@ -77,6 +89,15 @@ void main() {
 
       test('setValue()', () {
         expect(ref.setValue('Firebase'), completes);
+      });
+
+      test('setValue() with `Built` type', () {
+        var memo = new Memo((builder) {
+          builder.id = 234;
+          builder.title = 'Test Value';
+          builder.createdAt = new DateTime.now().toUtc();
+        });
+        expect(ref.setValue(memo, Memo.serializer), completes);
       });
     });
 
@@ -146,6 +167,22 @@ void main() {
         var val = snapshot.val();
         expect(val, isMap);
         expect(val.length, 2);
+      });
+
+      test('val() with `Built` type', () async {
+        var memo = new Memo((builder) {
+          builder.id = 234;
+          builder.title = 'Test Value';
+          builder.createdAt = DateTime.parse('2017-10-17 22:46:52.819Z');
+        });
+        await ref.setValue(memo, Memo.serializer);
+
+        var snapshot = await ref.once<Memo>('value', Memo.serializer);
+        var val = snapshot.val();
+        expect(val, new isInstanceOf<Memo>());
+        expect(val.id, 234);
+        expect(val.title, 'Test Value');
+        expect(val.createdAt, DateTime.parse('2017-10-17 22:46:52.819Z'));
       });
     });
   });

@@ -9,8 +9,7 @@ This is an early preview, alpha open-source project.
 * [Examples](#examples)
 * [Status](#status)
 * [Usage](#usage)
-* [Features](#features)
-  * [built_value support](#built_value-support)
+  * [built_value integration](#built_value-integration)
 
 ## What is this?
 
@@ -28,12 +27,25 @@ different APIs.
 
 ## Status
 
-This is a early preview, alpha version which is far from being feature
+This is a early preview, alpha version which is not feature
 complete. Breaking changes are likely to occur.
 
 Make sure to checkout [CHANGELOG.md](https://github.com/pulyaevskiy/firebase-admin-interop/blob/master/CHANGELOG.md)
 after every release, all notable changes and upgrade instructions will
 be described there.
+
+Current implementation coverage report:
+
+- [x] admin
+- [ ] admin.auth
+- [x] admin.app
+- [x] admin.credential
+- [x] admin.database (~90%)
+- [ ] admin.firestore
+- [ ] admin.messaging
+- [ ] admin.storage
+
+
 
 If you found a bug, please don't hesitate to create an issue in the
 [issue tracker](http://github.com/pulyaevskiy/firebase-admin-interop/issues/new).
@@ -60,57 +72,21 @@ Future main() async {
 }
 ```
 
-## Features
+Note that it is only possible to use JSON-compatible values when reading
+and writing data to the database. This includes all primitive
+types (`int`, `double`, `bool`), string values (`String`) as well as
+any `List` or `Map` instance.
 
-### built_value support
-
-As of `0.1.0-beta.2` this library introduced preliminary support for
+As of `0.1.0` this library introduced preliminary support for
 models and serializers generated with
 [built_value](https://pub.dartlang.org/packages/built_value) package.
+This enables you to use any `Built` value with this library.
 
-Here is general example of how to use it.
+### built_value integration
 
-#### 1. Create a model
-
-```dart
-// file:models.dart
-library models;
-
-import 'package:built_value/built_value.dart';
-import 'package:built_value/serializer.dart';
-
-part 'models.g.dart';
-
-abstract class Memo implements Built<Memo, MemoBuilder> {
-  static Serializer<Memo> get serializer => _$memoSerializer;
-  int get id;
-  String get title;
-  DateTime get createdAt;
-
-  factory Memo([updates(MemoBuilder b)]) = _$Memo;
-  Memo._();
-}
-// Add more models as needed...
-```
-
-#### 2. Initialize serializers
-
-```dart
-// file:serializers.dart
-library serializers;
-
-import 'package:built_value/serializer.dart';
-import 'models.dart';
-
-part 'serializers.g.dart';
-
-@SerializersFor(const [
-  Memo,
-])
-final Serializers serializers = _$serializers;
-```
-
-#### 3. Register and use serializer with Realtime Database
+Use `FirebaseAdmin.instance.registerSerializers()` to make this library
+aware of your models. Then you can pass specific `Serializer` to any
+method which reads or writes data to the Realtime Database.
 
 ```dart
 import 'dart:async';
@@ -122,12 +98,10 @@ import 'serializers.dart';
 
 Future main() async {
   // Initialize Firebase App as you would do normally:
-  var app = FirebaseAdmin.instance.initializeApp(/* your arguments */);
+  var app = FirebaseAdmin.instance.initializeApp(/* arguments */);
 
   /// Make Firebase library aware of your serializers:
   FirebaseAdmin.instance.registerSerializers(serializers);
-
-  var ref = app.database().ref('/built-value/memo');
 
   // Sample model
   var memo = new Memo((builder) {
@@ -136,10 +110,11 @@ Future main() async {
     builder.createdAt = new DateTime.now().toUtc();
   });
 
-  // Pass `Memo.serializer` as second argument to `setValue()`
+  var ref = app.database().ref('/built-value/memo');
+  // Note `Memo.serializer` as 2nd argument when writing data to ref.
   await ref.setValue(memo, Memo.serializer);
 
-  // Read memo back: pass `Memo.serializer` as 2nd argument to `once()`
+  // Note `Memo.serializer` as 2nd argument when reading data from ref.
   DataSnapshot<Memo> snapshot = await ref.once<Memo>('value', Memo.serializer);
   Memo storedMemo = snapshot.val();
   print('Value: ${storedMemo}');
