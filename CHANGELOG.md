@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0-beta.3
+
+- Updated JS bindings with type arguments for Promises.
+
 ## 0.1.0-beta.2
 
 - **New:** Preliminary support for [built_value](https://pub.dartlang.org/packages/built_value) models and serializers.
