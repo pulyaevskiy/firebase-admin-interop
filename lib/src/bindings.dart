@@ -140,7 +140,7 @@ abstract class App {
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.
-  external Promise delete();
+  external Promise<Null> delete();
 
   /// Gets the [Firestore] client for this app.
   external Firestore firestore();
@@ -272,7 +272,7 @@ abstract class Reference extends Query {
   /// so the resulting list of items will be chronologically sorted. The keys
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
-  external ThenableReference<Null> push([value, onComplete(JsError error)]);
+  external ThenableReference push([value, onComplete(JsError error)]);
 
   /// Removes the data at this Database location.
   ///
@@ -283,7 +283,7 @@ abstract class Reference extends Query {
   /// Firebase servers will also be started, and the returned [Promise] will
   /// resolve when complete. If provided, the [onComplete] callback will be
   /// called asynchronously after synchronization has finished.
-  external Promise remove([onComplete(JsError error)]);
+  external Promise<Null> remove([onComplete(JsError error)]);
 
   /// Writes data to this Database location.
   ///
@@ -307,7 +307,7 @@ abstract class Reference extends Query {
   ///
   /// A single [set] will generate a single "value" event at the location where
   /// the `set()` was performed.
-  external Promise set(value, [onComplete(JsError error)]);
+  external Promise<Null> set(value, [onComplete(JsError error)]);
 
   /// Sets a priority for the data at this Database location.
   ///
@@ -316,7 +316,7 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise setPriority(priority, [onComplete(JsError error)]);
+  external Promise<Null> setPriority(priority, [onComplete(JsError error)]);
 
   /// Writes data the Database location. Like [set] but also specifies the
   /// [priority] for that data.
@@ -326,12 +326,12 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise setWithPriority(value, priority,
+  external Promise<Null> setWithPriority(value, priority,
       [onComplete(JsError error)]);
 }
 
 @JS('FirebaseAdmin.database.ThenableReference')
-abstract class ThenableReference<T> extends Reference implements Promise<T> {}
+abstract class ThenableReference extends Reference implements Promise<Null> {}
 
 /// Allows you to write or clear data when your client disconnects from the
 /// [Database] server. These updates occur whether your client disconnects
@@ -362,7 +362,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise cancel([onComplete(JsError error)]);
+  external Promise<Null> cancel([onComplete(JsError error)]);
 
   /// Ensures the data at this location is deleted when the client is
   /// disconnected (due to closing the browser, navigating to a new page, or
@@ -371,7 +371,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise remove([onComplete(JsError error)]);
+  external Promise<Null> remove([onComplete(JsError error)]);
 
   /// Ensures the data at this location is set to the specified [value] when the
   /// client is disconnected (due to closing the browser, navigating to a new
@@ -387,12 +387,12 @@ abstract class OnDisconnect {
   ///
   /// See also:
   /// - [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities)
-  external Promise set(value, [onComplete(JsError error)]);
+  external Promise<Null> set(value, [onComplete(JsError error)]);
 
   /// Ensures the data at this location is set to the specified [value] and
   /// [priority] when the client is disconnected (due to closing the browser,
   /// navigating to a new page, or network issues).
-  external Promise setWithPriority(value, priority,
+  external Promise<Null> setWithPriority(value, priority,
       [onComplete(JsError error)]);
 
   /// Writes multiple [values] at this location when the client is disconnected
@@ -409,7 +409,7 @@ abstract class OnDisconnect {
   ///
   /// See [Reference.update] for examples of using the connected version of
   /// update.
-  external Promise update(values, [onComplete(JsError error)]);
+  external Promise<Null> update(values, [onComplete(JsError error)]);
 }
 
 /// Sorts and filters the data at a [Database] location so only a subset of the
@@ -528,7 +528,7 @@ abstract class Query {
   ///
   /// This is equivalent to calling [on], and then calling [off] inside the
   /// callback function. See [on] for details on the event types.
-  external Promise once(String eventType,
+  external Promise<DataSnapshot> once(String eventType,
       [successCallback, failureCallbackOrContext, context]);
 
   /// Generates a new [Query] object ordered by the specified child key.
