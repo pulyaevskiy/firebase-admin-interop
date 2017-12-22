@@ -14,3 +14,6 @@ doc/api/
 tool/build_example.sh
 *.json
 !example/package.json
+
+# Intellij/WebStorm
+.idea/

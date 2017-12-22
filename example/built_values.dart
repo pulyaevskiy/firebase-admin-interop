@@ -18,10 +18,10 @@ main() async {
     privateKey: env['FIREBASE_PRIVATE_KEY'].replaceAll(r'\n', '\n'),
   );
 
-  App app = FirebaseAdmin.instance.initializeApp(
+  App app = FirebaseAdmin.instance.initializeApp(new AppOptions(
     credential: cert,
     databaseURL: env['FIREBASE_DATABASE_URL'],
-  );
+  ));
 
   // Must make this library aware of the app's "built_value" models and
   // serializers.

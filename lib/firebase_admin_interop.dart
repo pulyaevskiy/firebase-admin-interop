@@ -40,4 +40,5 @@ library firebase_admin_interop;
 
 export 'src/admin.dart';
 export 'src/app.dart';
+export 'src/bindings.dart' show AppOptions;
 export 'src/database.dart';

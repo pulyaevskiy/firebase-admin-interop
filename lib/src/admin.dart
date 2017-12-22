@@ -12,7 +12,7 @@ import 'serializers.dart' as s;
 /// Provides access to Firebase Admin APIs.
 ///
 /// To start using Firebase services initialize a Firebase application
-/// with [initializeApp] method.
+/// with [initializeAppWith] method.
 class FirebaseAdmin {
   final Map<String, App> _apps = new Map();
 
@@ -31,9 +31,11 @@ class FirebaseAdmin {
   void registerSerializers(Serializers serializers) =>
       s.registerSerializers(serializers);
 
-  /// Creates and initializes a Firebase [App] instance.
   ///
-  /// The app is initialized with provided `credential` and `databaseURL`.
+  /// Creates and initializes a Firebase [App] instance  with the given
+  /// [options] and [name]
+  ///
+  /// The options is initialized with provided `credential` and `databaseURL`.
   /// A valid credential can be obtained with [cert] or
   /// [certFromPath].
   ///
@@ -48,27 +50,21 @@ class FirebaseAdmin {
   ///       privateKey: 'your-private-key',
   ///     );
   ///     var app = FirebaseAdmin.instance.initializeApp(
-  ///       credential: certificate,
-  ///       databaseURL: 'https://your-database.firebase.io',
+  ///       new AppOptions(
+  ///         credential: certificate,
+  ///         databaseURL: 'https://your-database.firebase.io')
   ///     );
   ///
   /// See also:
   ///   * [App]
   ///   * [cert]
   ///   * [certFromPath]
-  App initializeApp({
-    @required js.Credential credential,
-    @required String databaseURL,
-    String name: js.defaultAppName,
-  }) {
+  App initializeApp(@required js.AppOptions options, [String name]) {
+    name ??= js.defaultAppName;
     js.initFirebaseAdmin();
-    if (_apps.containsKey(name)) return _apps[name];
-
-    var options = new js.AppOptions(
-      credential: credential,
-      databaseURL: databaseURL,
-    );
-    _apps[name] = new App(js.initializeApp(options, name));
+    if (!_apps.containsKey(name)) {
+      _apps[name] = new App(js.initializeApp(options, name));
+    }
     return _apps[name];
   }
 
