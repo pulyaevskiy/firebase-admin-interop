@@ -12,7 +12,7 @@ import 'serializers.dart' as s;
 /// Provides access to Firebase Admin APIs.
 ///
 /// To start using Firebase services initialize a Firebase application
-/// with [initializeAppWith] method.
+/// with [initializeApp] method.
 class FirebaseAdmin {
   final Map<String, App> _apps = new Map();
 
