@@ -33,7 +33,7 @@ class FirebaseAdmin {
 
   ///
   /// Creates and initializes a Firebase [App] instance  with the given
-  /// [options] and [name]
+  /// [options] and [name].
   ///
   /// The options is initialized with provided `credential` and `databaseURL`.
   /// A valid credential can be obtained with [cert] or
@@ -59,7 +59,8 @@ class FirebaseAdmin {
   ///   * [App]
   ///   * [cert]
   ///   * [certFromPath]
-  App initializeApp(@required js.AppOptions options, [String name]) {
+  App initializeApp(js.AppOptions options, [String name]) {
+    assert(options != null);
     name ??= js.defaultAppName;
     js.initFirebaseAdmin();
     if (!_apps.containsKey(name)) {
