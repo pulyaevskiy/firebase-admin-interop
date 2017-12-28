@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.0-beta.4
+
+- Breaking: `FirebaseAdmin.initializeApp()` now expects new `AppOptions`
+    object as the first argument and optional `name` argument. See documentation
+    for `FirebaseAdmin.initializeApp()` for more details and example.
+
 ## 0.1.0-beta.3
 
 - Updated JS bindings with type arguments for Promises.

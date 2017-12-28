@@ -32,7 +32,7 @@ class FirebaseAdmin {
       s.registerSerializers(serializers);
 
   ///
-  /// Creates and initializes a Firebase [App] instance  with the given
+  /// Creates and initializes a Firebase [App] instance with the given
   /// [options] and [name].
   ///
   /// The options is initialized with provided `credential` and `databaseURL`.
