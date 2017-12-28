@@ -21,8 +21,6 @@ App initFirebaseApp() {
     clientEmail: env['FIREBASE_CLIENT_EMAIL'],
     privateKey: env['FIREBASE_PRIVATE_KEY'].replaceAll(r'\n', '\n'),
   );
-  return FirebaseAdmin.instance.initializeApp(
-    credential: cert,
-    databaseURL: env['FIREBASE_DATABASE_URL'],
-  );
+  return FirebaseAdmin.instance.initializeApp(new AppOptions(
+      credential: cert, databaseURL: env['FIREBASE_DATABASE_URL']));
 }

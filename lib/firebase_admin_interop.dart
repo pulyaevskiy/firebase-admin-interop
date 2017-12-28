@@ -23,7 +23,7 @@
 ///     Future main() async {
 ///       var admin = FirebaseAdmin.instance;
 ///       var cert = admin.certFromPath(serviceAccountKeyFilename);
-///       var app = admin.initializeApp(credential: cert, databaseUrl: "YOUR_DB_URL");
+///       var app = admin.initializeApp(new AppOptions(credential: cert, databaseUrl: "YOUR_DB_URL"));
 ///       var ref = app.database().ref('/test-path');
 ///       // Write value to the database at "/test-path" location.
 ///       await ref.setValue("Hello world");
@@ -40,4 +40,5 @@ library firebase_admin_interop;
 
 export 'src/admin.dart';
 export 'src/app.dart';
+export 'src/bindings.dart' show AppOptions;
 export 'src/database.dart';
