@@ -1,11 +1,12 @@
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-import 'package:node_interop/node_interop.dart';
+import 'package:node_interop/node.dart';
+import 'package:node_interop/util.dart';
 import 'package:node_interop/test.dart';
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 
-final Map<String, String> env = node.platform.environment;
+final Map<String, String> env = dartify(process.env);
 
 App initFirebaseApp() {
   if (!env.containsKey('FIREBASE_PROJECT_ID') ||

@@ -2,7 +2,7 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'package:node_interop/node_interop.dart';
+import 'package:node_interop/util.dart';
 
 import 'bindings.dart' as js;
 import 'database.dart';
@@ -23,5 +23,5 @@ class App {
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.
-  Future<Null> delete() => jsPromiseToFuture(nativeInstance.delete());
+  Future<Null> delete() => promiseToFuture(nativeInstance.delete());
 }

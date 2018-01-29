@@ -4,12 +4,10 @@
 import 'dart:async';
 import 'dart:js';
 
-import 'package:built_value/serializer.dart';
-import 'package:node_interop/node_interop.dart';
+import 'package:node_interop/util.dart';
 
 import 'app.dart';
 import 'bindings.dart' as js;
-import 'serializers.dart';
 
 /// Firebase Realtime Database service.
 class Database {
@@ -61,10 +59,9 @@ class Query {
 
   /// Listens for exactly one event of the specified [eventType], and then stops
   /// listening.
-  Future<DataSnapshot<T>> once<T>(String eventType,
-      [Serializer<T> serializer]) {
-    return jsPromiseToFuture(nativeInstance.once(eventType))
-        .then((snapshot) => new DataSnapshot(snapshot, serializer));
+  Future<DataSnapshot<T>> once<T>(String eventType) {
+    return promiseToFuture(nativeInstance.once(eventType))
+        .then((snapshot) => new DataSnapshot(snapshot));
   }
 }
 
@@ -123,14 +120,10 @@ class Reference extends Query {
   /// so the resulting list of items will be chronologically sorted. The keys
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
-  FutureReference push<T>([T value, Serializer<T> serializer]) {
+  FutureReference push<T>([T value]) {
     if (value != null) {
-      value = (serializer != null)
-          ? serializers.serializeWith(serializer, value)
-          : value;
-      // TODO: avoid `jsify` call with custom serializer plugin.
       var futureRef = nativeInstance.push(jsify(value));
-      return new FutureReference(futureRef, jsPromiseToFuture(futureRef));
+      return new FutureReference(futureRef, promiseToFuture(futureRef));
     } else {
       // JS side returns regular Reference if value is not provided, but
       // we still convert it to FutureReference to be consistent with declared
@@ -148,7 +141,7 @@ class Reference extends Query {
   /// event 'value' will be triggered. Synchronization of the remove to the
   /// Firebase servers will also be started, and the returned [Future] will
   /// resolve when complete.
-  Future<Null> remove() => jsPromiseToFuture(nativeInstance.remove());
+  Future<Null> remove() => promiseToFuture(nativeInstance.remove());
 
   /// Writes data to this Database location.
   ///
@@ -174,12 +167,8 @@ class Reference extends Query {
   ///
   /// A single [setValue] will generate a single "value" event at the location
   /// where the `setValue()` was performed.
-  Future<Null> setValue<T>(T value, [Serializer<T> serializer]) {
-    value = (serializer != null)
-        ? serializers.serializeWith(serializer, value)
-        : value;
-    // TODO: avoid extra jsify with custom serializer plugin.
-    return jsPromiseToFuture(nativeInstance.set(jsify(value)));
+  Future<Null> setValue<T>(T value) {
+    return promiseToFuture(nativeInstance.set(jsify(value)));
   }
 
   /// Sets a priority for the data at this Database location.
@@ -190,7 +179,7 @@ class Reference extends Query {
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
   Future<Null> setPriority(priority) =>
-      jsPromiseToFuture(nativeInstance.setPriority(priority));
+      promiseToFuture(nativeInstance.setPriority(priority));
 
   /// Writes data the Database location. Like [setValue] but also specifies the
   /// [priority] for that data.
@@ -200,13 +189,8 @@ class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  Future<Null> setWithPriority<T>(T value, priority,
-      [Serializer<T> serializer]) {
-    value = (serializer != null)
-        ? serializers.serializeWith(serializer, value)
-        : value;
-    // TODO: avoid extra jsify with custom serializer plugin.
-    return jsPromiseToFuture(
+  Future<Null> setWithPriority<T>(T value, priority) {
+    return promiseToFuture(
         nativeInstance.setWithPriority(jsify(value), priority));
   }
 }
@@ -231,11 +215,7 @@ class FutureReference extends Reference {
 class DataSnapshot<T> {
   final js.DataSnapshot nativeInstance;
 
-  /// Optional [Serializer] used to deserialize value retrieved from this data
-  /// snapshot.
-  final Serializer<T> serializer;
-
-  DataSnapshot(this.nativeInstance, [this.serializer]);
+  DataSnapshot(this.nativeInstance);
 
   /// The key (last part of the path) of the location of this `DataSnapshot`.
   ///
@@ -255,8 +235,8 @@ class DataSnapshot<T> {
   /// or a deeper, slash-separated path (for example, "ada/name/first"). If the
   /// child location has no data, an empty DataSnapshot (that is, a
   /// DataSnapshot whose value is `null`) is returned.
-  DataSnapshot<S> child<S>(String path, [Serializer<S> serializer]) =>
-      new DataSnapshot(nativeInstance.child(path), serializer);
+  DataSnapshot<S> child<S>(String path) =>
+      new DataSnapshot(nativeInstance.child(path));
 
   /// Returns `true` if this DataSnapshot contains any data.
   ///
@@ -271,10 +251,9 @@ class DataSnapshot<T> {
   /// If no explicit orderBy*() method is used, results are returned ordered by
   /// key (unless priorities are used, in which case, results are returned
   /// by priority).
-  bool forEach<S>(bool action(DataSnapshot<S> child),
-      [Serializer<S> serializer]) {
+  bool forEach<S>(bool action(DataSnapshot<S> child)) {
     bool wrapper(js.DataSnapshot child) {
-      return action(new DataSnapshot<S>(child, serializer));
+      return action(new DataSnapshot<S>(child));
     }
 
     return nativeInstance.forEach(allowInterop(wrapper));
@@ -291,13 +270,9 @@ class DataSnapshot<T> {
   /// The raw value is deserialized with [serializer] if it's set.
   T val() {
     if (_value != null) return _value;
-    if (!exists()) return null; // Don't attempt to deserialize empty snapshot.
+    if (!exists()) return null; // Don't attempt to dartify empty snapshot.
 
-    var dartifiedValue = dartify(nativeInstance.val());
-    if (serializer != null) {
-      _value = serializers.deserializeWith(serializer, dartifiedValue);
-    } else
-      _value = dartifiedValue;
+    _value = dartify(nativeInstance.val());
     return _value;
   }
 

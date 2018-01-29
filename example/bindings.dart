@@ -2,11 +2,11 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'package:firebase_admin_interop/js.dart' as admin;
-import 'package:node_interop/node_interop.dart';
+import 'package:node_interop/util.dart';
 
 // Basic example of using Dart facade directly.
 main() {
   admin.initFirebaseAdmin();
   admin.App app = admin.initializeApp(jsify({}));
-  console.log(app);
+  print(app);
 }

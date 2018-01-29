@@ -5,12 +5,12 @@ library firebase_admin;
 
 import 'dart:js';
 
-import 'package:firestore_interop/firestore_interop.dart';
+// import 'package:firestore_interop/firestore_interop.dart';
 import 'package:js/js.dart';
 import 'package:node_interop/node_interop.dart';
 
-export 'package:firestore_interop/firestore_interop.dart'
-    show Firestore, FieldPath, FieldValue, GeoPoint;
+// export 'package:firestore_interop/firestore_interop.dart'
+// show Firestore, FieldPath, FieldValue, GeoPoint;
 
 void initFirebaseAdmin() {
   if (context.hasProperty('FirebaseAdmin')) return;

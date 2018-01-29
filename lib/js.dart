@@ -18,5 +18,4 @@
 ///     }
 library firebase_admin_interop.js;
 
-import 'src/bindings.dart';
 export 'src/bindings.dart';

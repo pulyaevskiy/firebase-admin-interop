@@ -1,13 +1,10 @@
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-import 'package:built_value/serializer.dart';
 import 'package:meta/meta.dart';
 
 import 'app.dart';
 import 'bindings.dart' as js;
-import 'database.dart';
-import 'serializers.dart' as s;
 
 /// Provides access to Firebase Admin APIs.
 ///
@@ -20,16 +17,6 @@ class FirebaseAdmin {
   static FirebaseAdmin _instance;
 
   FirebaseAdmin._();
-
-  /// Registers [serializers] to be used by this library.
-  ///
-  /// Makes Firebase services like Realtime Database and Firestore aware
-  /// of your application's models and available serializers.
-  ///
-  /// You are required to register serializers if you intend to use them in
-  /// calls to [Reference.setValue], [DataSnapshot.val] and others.
-  void registerSerializers(Serializers serializers) =>
-      s.registerSerializers(serializers);
 
   ///
   /// Creates and initializes a Firebase [App] instance with the given
