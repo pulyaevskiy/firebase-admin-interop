@@ -13,6 +13,8 @@ dependencies:
     git:
       url: git@github.com:pulyaevskiy/node-interop.git
       ref: dart20
+  firestore_interop:
+    git: git@github.com:pulyaevskiy/firestore-interop.git
   meta: ^1.0.5
 
 dev_dependencies:

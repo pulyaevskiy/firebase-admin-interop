@@ -42,3 +42,4 @@ export 'src/admin.dart';
 export 'src/app.dart';
 export 'src/bindings.dart' show AppOptions;
 export 'src/database.dart';
+export 'src/firestore.dart';
