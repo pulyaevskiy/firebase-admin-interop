@@ -67,8 +67,11 @@ class CollectionReference extends DocumentQuery {
   /// For subcollections, parent returns the containing DocumentReference.
   ///
   /// For root collections, null is returned.
-  DocumentReference get parent =>
-      new DocumentReference._(_nativeInstance.parent, _firestore);
+  DocumentReference get parent {
+    return (_nativeInstance.parent != null)
+        ? new DocumentReference._(_nativeInstance.parent, _firestore)
+        : null;
+  }
 
   /// Returns a `DocumentReference` with the provided path.
   ///
