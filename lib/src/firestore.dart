@@ -6,6 +6,7 @@ import 'dart:js';
 
 import 'package:firestore_interop/firestore_interop.dart' as js;
 import 'package:js/js.dart';
+import 'package:meta/meta.dart';
 import 'package:node_interop/stream.dart';
 import 'package:node_interop/util.dart';
 import 'app.dart';
@@ -33,23 +34,25 @@ js.Firestore _initWithApp(App app) {
 /// Represents a Firestore Database and is the entry point for all
 /// Firestore operations.
 class Firestore {
-  final js.Firestore _nativeInstance;
+  /// JavaScript Firestore object wrapped by this instance.
+  @protected
+  final js.Firestore nativeInstance;
 
-  Firestore._(this._nativeInstance);
+  Firestore._(this.nativeInstance);
 
-  Firestore(AppOptions options) : _nativeInstance = _initWithOptions(options);
-  Firestore.forApp(App app) : _nativeInstance = _initWithApp(app);
+  Firestore(AppOptions options) : nativeInstance = _initWithOptions(options);
+  Firestore.forApp(App app) : nativeInstance = _initWithApp(app);
 
   /// Gets a [CollectionReference] for the specified Firestore path.
   CollectionReference collection(String path) {
     assert(path != null);
-    return new CollectionReference._(_nativeInstance.collection(path), this);
+    return new CollectionReference(nativeInstance.collection(path), this);
   }
 
   /// Gets a [DocumentReference] for the specified Firestore path.
   DocumentReference document(String path) {
     assert(path != null);
-    return new DocumentReference._(_nativeInstance.doc(path), this);
+    return new DocumentReference(nativeInstance.doc(path), this);
   }
 }
 
@@ -57,19 +60,20 @@ class Firestore {
 /// document references, and querying for documents (using the methods
 /// inherited from [DocumentQuery]).
 class CollectionReference extends DocumentQuery {
-  CollectionReference._(
+  CollectionReference(
       js.CollectionReference nativeInstance, Firestore firestore)
-      : super._(nativeInstance, firestore);
+      : super(nativeInstance, firestore);
 
   @override
-  js.CollectionReference get _nativeInstance => super._nativeInstance;
+  @protected
+  js.CollectionReference get nativeInstance => super.nativeInstance;
 
   /// For subcollections, parent returns the containing DocumentReference.
   ///
   /// For root collections, null is returned.
   DocumentReference get parent {
-    return (_nativeInstance.parent != null)
-        ? new DocumentReference._(_nativeInstance.parent, _firestore)
+    return (nativeInstance.parent != null)
+        ? new DocumentReference(nativeInstance.parent, firestore)
         : null;
   }
 
@@ -80,7 +84,7 @@ class CollectionReference extends DocumentQuery {
   /// The unique key generated is prefixed with a client-generated timestamp
   /// so that the resulting list will be chronologically-sorted.
   DocumentReference document([String path]) =>
-      new DocumentReference._(_nativeInstance.doc(path), _firestore);
+      new DocumentReference(nativeInstance.doc(path), firestore);
 
   /// Returns a `DocumentReference` with an auto-generated ID, after
   /// populating it with provided [data].
@@ -88,8 +92,8 @@ class CollectionReference extends DocumentQuery {
   /// The unique key generated is prefixed with a client-generated timestamp
   /// so that the resulting list will be chronologically-sorted.
   Future<DocumentReference> add(Map<String, dynamic> data) {
-    return promiseToFuture(_nativeInstance.add(jsify(data)))
-        .then((jsRef) => new DocumentReference._(jsRef, _firestore));
+    return promiseToFuture(nativeInstance.add(jsify(data)))
+        .then((jsRef) => new DocumentReference(jsRef, firestore));
   }
 }
 
@@ -100,16 +104,17 @@ class CollectionReference extends DocumentQuery {
 /// A [DocumentReference] can also be used to create a [CollectionReference]
 /// to a subcollection.
 class DocumentReference {
-  DocumentReference._(this._nativeInstance, this._firestore);
+  DocumentReference(this.nativeInstance, this.firestore);
 
-  final Firestore _firestore;
-  final js.DocumentReference _nativeInstance;
+  @protected
+  final js.DocumentReference nativeInstance;
+  final Firestore firestore;
 
   /// Slash-delimited path representing the database location of this query.
-  String get path => _nativeInstance.path;
+  String get path => nativeInstance.path;
 
   /// This document's given or generated ID in the collection.
-  String get documentID => _nativeInstance.id;
+  String get documentID => nativeInstance.id;
 
   /// Writes to the document referred to by this [DocumentReference]. If the
   /// document does not yet exist, it will be created. If you pass [SetOptions],
@@ -119,9 +124,9 @@ class DocumentReference {
     // it's a regular POJO.
     final docData = jsify(data);
     if (options != null) {
-      return promiseToFuture(_nativeInstance.set(docData, options));
+      return promiseToFuture(nativeInstance.set(docData, options));
     }
-    return promiseToFuture(_nativeInstance.set(docData));
+    return promiseToFuture(nativeInstance.set(docData));
   }
 
   /// Updates fields in the document referred to by this [DocumentReference].
@@ -131,24 +136,24 @@ class DocumentReference {
     // Even though bindings declare special DocumentData type, in reality
     // it's a regular POJO.
     final docData = jsify(data);
-    return promiseToFuture(_nativeInstance.update(docData));
+    return promiseToFuture(nativeInstance.update(docData));
   }
 
   /// Reads the document referenced by this [DocumentReference].
   ///
   /// If no document exists, the read will return null.
   Future<DocumentSnapshot> get() {
-    return promiseToFuture(_nativeInstance.get())
-        .then((jsSnapshot) => new DocumentSnapshot._(jsSnapshot, _firestore));
+    return promiseToFuture(nativeInstance.get())
+        .then((jsSnapshot) => new DocumentSnapshot(jsSnapshot, firestore));
   }
 
   /// Deletes the document referred to by this [DocumentReference].
-  Future<Null> delete() => promiseToFuture(_nativeInstance.delete());
+  Future<Null> delete() => promiseToFuture(nativeInstance.delete());
 
   /// Returns the reference of a collection contained inside of this
   /// document.
   CollectionReference collection(String path) =>
-      new CollectionReference._(_nativeInstance.collection(path), _firestore);
+      new CollectionReference(nativeInstance.collection(path), firestore);
 
   /// Notifies of documents at this location.
   Stream<DocumentSnapshot> get snapshots {
@@ -158,13 +163,13 @@ class DocumentReference {
     StreamController<DocumentSnapshot> controller; // ignore: close_sinks
 
     void _onNextSnapshot(js.DocumentSnapshot jsSnapshot) {
-      controller.add(new DocumentSnapshot._(jsSnapshot, _firestore));
+      controller.add(new DocumentSnapshot(jsSnapshot, firestore));
     }
 
     controller = new StreamController<DocumentSnapshot>.broadcast(
       onListen: () {
         cancelCallback =
-            _nativeInstance.onSnapshot(allowInterop(_onNextSnapshot));
+            nativeInstance.onSnapshot(allowInterop(_onNextSnapshot));
       },
       onCancel: () {
         cancelCallback();
@@ -193,16 +198,17 @@ enum DocumentChangeType {
 /// It contains the document affected and the type of change that occurred
 /// (added, modified, or removed).
 class DocumentChange {
-  DocumentChange._(this._nativeInstance, this._firestore);
+  DocumentChange(this.nativeInstance, this.firestore);
 
-  final js.DocumentChange _nativeInstance;
-  final Firestore _firestore;
+  @protected
+  final js.DocumentChange nativeInstance;
+  final Firestore firestore;
 
   /// The type of change that occurred (added, modified, or removed).
   DocumentChangeType get type {
     if (_type != null) return _type;
     _type = DocumentChangeType.values.firstWhere((value) {
-      return value.toString().endsWith(_nativeInstance.type);
+      return value.toString().endsWith(nativeInstance.type);
     });
     return _type;
   }
@@ -214,34 +220,35 @@ class DocumentChange {
   /// have been applied).
   ///
   /// -1 for [DocumentChangeType.added] events.
-  int get oldIndex => _nativeInstance.oldIndex.toInt();
+  int get oldIndex => nativeInstance.oldIndex.toInt();
 
   /// The index of the changed document in the result set immediately after this
   /// DocumentChange (i.e. supposing that all prior [DocumentChange] objects
   /// and the current [DocumentChange] object have been applied).
   ///
   /// -1 for [DocumentChangeType.removed] events.
-  int get newIndex => _nativeInstance.newIndex.toInt();
+  int get newIndex => nativeInstance.newIndex.toInt();
 
   /// The document affected by this change.
   DocumentSnapshot get document =>
-      _document ??= new DocumentSnapshot._(_nativeInstance.doc, _firestore);
+      _document ??= new DocumentSnapshot(nativeInstance.doc, firestore);
   DocumentSnapshot _document;
 }
 
 class DocumentSnapshot {
-  DocumentSnapshot._(this._nativeInstance, this._firestore);
+  DocumentSnapshot(this.nativeInstance, this.firestore);
 
-  final Firestore _firestore;
-  final js.DocumentSnapshot _nativeInstance;
+  @protected
+  final js.DocumentSnapshot nativeInstance;
+  final Firestore firestore;
 
   /// The reference that produced this snapshot
   DocumentReference get reference =>
-      _reference ??= new DocumentReference._(_nativeInstance.ref, _firestore);
+      _reference ??= new DocumentReference(nativeInstance.ref, firestore);
   DocumentReference _reference;
 
   /// Contains all the data of this snapshot
-  Map<String, dynamic> get data => _data ??= dartify(_nativeInstance.data());
+  Map<String, dynamic> get data => _data ??= dartify(nativeInstance.data());
   Map<String, dynamic> _data;
 
   /// Reads individual values from the snapshot.
@@ -250,41 +257,43 @@ class DocumentSnapshot {
   /// Returns the ID of the snapshot's document
   String get documentID => reference.documentID;
 
-  DateTime get createTime => _nativeInstance.createTime != null
-      ? DateTime.parse(_nativeInstance.createTime)
+  DateTime get createTime => nativeInstance.createTime != null
+      ? DateTime.parse(nativeInstance.createTime)
       : null;
 
-  DateTime get updateTime => DateTime.parse(_nativeInstance.updateTime);
+  DateTime get updateTime => DateTime.parse(nativeInstance.updateTime);
 }
 
 /// A QuerySnapshot contains zero or more DocumentSnapshot objects.
 class QuerySnapshot {
-  QuerySnapshot._(this._nativeInstance, this._firestore);
+  QuerySnapshot(this.nativeInstance, this.firestore);
 
-  final Firestore _firestore;
-  final js.QuerySnapshot _nativeInstance;
+  @protected
+  final js.QuerySnapshot nativeInstance;
+  final Firestore firestore;
 
   /// Gets a list of all the documents included in this snapshot
-  List<DocumentSnapshot> get documents => _documents ??= _nativeInstance.docs
-      .map((jsDoc) => new DocumentSnapshot._(jsDoc, _firestore))
+  List<DocumentSnapshot> get documents => _documents ??= nativeInstance.docs
+      .map((jsDoc) => new DocumentSnapshot(jsDoc, firestore))
       .toList(growable: false);
   List<DocumentSnapshot> _documents;
 
   /// An array of the documents that changed since the last snapshot. If this
   /// is the first snapshot, all documents will be in the list as Added changes.
   List<DocumentChange> get documentChanges =>
-      _changes ??= _nativeInstance.docChanges
-          .map((jsChange) => new DocumentChange._(jsChange, _firestore))
+      _changes ??= nativeInstance.docChanges
+          .map((jsChange) => new DocumentChange(jsChange, firestore))
           .toList(growable: false);
   List<DocumentChange> _changes;
 }
 
 /// Represents a query over the data at a particular location.
 class DocumentQuery {
-  DocumentQuery._(this._nativeInstance, this._firestore);
+  DocumentQuery(this.nativeInstance, this.firestore);
 
-  final Firestore _firestore;
-  final js.Query _nativeInstance;
+  @protected
+  final js.Query nativeInstance;
+  final Firestore firestore;
 
   /// Notifies of query results at this location
   Stream<QuerySnapshot> get snapshots {
@@ -293,7 +302,7 @@ class DocumentQuery {
     StreamController<QuerySnapshot> controller; // ignore: close_sinks
 
     void onSnapshot(js.QuerySnapshot snapshot) {
-      controller.add(new QuerySnapshot._(snapshot, _firestore));
+      controller.add(new QuerySnapshot(snapshot, firestore));
     }
 
     void onError(error) {
@@ -304,7 +313,7 @@ class DocumentQuery {
 
     controller = new StreamController<QuerySnapshot>.broadcast(
       onListen: () {
-        stream = _nativeInstance.stream();
+        stream = nativeInstance.stream();
         stream.on('data', allowInterop(onSnapshot));
         stream.on('error', allowInterop(onError));
       },
@@ -330,7 +339,7 @@ class DocumentQuery {
     dynamic isGreaterThanOrEqualTo,
     bool isNull,
   }) {
-    js.Query query = _nativeInstance;
+    js.Query query = nativeInstance;
 
     void addCondition(String field, String opStr, dynamic value) {
       query = query.where(field, opStr, value);
@@ -351,15 +360,15 @@ class DocumentQuery {
       addCondition(field, '==', null);
     }
 
-    return new DocumentQuery._(query, _firestore);
+    return new DocumentQuery(query, firestore);
   }
 
   /// Creates and returns a new [DocumentQuery] that's additionally sorted by the specified
   /// [field].
   DocumentQuery orderBy(String field, {bool descending: false}) {
     String direction = descending ? 'desc' : 'asc';
-    return new DocumentQuery._(
-        _nativeInstance.orderBy(field, direction), _firestore);
+    return new DocumentQuery(
+        nativeInstance.orderBy(field, direction), firestore);
   }
 
   /// Takes a list of [values], creates and returns a new [DocumentQuery] that starts after
@@ -370,8 +379,7 @@ class DocumentQuery {
   /// Cannot be used in combination with [startAt].
   DocumentQuery startAfter(List<dynamic> values) {
     final jsValues = jsify(values);
-    return new DocumentQuery._(
-        _nativeInstance.startAfter(jsValues), _firestore);
+    return new DocumentQuery(nativeInstance.startAfter(jsValues), firestore);
   }
 
   /// Takes a list of [values], creates and returns a new [DocumentQuery] that starts at
@@ -382,7 +390,7 @@ class DocumentQuery {
   /// Cannot be used in combination with [startAfter].
   DocumentQuery startAt(List<dynamic> values) {
     final jsValues = jsify(values);
-    return new DocumentQuery._(_nativeInstance.startAt(jsValues), _firestore);
+    return new DocumentQuery(nativeInstance.startAt(jsValues), firestore);
   }
 
   /// Takes a list of [values], creates and returns a new [DocumentQuery] that ends at the
@@ -394,7 +402,7 @@ class DocumentQuery {
   DocumentQuery endAt(List<dynamic> values) {
     assert(values != null);
     final jsValues = jsify(values);
-    return new DocumentQuery._(_nativeInstance.endAt(jsValues), _firestore);
+    return new DocumentQuery(nativeInstance.endAt(jsValues), firestore);
   }
 
   /// Takes a list of [values], creates and returns a new [DocumentQuery] that ends before
@@ -406,13 +414,13 @@ class DocumentQuery {
   DocumentQuery endBefore(List<dynamic> values) {
     assert(values != null);
     final jsValues = jsify(values);
-    return new DocumentQuery._(_nativeInstance.endBefore(jsValues), _firestore);
+    return new DocumentQuery(nativeInstance.endBefore(jsValues), firestore);
   }
 
   /// Creates and returns a new Query that's additionally limited to only return up
   /// to the specified number of documents.
   DocumentQuery limit(int length) {
     assert(length != null);
-    return new DocumentQuery._(_nativeInstance.limit(length), _firestore);
+    return new DocumentQuery(nativeInstance.limit(length), firestore);
   }
 }
