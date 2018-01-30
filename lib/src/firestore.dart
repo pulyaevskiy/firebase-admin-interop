@@ -251,11 +251,14 @@ class DocumentSnapshot {
   Map<String, dynamic> get data => _data ??= dartify(nativeInstance.data());
   Map<String, dynamic> _data;
 
-  /// Reads individual values from the snapshot.
+  /// Reads individual values from this snapshot.
   dynamic operator [](String key) => data[key];
 
+  /// Returns `true` if the document exists.
+  bool get exists => nativeInstance.exists;
+
   /// Returns the ID of the snapshot's document
-  String get documentID => reference.documentID;
+  String get documentID => nativeInstance.id;
 
   DateTime get createTime => nativeInstance.createTime != null
       ? DateTime.parse(nativeInstance.createTime)
