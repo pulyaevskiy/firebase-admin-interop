@@ -38,9 +38,14 @@ class Firestore {
   @protected
   final js.Firestore nativeInstance;
 
-  Firestore._(this.nativeInstance);
+  /// Creates new Firestore client which wraps [nativeInstance].
+  ///
+  /// Consider using [Firestore.withOptions] or [Firestore.forApp] instead of
+  /// this constructor.
+  Firestore(this.nativeInstance);
 
-  Firestore(AppOptions options) : nativeInstance = _initWithOptions(options);
+  Firestore.withOptions(AppOptions options)
+      : nativeInstance = _initWithOptions(options);
   Firestore.forApp(App app) : nativeInstance = _initWithApp(app);
 
   /// Gets a [CollectionReference] for the specified Firestore path.
