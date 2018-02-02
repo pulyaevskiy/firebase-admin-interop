@@ -19,8 +19,14 @@ void main() {
       var ref = app.firestore().document('users/23');
 
       setUp(() async {
+        final data = new DocumentData.fromMap({
+          'name': 'Firestore',
+          'profile.url': "https://pic.com/123",
+        });
+        final nested = new DocumentData.fromMap({'author': 'Unknown'});
+        data.setNestedData('nested', nested);
         // This completely overwrites the whole document.
-        await ref.setData({'name': 'Firestore'});
+        await ref.setData(data);
       });
 
       test('read-only fields', () {
@@ -32,24 +38,65 @@ void main() {
         var snapshot = await ref.get();
         var data = snapshot.data;
         expect(data, new isInstanceOf<DocumentData>());
-        expect(data, hasLength(1));
+        expect(data, hasLength(3));
         expect(data.getString('name'), 'Firestore');
+        expect(data.getString('profile.url'), 'https://pic.com/123');
+        var nested = data.getNestedData('nested');
+        expect(nested, new isInstanceOf<DocumentData>());
+        expect(nested, hasLength(1));
+        expect(nested.getString('author'), 'Unknown');
       });
 
       test('update value', () async {
-        await ref.updateData({'url': 'https://firestore.something'});
+        await ref.updateData(new UpdateData.fromMap({
+          'nested.author': 'Isaac Asimov',
+        }));
         var snapshot = await ref.get();
         var data = snapshot.data;
-        expect(data, hasLength(2));
-        expect(data.getString('name'), 'Firestore');
-        expect(data.getString('url'), 'https://firestore.something');
+        var nested = data.getNestedData('nested');
+        expect(nested.getString('author'), 'Isaac Asimov');
       });
 
       test('data types', () async {
+        var date = new DateTime.now();
         var ref = app.firestore().document('tests/data-types');
+        var data = new DocumentData.fromMap({
+          'boolVal': true,
+          'stringVal': 'text',
+          'intVal': 23,
+          'doubleVal': 19.84,
+          'dateVal': date,
+          'geoVal': new GeoPoint(23.03, 19.84),
+          'refVal': app.firestore().document('users/23'),
+          'listVal': [23, 84]
+        });
+        await ref.setData(data);
+
+        var snapshot = await ref.get();
+        var result = snapshot.data;
+        expect(result.getBool('boolVal'), isTrue);
+        expect(result.getString('stringVal'), 'text');
+        expect(result.getInt('intVal'), 23);
+        expect(result.getDouble('doubleVal'), 19.84);
+        expect(result.getDateTime('dateVal'), date);
+        expect(result.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
+        var docRef = result.getReference('refVal');
+        expect(docRef, new isInstanceOf<DocumentReference>());
+        expect(docRef.path, 'users/23');
+        expect(result.getList('listVal'), [23, 84]);
+      });
+
+      test('unsupported data types', () async {
+        var ref = app.firestore().document('tests/unsupported');
         var snapshot = await ref.get();
         var data = snapshot.data;
-        expect(data.getString('name'), 'Data');
+        expect(() => data.getList('geoVal'),
+            throwsA(new isInstanceOf<AssertionError>()));
+
+        var setData = new DocumentData();
+        expect(() {
+          setData.setList('foo', [new GeoPoint(1.0, 2.2)]);
+        }, throwsA(new isInstanceOf<AssertionError>()));
       });
     });
 

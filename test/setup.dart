@@ -3,7 +3,6 @@
 
 import 'package:node_interop/node.dart';
 import 'package:node_interop/util.dart';
-// import 'package:node_interop/test.dart';
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 
 final Map env = dartify(process.env);
@@ -14,11 +13,6 @@ App initFirebaseApp() {
       !env.containsKey('FIREBASE_PRIVATE_KEY') ||
       !env.containsKey('FIREBASE_DATABASE_URL'))
     throw new StateError('Environment variables are not set.');
-
-  // installNodeModules({
-  //   "firebase-admin": "~5.8.1",
-  //   "@google-cloud/firestore": "~0.11.1",
-  // });
 
   var cert = FirebaseAdmin.instance.cert(
     projectId: env['FIREBASE_PROJECT_ID'],

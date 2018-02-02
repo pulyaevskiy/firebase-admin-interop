@@ -14,10 +14,10 @@ import 'firestore.dart';
 /// Represents initialized Firebase application and provides access to the
 /// app's services.
 class App {
+  App(this.nativeInstance);
+
   @protected
   final js.App nativeInstance;
-
-  App(this.nativeInstance);
 
   /// The name of this application.
   String get name => nativeInstance.name;
@@ -36,5 +36,5 @@ class App {
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.
-  Future delete() => promiseToFuture(nativeInstance.delete());
+  Future<Null> delete() => promiseToFuture(nativeInstance.delete());
 }

@@ -14,12 +14,17 @@ abstract class FirestoreModule {
   external void setLogFunction(void logger(String msg));
 
   external dynamic get Firestore;
+  external dynamic get GeoPoint;
   external FieldValues get FieldValue;
   external FieldPathPrototype get FieldPath;
 }
 
 Firestore createFirestore(FirestoreModule module, dynamic options) {
   return callConstructor(module.Firestore, [options]);
+}
+
+GeoPoint createGeoPoint(FirestoreModule module, num latitude, num longitude) {
+  return callConstructor(module.GeoPoint, [latitude, longitude]);
 }
 
 /// Document data (for use with `DocumentReference.set()`) consists of fields
@@ -90,9 +95,6 @@ abstract class Firestore {
 @JS()
 @anonymous
 abstract class GeoPoint {
-  /// Creates a new immutable GeoPoint object with the provided latitude and
-  /// longitude values.
-  external factory GeoPoint({num latitude, num longitude});
   external num get latitude;
   external num get longitude;
 }
@@ -290,8 +292,8 @@ abstract class DocumentReference {
   /// Nested fields can be updated by providing dot-separated field path
   /// strings.
   /// update the document.
-  /*external Promise<WriteResult> update(UpdateData data,
-    [Precondition precondition]);*/
+  external Promise update(UpdateData data, [Precondition precondition]);
+
   /// Updates fields in the document referred to by this `DocumentReference`.
   /// The update will fail if applied to a document that does not exist.
   /// Nested fields can be updated by providing dot-separated field path
@@ -301,9 +303,9 @@ abstract class DocumentReference {
   /// values to update, optionally followed by a `Precondition` to enforce on
   /// this update.
   /*external Promise<WriteResult> update(String|FieldPath field, dynamic value, [dynamic moreFieldsOrPrecondition1, dynamic moreFieldsOrPrecondition2, dynamic moreFieldsOrPrecondition3, dynamic moreFieldsOrPrecondition4, dynamic moreFieldsOrPrecondition5]);*/
-  external Promise update(dynamic /*String|FieldPath*/ data_field,
-      [dynamic /*Precondition|dynamic*/ precondition_value,
-      List<dynamic> moreFieldsOrPrecondition]);
+  // external Promise update(dynamic /*String|FieldPath*/ data_field,
+  //     [dynamic /*Precondition|dynamic*/ precondition_value,
+  //     List<dynamic> moreFieldsOrPrecondition]);
 
   /// Deletes the document referred to by this `DocumentReference`.
   external Promise delete([Precondition precondition]);
