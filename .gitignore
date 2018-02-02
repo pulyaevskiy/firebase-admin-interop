@@ -6,14 +6,14 @@ build/
 pubspec.lock
 
 # Node
-node_modules
+node_modules/
 
 # Directory created by dartdoc
 doc/api/
 
 tool/build_example.sh
 *.json
-!example/package.json
+!package.json
 
 # Intellij/WebStorm
 .idea/
