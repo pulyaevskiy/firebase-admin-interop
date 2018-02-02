@@ -141,7 +141,7 @@ class Reference extends Query {
   /// event 'value' will be triggered. Synchronization of the remove to the
   /// Firebase servers will also be started, and the returned [Future] will
   /// resolve when complete.
-  Future<Null> remove() => promiseToFuture(nativeInstance.remove());
+  Future remove() => promiseToFuture(nativeInstance.remove());
 
   /// Writes data to this Database location.
   ///
@@ -167,7 +167,7 @@ class Reference extends Query {
   ///
   /// A single [setValue] will generate a single "value" event at the location
   /// where the `setValue()` was performed.
-  Future<Null> setValue<T>(T value) {
+  Future setValue<T>(T value) {
     return promiseToFuture(nativeInstance.set(jsify(value)));
   }
 
@@ -178,7 +178,7 @@ class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  Future<Null> setPriority(priority) =>
+  Future setPriority(priority) =>
       promiseToFuture(nativeInstance.setPriority(priority));
 
   /// Writes data the Database location. Like [setValue] but also specifies the
@@ -189,7 +189,7 @@ class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  Future<Null> setWithPriority<T>(T value, priority) {
+  Future setWithPriority<T>(T value, priority) {
     return promiseToFuture(
         nativeInstance.setWithPriority(jsify(value), priority));
   }
@@ -203,7 +203,7 @@ class Reference extends Query {
 ///
 /// For more details see documentation for [Reference.push].
 class FutureReference extends Reference {
-  final Future<Null> done;
+  final Future done;
   FutureReference(js.ThenableReference nativeInstance, this.done)
       : super(nativeInstance);
 }

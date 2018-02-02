@@ -3,6 +3,7 @@
 
 import 'dart:async';
 
+import 'package:meta/meta.dart';
 import 'package:node_interop/util.dart';
 
 import 'admin.dart';
@@ -13,6 +14,7 @@ import 'firestore.dart';
 /// Represents initialized Firebase application and provides access to the
 /// app's services.
 class App {
+  @protected
   final js.App nativeInstance;
 
   App(this.nativeInstance);
@@ -34,5 +36,5 @@ class App {
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.
-  Future<Null> delete() => promiseToFuture(nativeInstance.delete());
+  Future delete() => promiseToFuture(nativeInstance.delete());
 }

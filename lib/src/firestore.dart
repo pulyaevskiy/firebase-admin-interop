@@ -4,31 +4,27 @@
 import 'dart:async';
 import 'dart:js';
 
-import 'package:firestore_interop/firestore_interop.dart' as js;
 import 'package:js/js.dart';
 import 'package:meta/meta.dart';
+import 'package:node_interop/js.dart';
+import 'package:node_interop/node.dart';
 import 'package:node_interop/stream.dart';
 import 'package:node_interop/util.dart';
+import 'package:quiver_hashcode/hashcode.dart';
+
 import 'app.dart';
-import 'bindings.dart' show AppOptions;
+import 'bindings.dart' as js;
 
-export 'bindings.dart' show AppOptions;
+final js.FirestoreModule firestoreModule = require('@google-cloud/firestore');
 
-void _loadFirestore() {
-  if (!context.hasProperty('FirebaseFirestore')) {
-    context['FirebaseFirestore'] =
-        context.callMethod('require', ['@google-cloud/firestore']);
-  }
-}
-
-js.Firestore _initWithOptions(AppOptions options) {
-  _loadFirestore();
-  return new js.Firestore(options);
+js.Firestore _initWithOptions(js.AppOptions options) {
+  return js.createFirestore(firestoreModule, options);
 }
 
 js.Firestore _initWithApp(App app) {
-  _loadFirestore();
+  // require('@google-cloud/firestore');
   return app.nativeInstance.firestore();
+  // return _initWithOptions(app.options);
 }
 
 /// Represents a Firestore Database and is the entry point for all
@@ -44,7 +40,7 @@ class Firestore {
   /// this constructor.
   Firestore(this.nativeInstance);
 
-  Firestore.withOptions(AppOptions options)
+  Firestore.withOptions(js.AppOptions options)
       : nativeInstance = _initWithOptions(options);
   Firestore.forApp(App app) : nativeInstance = _initWithApp(app);
 
@@ -124,7 +120,7 @@ class DocumentReference {
   /// Writes to the document referred to by this [DocumentReference]. If the
   /// document does not yet exist, it will be created. If you pass [SetOptions],
   /// the provided data will be merged into an existing document.
-  Future<Null> setData(Map<String, dynamic> data, [js.SetOptions options]) {
+  Future setData(Map<String, dynamic> data, [js.SetOptions options]) {
     // Even though bindings declare special DocumentData type, in reality
     // it's a regular POJO.
     final docData = jsify(data);
@@ -137,7 +133,7 @@ class DocumentReference {
   /// Updates fields in the document referred to by this [DocumentReference].
   ///
   /// If no document exists yet, the update will fail.
-  Future<Null> updateData(Map<String, dynamic> data) {
+  Future updateData(Map<String, dynamic> data) {
     // Even though bindings declare special DocumentData type, in reality
     // it's a regular POJO.
     final docData = jsify(data);
@@ -153,7 +149,7 @@ class DocumentReference {
   }
 
   /// Deletes the document referred to by this [DocumentReference].
-  Future<Null> delete() => promiseToFuture(nativeInstance.delete());
+  Future delete() => promiseToFuture(nativeInstance.delete());
 
   /// Returns the reference of a collection contained inside of this
   /// document.
@@ -253,11 +249,8 @@ class DocumentSnapshot {
   DocumentReference _reference;
 
   /// Contains all the data of this snapshot
-  Map<String, dynamic> get data => _data ??= dartify(nativeInstance.data());
-  Map<String, dynamic> _data;
-
-  /// Reads individual values from this snapshot.
-  dynamic operator [](String key) => data[key];
+  DocumentData get data => _data ??= new DocumentData(nativeInstance.data());
+  DocumentData _data;
 
   /// Returns `true` if the document exists.
   bool get exists => nativeInstance.exists;
@@ -270,6 +263,108 @@ class DocumentSnapshot {
       : null;
 
   DateTime get updateTime => DateTime.parse(nativeInstance.updateTime);
+}
+
+class DocumentData {
+  DocumentData(this.nativeInstance);
+
+  @protected
+  final js.DocumentData nativeInstance;
+
+  int get length => objectKeys(nativeInstance).length;
+
+  String getString(String key) => (getProperty(nativeInstance, key) as String);
+  void setString(String key, String value) {
+    setProperty(nativeInstance, key, value);
+  }
+
+  int getInt(String key) => (getProperty(nativeInstance, key) as int);
+  void setInt(String key, int value) {
+    setProperty(nativeInstance, key, value);
+  }
+
+  double getDouble(String key) => (getProperty(nativeInstance, key) as double);
+  void setDouble(String key, double value) {
+    setProperty(nativeInstance, key, value);
+  }
+
+  bool getBool(String key) => (getProperty(nativeInstance, key) as bool);
+  void setBool(String key, bool value) {
+    setProperty(nativeInstance, key, value);
+  }
+
+  DateTime getDateTime(String key) {
+    Date date = getProperty(nativeInstance, key);
+    if (date == null) return null;
+    return new DateTime.fromMillisecondsSinceEpoch(date.getTime());
+  }
+
+  void setDateTime(String key, DateTime value) {
+    assert(key != null);
+    final data =
+        (value != null) ? new Date(value.millisecondsSinceEpoch) : null;
+    setProperty(nativeInstance, key, data);
+  }
+
+  GeoPoint getGeoPoint(String key) {
+    js.GeoPoint value = getProperty(nativeInstance, key);
+    if (value == null) return null;
+    return new GeoPoint(value.latitude.toDouble(), value.longitude.toDouble());
+  }
+
+  void setGeoPoint(String key, GeoPoint value) {
+    assert(key != null);
+    final data = (value != null)
+        ? new js.GeoPoint(latitude: value.latitude, longitude: value.longitude)
+        : null;
+    setProperty(nativeInstance, key, data);
+  }
+
+  List<T> getList<T>(String key) {
+    final data = getProperty(nativeInstance, key);
+    if (data == null) return null;
+    // TODO: this would fail if list contains complex types like GeoPoint.
+    return dartify(data) as List<T>;
+  }
+
+  void setList<T>(String key, List<T> value) {
+    assert(key != null);
+    // TODO: this would fail if list contains complex types like GeoPoint.
+    final data = (value != null) ? jsify(value) : null;
+    setProperty(nativeInstance, key, data);
+  }
+
+  DocumentReference getReference(String key) {
+    js.DocumentReference ref = getProperty(nativeInstance, key);
+    if (ref == null) return null;
+    assert(objectKeys(ref).contains('_referencePath'));
+    js.Firestore firestore = getProperty(ref, '_firestore');
+    return new DocumentReference(ref, new Firestore(firestore));
+  }
+
+  void setReference(String key, DocumentReference value) {
+    assert(key != null);
+    final data = (value != null) ? value.nativeInstance : null;
+    setProperty(nativeInstance, key, data);
+  }
+}
+
+class GeoPoint {
+  final double latitude;
+  final double longitude;
+
+  GeoPoint(this.latitude, this.longitude);
+
+  @override
+  bool operator ==(other) {
+    if (identical(this, other)) return true;
+    if (other is! GeoPoint) return false;
+    GeoPoint point = other;
+    return latitude == point.latitude && longitude == point.longitude;
+  }
+
+  @override
+  int get hashCode => hash2(latitude, longitude);
 }
 
 /// A QuerySnapshot contains zero or more DocumentSnapshot objects.
@@ -300,7 +395,7 @@ class DocumentQuery {
   DocumentQuery(this.nativeInstance, this.firestore);
 
   @protected
-  final js.Query nativeInstance;
+  final js.DocumentQuery nativeInstance;
   final Firestore firestore;
 
   /// Notifies of query results at this location
@@ -347,7 +442,7 @@ class DocumentQuery {
     dynamic isGreaterThanOrEqualTo,
     bool isNull,
   }) {
-    js.Query query = nativeInstance;
+    js.DocumentQuery query = nativeInstance;
 
     void addCondition(String field, String opStr, dynamic value) {
       query = query.where(field, opStr, value);

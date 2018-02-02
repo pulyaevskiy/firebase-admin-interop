@@ -30,14 +30,26 @@ void main() {
 
       test('get value once', () async {
         var snapshot = await ref.get();
-        expect(snapshot.data, {'name': 'Firestore'});
+        var data = snapshot.data;
+        expect(data, new isInstanceOf<DocumentData>());
+        expect(data, hasLength(1));
+        expect(data.getString('name'), 'Firestore');
       });
 
       test('update value', () async {
         await ref.updateData({'url': 'https://firestore.something'});
         var snapshot = await ref.get();
-        expect(snapshot.data,
-            {'name': 'Firestore', 'url': 'https://firestore.something'});
+        var data = snapshot.data;
+        expect(data, hasLength(2));
+        expect(data.getString('name'), 'Firestore');
+        expect(data.getString('url'), 'https://firestore.something');
+      });
+
+      test('data types', () async {
+        var ref = app.firestore().document('tests/data-types');
+        var snapshot = await ref.get();
+        var data = snapshot.data;
+        expect(data.getString('name'), 'Data');
       });
     });
 
@@ -61,7 +73,8 @@ void main() {
         final doc = await ref.add({'name': 'Added Doc'});
         expect(doc.documentID, isNotNull);
         final snapshot = await doc.get();
-        expect(snapshot.data, {'name': 'Added Doc'});
+        var data = snapshot.data;
+        expect(data.getString('name'), 'Added Doc');
       });
 
       test('set new document in collection', () async {

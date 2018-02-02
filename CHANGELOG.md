@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.0.0-dev.1.0
+
+- Depend on Dart SDK >= 2.0.0-dev.19.0
+- Depend on node_interop >= 1.0.0-dev
+
 ## 0.1.0-beta.4
 
 - Breaking: `FirebaseAdmin.initializeApp()` now expects new `AppOptions`

@@ -3,58 +3,53 @@
 @JS()
 library firebase_admin;
 
-import 'dart:js';
-
-import 'package:firestore_interop/firestore_interop.dart';
 import 'package:js/js.dart';
 import 'package:node_interop/node.dart';
 
-export 'package:firestore_interop/firestore_interop.dart'
-    show Firestore, FieldPath, FieldValue, GeoPoint;
+import 'firestore_bindings.dart' show Firestore;
 
-void initFirebaseAdmin() {
-  if (context.hasProperty('FirebaseAdmin')) return;
-  context['FirebaseAdmin'] = context.callMethod('require', ['firebase-admin']);
-}
+export 'firestore_bindings.dart';
 
 // admin =======================================================================
 
 const defaultAppName = '[DEFAULT]';
 
-/// Creates and initializes a Firebase app instance.
-@JS('FirebaseAdmin.initializeApp')
-external App initializeApp(options, [String name]);
+@JS()
+@anonymous
+abstract class FirebaseAdmin {
+  /// Creates and initializes a Firebase app instance.
+  external App initializeApp(options, [String name]);
 
-/// The current SDK version.
-@JS('FirebaseAdmin.SDK_VERSION')
-external String get SDK_VERSION;
+  /// The current SDK version.
+  external String get SDK_VERSION;
 
-/// A (read-only) array of all initialized apps.
-@JS('FirebaseAdmin.apps')
-external List<App> get apps;
+  /// A (read-only) array of all initialized apps.
+  external List<App> get apps;
 
-/// Retrieves a Firebase [App] instance.
-///
-/// When called with no arguments, the default app is returned. When an app
-/// [name] is provided, the app corresponding to that name is returned.
-///
-/// An exception is thrown if the app being retrieved has not yet been
-/// initialized.
-@JS('FirebaseAdmin.app')
-external App app([String name]);
+  /// Retrieves a Firebase [App] instance.
+  ///
+  /// When called with no arguments, the default app is returned. When an app
+  /// [name] is provided, the app corresponding to that name is returned.
+  ///
+  /// An exception is thrown if the app being retrieved has not yet been
+  /// initialized.
+  external App app([String name]);
 
-/// Gets the [Database] service for the default app or a given [app].
-@JS('FirebaseAdmin.database')
-external Database database([App app]);
+  /// Gets the [Database] service for the default app or a given [app].
+  external DatabaseService get database;
 
-/// Gets the [Firestore] client for the default app or a given [app].
-@JS('FirebaseAdmin.firestore')
-external Firestore firestore([App app]);
+  /// Gets the [Firestore] client for the default app or a given [app].
+  // external Firestore firestore([App app]);
 
-@JS('FirebaseAdmin.FirebaseError')
+  external Credentials get credential;
+}
+
+@JS()
+@anonymous
 abstract class FirebaseError extends JsError {}
 
-@JS('FirebaseAdmin.FirebaseArrayIndexError')
+@JS()
+@anonymous
 abstract class FirebaseArrayIndexError {
   external FirebaseError get error;
   external num get index;
@@ -62,28 +57,29 @@ abstract class FirebaseArrayIndexError {
 
 // admin.credential ============================================================
 
-/// Returns a [Credential] created from the Google Application Default
-/// Credentials (ADC) that grants admin access to Firebase services.
-///
-/// This credential can be used in the call to [initializeApp].
-@JS('FirebaseAdmin.credential.applicationDefault')
-external Credential applicationDefaultCredential();
+@JS()
+@anonymous
+abstract class Credentials {
+  /// Returns a [Credential] created from the Google Application Default
+  /// Credentials (ADC) that grants admin access to Firebase services.
+  ///
+  /// This credential can be used in the call to [initializeApp].
+  external Credential applicationDefault();
 
-/// Returns [Credential] created from the provided service account that grants
-/// admin access to Firebase services.
-///
-/// This credential can be used in the call to [initializeApp].
-/// [credentials] must be a path to a service account key JSON file or an
-/// object representing a service account key.
-@JS('FirebaseAdmin.credential.cert')
-external Credential cert(credentials);
+  /// Returns [Credential] created from the provided service account that grants
+  /// admin access to Firebase services.
+  ///
+  /// This credential can be used in the call to [initializeApp].
+  /// [credentials] must be a path to a service account key JSON file or an
+  /// object representing a service account key.
+  external Credential cert(credentials);
 
-/// Returns [Credential] created from the provided refresh token that grants
-/// admin access to Firebase services.
-///
-/// This credential can be used in the call to [initializeApp].
-@JS('FirebaseAdmin.credential.refreshToken')
-external Credential refreshToken(refreshTokenPathOrObject);
+  /// Returns [Credential] created from the provided refresh token that grants
+  /// admin access to Firebase services.
+  ///
+  /// This credential can be used in the call to [initializeApp].
+  external Credential refreshToken(refreshTokenPathOrObject);
+}
 
 @JS()
 @anonymous
@@ -98,7 +94,8 @@ abstract class ServiceAccountConfig {
 
 /// Interface which provides Google OAuth2 access tokens used to authenticate
 /// with Firebase services.
-@JS('FirebaseAdmin.credential.Credential')
+@JS()
+@anonymous
 abstract class Credential {
   /// Returns a Google OAuth2 [AccessToken] object used to authenticate with
   /// Firebase services.
@@ -121,7 +118,8 @@ abstract class AccessToken {
 
 /// A Firebase app holds the initialization information for a collection of
 /// services.
-@JS('FirebaseAdmin.app.App')
+@JS()
+@anonymous
 abstract class App {
   /// The name for this app.
   ///
@@ -140,14 +138,14 @@ abstract class App {
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.
-  external Promise<Null> delete();
+  external Promise delete();
 
   /// Gets the [Firestore] client for this app.
   external Firestore firestore();
 }
 
 /// Available options to pass to [initializeApp].
-@JS('FirebaseAdmin.app.AppOptions')
+@JS()
 @anonymous
 abstract class AppOptions {
   /// A [Credential] object used to authenticate the Admin SDK.
@@ -181,31 +179,36 @@ abstract class AppOptions {
 
 /// The Firebase Auth service interface.
 @JS()
+@anonymous
 abstract class Auth {
   // TODO: add definitions for Auth interface.
 }
 
 // admin.database ==============================================================
 
-/// A placeholder value for auto-populating the current timestamp (time since
-/// the Unix epoch, in milliseconds) as determined by the Firebase servers.
-@JS('FirebaseAdmin.database.ServerValue')
-external ServerValue get databaseServerValue;
-
 @JS()
 @anonymous
-abstract class ServerValue {
+abstract class DatabaseService implements Function {
+  external Database call([App app]);
+
+  /// Logs debugging information to the console.
+  external enableLogging([dynamic loggerOrBool, bool persistent]);
+  external ServerValues get ServerValue;
+}
+
+/// A placeholder value for auto-populating the current timestamp (time since
+/// the Unix epoch, in milliseconds) as determined by the Firebase servers.
+@JS()
+@anonymous
+abstract class ServerValues {
   external num get TIMESTAMP;
 }
 
-/// Logs debugging information to the console.
-@JS('FirebaseAdmin.database.enableLogging')
-external databaseEnableLogging([dynamic logger, bool persistent]);
-
 /// The Firebase Database interface.
 ///
-/// Access via [database].
-@JS('FirebaseAdmin.database.Database')
+/// Access via [FirebaseAdmin.database].
+@JS()
+@anonymous
 abstract class Database {
   /// The app associated with this Database instance.
   external App get app;
@@ -230,7 +233,8 @@ abstract class Database {
 
 /// A Reference represents a specific location in your [Database] and can be
 /// used for reading or writing data to that Database location.
-@JS('FirebaseAdmin.database.Reference')
+@JS()
+@anonymous
 abstract class Reference extends Query {
   /// The last part of this Reference's path.
   ///
@@ -283,7 +287,7 @@ abstract class Reference extends Query {
   /// Firebase servers will also be started, and the returned [Promise] will
   /// resolve when complete. If provided, the [onComplete] callback will be
   /// called asynchronously after synchronization has finished.
-  external Promise<Null> remove([onComplete(JsError error)]);
+  external Promise remove([onComplete(JsError error)]);
 
   /// Writes data to this Database location.
   ///
@@ -307,7 +311,7 @@ abstract class Reference extends Query {
   ///
   /// A single [set] will generate a single "value" event at the location where
   /// the `set()` was performed.
-  external Promise<Null> set(value, [onComplete(JsError error)]);
+  external Promise set(value, [onComplete(JsError error)]);
 
   /// Sets a priority for the data at this Database location.
   ///
@@ -316,7 +320,7 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise<Null> setPriority(priority, [onComplete(JsError error)]);
+  external Promise setPriority(priority, [onComplete(JsError error)]);
 
   /// Writes data the Database location. Like [set] but also specifies the
   /// [priority] for that data.
@@ -326,12 +330,13 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise<Null> setWithPriority(value, priority,
+  external Promise setWithPriority(value, priority,
       [onComplete(JsError error)]);
 }
 
-@JS('FirebaseAdmin.database.ThenableReference')
-abstract class ThenableReference extends Reference implements Promise<Null> {}
+@JS()
+@anonymous
+abstract class ThenableReference extends Reference implements Promise {}
 
 /// Allows you to write or clear data when your client disconnects from the
 /// [Database] server. These updates occur whether your client disconnects
@@ -350,7 +355,8 @@ abstract class ThenableReference extends Reference implements Promise<Null> {}
 /// Note that `onDisconnect` operations are only triggered once. If you want an
 /// operation to occur each time a disconnect occurs, you'll need to
 /// re-establish the onDisconnect operations each time you reconnect.
-@JS('FirebaseAdmin.database.OnDisconnect')
+@JS()
+@anonymous
 abstract class OnDisconnect {
   /// Cancels all previously queued `onDisconnect()` set or update events for
   /// this location and all children.
@@ -362,7 +368,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise<Null> cancel([onComplete(JsError error)]);
+  external Promise cancel([onComplete(JsError error)]);
 
   /// Ensures the data at this location is deleted when the client is
   /// disconnected (due to closing the browser, navigating to a new page, or
@@ -371,7 +377,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise<Null> remove([onComplete(JsError error)]);
+  external Promise remove([onComplete(JsError error)]);
 
   /// Ensures the data at this location is set to the specified [value] when the
   /// client is disconnected (due to closing the browser, navigating to a new
@@ -387,12 +393,12 @@ abstract class OnDisconnect {
   ///
   /// See also:
   /// - [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities)
-  external Promise<Null> set(value, [onComplete(JsError error)]);
+  external Promise set(value, [onComplete(JsError error)]);
 
   /// Ensures the data at this location is set to the specified [value] and
   /// [priority] when the client is disconnected (due to closing the browser,
   /// navigating to a new page, or network issues).
-  external Promise<Null> setWithPriority(value, priority,
+  external Promise setWithPriority(value, priority,
       [onComplete(JsError error)]);
 
   /// Writes multiple [values] at this location when the client is disconnected
@@ -409,7 +415,7 @@ abstract class OnDisconnect {
   ///
   /// See [Reference.update] for examples of using the connected version of
   /// update.
-  external Promise<Null> update(values, [onComplete(JsError error)]);
+  external Promise update(values, [onComplete(JsError error)]);
 }
 
 /// Sorts and filters the data at a [Database] location so only a subset of the
@@ -427,7 +433,8 @@ abstract class OnDisconnect {
 ///
 /// See also:
 ///   - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-@JS('FirebaseAdmin.database.Query')
+@JS()
+@anonymous
 abstract class Query {
   /// Returns a `Reference` to the [Query]'s location.
   external Reference get ref;
@@ -528,7 +535,7 @@ abstract class Query {
   ///
   /// This is equivalent to calling [on], and then calling [off] inside the
   /// callback function. See [on] for details on the event types.
-  external Promise<DataSnapshot> once(String eventType,
+  external Promise once(String eventType,
       [successCallback, failureCallbackOrContext, context]);
 
   /// Generates a new [Query] object ordered by the specified child key.
@@ -604,7 +611,8 @@ abstract class Query {
 /// A DataSnapshot is an efficiently generated, immutable copy of the data at a
 /// Database location. It cannot be modified and will never change (to modify
 /// data, you always call the [set] method on a [Reference] directly).
-@JS('FirebaseAdmin.database.DataSnapshot')
+@JS()
+@anonymous
 abstract class DataSnapshot {
   /// The key (last part of the path) of the location of this DataSnapshot.
   ///

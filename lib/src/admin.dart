@@ -2,6 +2,7 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
+import 'package:node_interop/node.dart';
 
 import 'app.dart';
 import 'bindings.dart' as js;
@@ -11,12 +12,13 @@ import 'bindings.dart' as js;
 /// To start using Firebase services initialize a Firebase application
 /// with [initializeApp] method.
 class FirebaseAdmin {
+  final js.FirebaseAdmin _admin;
   final Map<String, App> _apps = new Map();
 
   static FirebaseAdmin get instance => _instance ??= new FirebaseAdmin._();
   static FirebaseAdmin _instance;
 
-  FirebaseAdmin._();
+  FirebaseAdmin._() : _admin = require('firebase-admin');
 
   ///
   /// Creates and initializes a Firebase [App] instance with the given
@@ -49,9 +51,8 @@ class FirebaseAdmin {
   App initializeApp(js.AppOptions options, [String name]) {
     assert(options != null);
     name ??= js.defaultAppName;
-    js.initFirebaseAdmin();
     if (!_apps.containsKey(name)) {
-      _apps[name] = new App(js.initializeApp(options, name));
+      _apps[name] = new App(_admin.initializeApp(options, name));
     }
     return _apps[name];
   }
@@ -62,8 +63,7 @@ class FirebaseAdmin {
     @required String clientEmail,
     @required String privateKey,
   }) {
-    js.initFirebaseAdmin();
-    return js.cert(new js.ServiceAccountConfig(
+    return _admin.credential.cert(new js.ServiceAccountConfig(
       project_id: projectId,
       client_email: clientEmail,
       private_key: privateKey,
@@ -72,7 +72,6 @@ class FirebaseAdmin {
 
   /// Creates app certificate from service account file at specified [path].
   js.Credential certFromPath(String path) {
-    js.initFirebaseAdmin();
-    return js.cert(path);
+    return _admin.credential.cert(path);
   }
 }
