@@ -14,6 +14,7 @@ dependencies:
     git:
       url: https://github.com/pulyaevskiy/node-interop.git
       ref: dart20
+      path: node_interop
   meta: ^1.0.5
   quiver_hashcode: "^1.0.0"
 
