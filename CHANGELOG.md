@@ -1,9 +1,11 @@
 ## 1.0.0-dev.1.0
 
-- Depend on Dart SDK >= 2.0.0-dev.
-- Depend on node_interop >= 1.0.0-dev.
-- Added Firestore support.
-- Internal: run tests in both dart2js and dartdevc
+- Breaking change: Depends on Dart SDK >= 2.0.0-dev.
+- Breaking change: Depends on node_interop >= 1.0.0-dev.
+- Breaking change: removed built_value integration.
+- Added: Firestore support.
+- Internal: run tests in both dart2js and dartdevc.
+- Updated documentation with new instructions.
 
 ## 0.1.0-beta.4
 
