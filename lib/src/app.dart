@@ -36,5 +36,5 @@ class App {
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.
-  Future<Null> delete() => promiseToFuture(nativeInstance.delete());
+  Future<void> delete() => promiseToFuture<void>(nativeInstance.delete());
 }

@@ -118,7 +118,7 @@ class DocumentReference {
   /// Writes to the document referred to by this [DocumentReference]. If the
   /// document does not yet exist, it will be created. If you pass [SetOptions],
   /// the provided data will be merged into an existing document.
-  Future<Null> setData(DocumentData data, [js.SetOptions options]) {
+  Future<void> setData(DocumentData data, [js.SetOptions options]) {
     final docData = data.nativeInstance;
     if (options != null) {
       return promiseToFuture(nativeInstance.set(docData, options));
@@ -129,7 +129,7 @@ class DocumentReference {
   /// Updates fields in the document referred to by this [DocumentReference].
   ///
   /// If no document exists yet, the update will fail.
-  Future<Null> updateData(UpdateData data) {
+  Future<void> updateData(UpdateData data) {
     final docData = data.nativeInstance;
     return promiseToFuture(nativeInstance.update(docData));
   }
@@ -143,7 +143,7 @@ class DocumentReference {
   }
 
   /// Deletes the document referred to by this [DocumentReference].
-  Future delete() => promiseToFuture(nativeInstance.delete());
+  Future<void> delete() => promiseToFuture(nativeInstance.delete());
 
   /// Returns the reference of a collection contained inside of this
   /// document.
@@ -341,23 +341,18 @@ class _FirestoreData {
     setProperty(nativeInstance, key, data);
   }
 
-  bool _isListOfPrimitives(List list) {
-    return list.every((value) =>
-        value == null ||
-        value is int ||
-        value is double ||
-        value is String ||
-        value is bool);
-  }
+  bool _isPrimitive(value) =>
+      value == null ||
+      value is int ||
+      value is double ||
+      value is String ||
+      value is bool;
 
   List<T> getList<T>(String key) {
     final Iterable data = getProperty(nativeInstance, key);
     if (data == null) return null;
-    assert(() {
-      // Note: we have to wrap this assert in a closure because dart2js
-      // seems to be lazy-evaluating the result and fails to handle it in the end.
-      return _isListOfPrimitives(new List.from(data));
-    },
+    assert(
+        data.every(_isPrimitive),
         'Complex values in lists are not yet supported by the library.'
         'Only bool, int, double and String can be used at this point.'
         'Please file an issue at https://github.com/pulyaevskiy/firebase-admin-interop/issues'
@@ -368,11 +363,8 @@ class _FirestoreData {
 
   void setList<T>(String key, List<T> value) {
     assert(key != null);
-    assert(() {
-      // Note: we have to wrap this assert in a closure because dart2js
-      // seems to be lazy-evaluating the result and fails to handle it in the end.
-      return _isListOfPrimitives(value);
-    },
+    assert(
+        value.every(_isPrimitive),
         'Complex values in lists are not yet supported by the library.'
         'Only bool, int, double and String can be used at this point.'
         'Please file an issue at https://github.com/pulyaevskiy/firebase-admin-interop/issues'
@@ -434,8 +426,8 @@ class DocumentData extends _FirestoreData {
 /// are handled.
 ///
 /// [DocumentData] always represents full snapshot of a document as a tree.
-/// [UpdateData] represents only a part of the document which must be updated where
-/// nested fields use dot-separated keys. For instance,
+/// [UpdateData] represents only a part of the document which must be updated,
+/// and nested fields use dot-separated keys. For instance,
 ///
 ///     // Using DocumentData with "profile" field which itself contains
 ///     // "name" field:

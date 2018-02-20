@@ -39,7 +39,7 @@ abstract class FirebaseAdmin {
   external DatabaseService get database;
 
   /// Gets the [Firestore] client for the default app or a given [app].
-  // external Firestore firestore([App app]);
+  external Firestore firestore([App app]);
 
   external Credentials get credential;
 }
@@ -188,8 +188,9 @@ abstract class Auth {
 
 @JS()
 @anonymous
-abstract class DatabaseService implements Function {
-  external Database call([App app]);
+abstract class DatabaseService {
+  // Implementing call method breaks dart2js.
+  // external Database call([App app]);
 
   /// Logs debugging information to the console.
   external enableLogging([dynamic loggerOrBool, bool persistent]);

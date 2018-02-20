@@ -2,7 +2,6 @@
 library firestore;
 
 import "package:js/js.dart";
-import "package:func/func.dart";
 import 'package:js/js_util.dart';
 import "package:node_interop/node.dart";
 import "package:node_interop/stream.dart";
@@ -13,10 +12,17 @@ abstract class FirestoreModule {
   /// Sets the log function for all active Firestore instances.
   external void setLogFunction(void logger(String msg));
 
-  external dynamic get Firestore;
-  external dynamic get GeoPoint;
+  external Function get Firestore;
+  external Function get GeoPoint;
   external FieldValues get FieldValue;
-  external FieldPathPrototype get FieldPath;
+
+  /// Reference to constructor function of [FieldPath].
+  ///
+  /// See also:
+  /// - [FieldPathPrototype] which exposes static members of this class.
+  /// - [documentId] which is a convenience function to create sentinel
+  ///   [FieldPath] to refer to the ID of a document.
+  external dynamic get FieldPath;
 }
 
 Firestore createFirestore(FirestoreModule module, dynamic options) {
@@ -25,6 +31,17 @@ Firestore createFirestore(FirestoreModule module, dynamic options) {
 
 GeoPoint createGeoPoint(FirestoreModule module, num latitude, num longitude) {
   return callConstructor(module.GeoPoint, [latitude, longitude]);
+}
+
+FieldPath createFieldPath(FirestoreModule module, List<String> fieldNames) {
+  return callConstructor(module.FieldPath, jsify(fieldNames));
+}
+
+/// Returns a special sentinel [FieldPath] to refer to the ID of a document.
+/// It can be used in queries to sort or filter by the document ID.
+FieldPath documentId(FirestoreModule module) {
+  final FieldPathPrototype proto = module.FieldPath;
+  return proto.documentId();
 }
 
 /// Document data (for use with `DocumentReference.set()`) consists of fields
@@ -39,10 +56,6 @@ abstract class DocumentData {}
 @JS()
 @anonymous
 abstract class UpdateData {}
-
-FieldPath createFieldPath(FirestoreModule module, List<String> fieldNames) {
-  return callConstructor(module.FieldPath, jsify(fieldNames));
-}
 
 /// `Firestore` represents a Firestore Database and is the entry point for all
 /// Firestore operations.
@@ -318,7 +331,7 @@ abstract class DocumentReference {
   /// is available.
   /// cancelled. No further callbacks will occur.
   /// the snapshot listener.
-  external VoidFunc0 onSnapshot(void onNext(DocumentSnapshot snapshot),
+  external Function onSnapshot(void onNext(DocumentSnapshot snapshot),
       [void onError(Error error)]);
 }
 
@@ -529,7 +542,7 @@ abstract class DocumentQuery {
   /// is available.
   /// cancelled. No further callbacks will occur.
   /// the snapshot listener.
-  external VoidFunc0 onSnapshot(void onNext(QuerySnapshot snapshot),
+  external Function onSnapshot(void onNext(QuerySnapshot snapshot),
       [void onError(Error error)]);
 }
 
@@ -658,7 +671,7 @@ abstract class FieldValue {}
 
 @JS()
 @anonymous
-abstract class FieldPathPrototype implements Function {
+abstract class FieldPathPrototype {
   /// Returns a special sentinel FieldPath to refer to the ID of a document.
   /// It can be used in queries to sort or filter by the document ID.
   external FieldPath documentId();

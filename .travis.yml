@@ -11,6 +11,7 @@ before_script:
 - npm install
 
 dart_task:
-- test: --platform node --reporter expanded -j 1
+- test: --reporter expanded -j 1
 - dartfmt
 - dartanalyzer: --fatal-warnings lib
+- ./tool/ddc_test.sh
