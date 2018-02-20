@@ -27,11 +27,13 @@ class App {
   js.AppOptions get options => nativeInstance.options;
 
   /// Returns Realtime [Database] client for this application.
-  Database database() => _database ??= new Database.forApp(this);
+  Database database() =>
+      _database ??= new Database(this.nativeInstance.database(), this);
   Database _database;
 
   /// Returns [Firestore] client for this application.
-  Firestore firestore() => _firestore ??= new Firestore.forApp(this);
+  Firestore firestore() =>
+      _firestore ??= new Firestore(nativeInstance.firestore());
   Firestore _firestore;
 
   /// Renders this app unusable and frees the resources of all associated

@@ -18,7 +18,7 @@ class Database {
   /// The app associated with this Database instance.
   final App app;
 
-  Database.forApp(this.app) : nativeInstance = app.nativeInstance.database();
+  Database(this.nativeInstance, this.app);
 
   /// Disconnects from the server (all Database operations will be completed
   /// offline).

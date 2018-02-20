@@ -12,17 +12,12 @@ import 'package:node_interop/stream.dart';
 import 'package:node_interop/util.dart';
 import 'package:quiver_hashcode/hashcode.dart';
 
-import 'app.dart';
 import 'bindings.dart' as js;
 
 final js.FirestoreModule _firestoreModule = require('@google-cloud/firestore');
 
 js.Firestore _initWithOptions(js.AppOptions options) {
   return js.createFirestore(_firestoreModule, options);
-}
-
-js.Firestore _initWithApp(App app) {
-  return app.nativeInstance.firestore();
 }
 
 /// Represents a Firestore Database and is the entry point for all
@@ -32,15 +27,11 @@ class Firestore {
   @protected
   final js.Firestore nativeInstance;
 
-  /// Creates new Firestore client which wraps [nativeInstance].
-  ///
-  /// Consider using [Firestore.withOptions] or [Firestore.forApp] instead of
-  /// this constructor.
+  /// Creates new Firestore Database client which wraps [nativeInstance].
   Firestore(this.nativeInstance);
 
   Firestore.withOptions(js.AppOptions options)
       : nativeInstance = _initWithOptions(options);
-  Firestore.forApp(App app) : nativeInstance = _initWithApp(app);
 
   /// Gets a [CollectionReference] for the specified Firestore path.
   CollectionReference collection(String path) {
