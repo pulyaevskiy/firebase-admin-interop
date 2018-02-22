@@ -1,3 +1,8 @@
+## 1.0.0-dev.2.0
+
+- Fixed: `DocumentQuery.snapshots` was subscribing to a wrong stream of updates.
+- Added: `DocumentQuery.get`.
+
 ## 1.0.0-dev.1.0
 
 - Breaking change: Depends on Dart SDK >= 2.0.0-dev.

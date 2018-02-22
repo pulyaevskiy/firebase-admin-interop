@@ -1,6 +1,8 @@
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 @TestOn('node')
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 import 'package:test/test.dart';
@@ -128,6 +130,43 @@ void main() {
         final doc = ref.document('abc');
         expect(doc.documentID, 'abc');
         expect(doc.path, 'users/abc');
+      });
+    });
+
+    group('$DocumentQuery', () {
+      test('get query snapshot', () async {
+        var ref = app.firestore().collection('tests/query/docs');
+        var snapshot = await ref.get();
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
+        expect(snapshot.documentChanges, hasLength(1));
+        var doc = snapshot.documents.first;
+        expect(doc.data.getString('name'), 'John Doe');
+        var change = snapshot.documentChanges.first;
+        expect(change.type, isNull);
+      });
+
+      test('get empty query snapshot', () async {
+        var ref = app.firestore().collection('tests/query/none');
+        var snapshot = await ref.get();
+        expect(snapshot, isEmpty);
+        expect(snapshot.documents, isNotNull);
+        expect(snapshot.documents, isEmpty);
+        expect(snapshot.documentChanges, isNotNull);
+        expect(snapshot.documentChanges, isEmpty);
+      });
+
+      test('listen for query snapshot updates', () async {
+        var ref = app.firestore().collection('tests/query/docs');
+        Completer<QuerySnapshot> completer = new Completer<QuerySnapshot>();
+        var subscription = ref.snapshots.listen((event) {
+          completer.complete(event);
+        });
+        var snapshot = await completer.future;
+        subscription.cancel();
+        expect(snapshot, isNotNull);
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
       });
     });
   });

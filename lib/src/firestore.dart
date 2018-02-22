@@ -191,11 +191,17 @@ class DocumentChange {
   final Firestore firestore;
 
   /// The type of change that occurred (added, modified, or removed).
+  ///
+  /// Can be `null` if this document change was returned from [DocumentQuery.get].
   DocumentChangeType get type {
     if (_type != null) return _type;
-    _type = DocumentChangeType.values.firstWhere((value) {
-      return value.toString().endsWith(nativeInstance.type);
-    });
+    if (nativeInstance.type == 'added') {
+      _type = DocumentChangeType.added;
+    } else if (nativeInstance.type == 'modified') {
+      _type = DocumentChangeType.modified;
+    } else if (nativeInstance.type == 'removed') {
+      _type = DocumentChangeType.removed;
+    }
     return _type;
   }
 
@@ -378,6 +384,9 @@ class _FirestoreData {
     final data = (value != null) ? value.nativeInstance : null;
     setProperty(nativeInstance, key, data);
   }
+
+  @override
+  String toString() => '$runtimeType';
 }
 
 /// Data stored in a Firestore Document.
@@ -466,18 +475,30 @@ class QuerySnapshot {
   final js.QuerySnapshot nativeInstance;
   final Firestore firestore;
 
+  bool get isEmpty => nativeInstance.empty;
+  bool get isNotEmpty => !isEmpty;
+
   /// Gets a list of all the documents included in this snapshot
-  List<DocumentSnapshot> get documents => _documents ??= nativeInstance.docs
-      .map((jsDoc) => new DocumentSnapshot(jsDoc, firestore))
-      .toList(growable: false);
+  List<DocumentSnapshot> get documents {
+    if (isEmpty) return const <DocumentSnapshot>[];
+    _documents ??= nativeInstance.docs
+        .map((jsDoc) => new DocumentSnapshot(jsDoc, firestore))
+        .toList(growable: false);
+    return _documents;
+  }
+
   List<DocumentSnapshot> _documents;
 
   /// An array of the documents that changed since the last snapshot. If this
   /// is the first snapshot, all documents will be in the list as Added changes.
-  List<DocumentChange> get documentChanges =>
-      _changes ??= nativeInstance.docChanges
-          .map((jsChange) => new DocumentChange(jsChange, firestore))
-          .toList(growable: false);
+  List<DocumentChange> get documentChanges {
+    if (isEmpty) return const <DocumentChange>[];
+    _changes ??= nativeInstance.docChanges
+        .map((jsChange) => new DocumentChange(jsChange, firestore))
+        .toList(growable: false);
+    return _changes;
+  }
+
   List<DocumentChange> _changes;
 }
 
@@ -489,7 +510,12 @@ class DocumentQuery {
   final js.DocumentQuery nativeInstance;
   final Firestore firestore;
 
-  /// Notifies of query results at this location
+  Future<QuerySnapshot> get() {
+    return promiseToFuture(nativeInstance.get())
+        .then((jsSnapshot) => new QuerySnapshot(jsSnapshot, firestore));
+  }
+
+  /// Notifies of query results at this location.
   Stream<QuerySnapshot> get snapshots {
     // It's fine to let the StreamController be garbage collected once all the
     // subscribers have cancelled; this analyzer warning is safe to ignore.
@@ -503,17 +529,15 @@ class DocumentQuery {
       controller.addError(error);
     }
 
-    Readable stream;
+    Function unsubscribe;
 
     controller = new StreamController<QuerySnapshot>.broadcast(
       onListen: () {
-        stream = nativeInstance.stream();
-        stream.on('data', allowInterop(onSnapshot));
-        stream.on('error', allowInterop(onError));
+        unsubscribe = nativeInstance.onSnapshot(
+            allowInterop(onSnapshot), allowInterop(onError));
       },
       onCancel: () {
-        stream.removeAllListeners('data');
-        stream.removeAllListeners('error');
+        unsubscribe();
       },
     );
     return controller.stream;
