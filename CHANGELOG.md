@@ -1,3 +1,7 @@
+## 1.0.0-dev.3.0
+
+- Added: Firestore `DocumentData.keys` and `DocumentData.toMap()`.
+
 ## 1.0.0-dev.2.0
 
 - Fixed: `DocumentQuery.snapshots` was subscribing to a wrong stream of updates.

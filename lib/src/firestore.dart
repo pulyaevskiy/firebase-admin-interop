@@ -313,6 +313,8 @@ class _FirestoreData {
   DateTime getDateTime(String key) {
     Date date = getProperty(nativeInstance, key);
     if (date == null) return null;
+    assert(
+        _isDate(date), 'Invalid value provided to $runtimeType.getDateTime().');
     return new DateTime.fromMillisecondsSinceEpoch(date.getTime());
   }
 
@@ -326,6 +328,8 @@ class _FirestoreData {
   GeoPoint getGeoPoint(String key) {
     js.GeoPoint value = getProperty(nativeInstance, key);
     if (value == null) return null;
+    assert(_isGeoPoint(value),
+        'Invalid value provided to $runtimeType.getGeoPoint().');
     return new GeoPoint(value.latitude.toDouble(), value.longitude.toDouble());
   }
 
@@ -373,8 +377,10 @@ class _FirestoreData {
   DocumentReference getReference(String key) {
     js.DocumentReference ref = getProperty(nativeInstance, key);
     if (ref == null) return null;
-    assert(objectKeys(ref).contains('_referencePath'));
-    js.Firestore firestore = getProperty(ref, '_firestore');
+    assert(_isReference(ref),
+        'Invalid value provided to $runtimeType.getReference().');
+
+    js.Firestore firestore = ref.firestore;
     return new DocumentReference(ref, new Firestore(firestore));
   }
 
@@ -383,6 +389,23 @@ class _FirestoreData {
     final data = (value != null) ? value.nativeInstance : null;
     setProperty(nativeInstance, key, data);
   }
+
+  // Workarounds for dart2js as `value is Type` doesn't work as expected.
+  bool _isDate(value) =>
+      hasProperty(value, 'toDateString') &&
+      hasProperty(value, 'getTime') &&
+      getProperty(value, 'getTime') is Function;
+  bool _isGeoPoint(value) =>
+      hasProperty(value, 'latitude') &&
+      hasProperty(value, 'longitude') &&
+      hasProperty(value, 'toString') &&
+      getProperty(value, 'toString') is Function &&
+      value.toString().contains('GeoPoint');
+  bool _isReference(value) =>
+      hasProperty(value, 'firestore') &&
+      hasProperty(value, 'id') &&
+      hasProperty(value, 'onSnapshot') &&
+      getProperty(value, 'onSnapshot') is Function;
 
   @override
   String toString() => '$runtimeType';
@@ -416,6 +439,54 @@ class DocumentData extends _FirestoreData {
   void setNestedData(String key, DocumentData value) {
     assert(key != null);
     setProperty(nativeInstance, key, value.nativeInstance);
+  }
+
+  /// List of keys in this document data.
+  List<String> get keys => objectKeys(nativeInstance);
+
+  /// Converts this document data into a [Map].
+  Map<String, dynamic> toMap() {
+    final Map<String, dynamic> map = {};
+    for (var key in keys) {
+      map[key] = _dartifyProperty(key);
+    }
+    return map;
+  }
+
+  dynamic _dartifyProperty(key) {
+    /// This is a best-effort implementation which attempts to convert
+    /// built-in Firestore data types into Dart objects.
+    ///
+    /// We check types starting with higher level of confidence:
+    /// 1. Primitive types (int, bool, String, double, null)
+    /// 2. Data types with properties of type [Function]: DateTime, DocumentReference
+    /// 3. Lists
+    /// 4. GeoPoint
+    /// 5. Nested arbitrary maps.
+    ///
+    /// The assumption is that Firestore does not support storing [Function]
+    /// values so if a native object contains a known function property
+    /// (`Date.getTime` or `DocumentReference.onSnapshot`) it should be safe to
+    /// treat it as such type.
+    ///
+    /// The only possible mismatch here would be treating an arbitrary nested
+    /// map as a GeoPoint because we can only check presence of `latitude` and
+    /// `longitude`. The [_isGeoPoint] method relies additionally on the output
+    /// of `GeoPoint.toString()` method which must contain "GeoPoint".
+    /// See: https://github.com/googleapis/nodejs-firestore/blob/35c1af0d0afc660b467d411f5de39792f8330be2/src/document.js#L129
+    final value = getProperty(nativeInstance, key);
+    if (_isPrimitive(value)) return value;
+    if (_isDate(value)) {
+      return getDateTime(key);
+    } else if (_isReference(value)) {
+      return getReference(key);
+    } else if (_isGeoPoint(value)) {
+      return getGeoPoint(key);
+    } else if (value is List) {
+      return getList(key);
+    } else {
+      return getNestedData(key).toMap();
+    }
   }
 }
 
