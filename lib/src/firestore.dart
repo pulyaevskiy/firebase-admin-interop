@@ -8,7 +8,6 @@ import 'package:js/js.dart';
 import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/node.dart';
-import 'package:node_interop/stream.dart';
 import 'package:node_interop/util.dart';
 import 'package:quiver_hashcode/hashcode.dart';
 
