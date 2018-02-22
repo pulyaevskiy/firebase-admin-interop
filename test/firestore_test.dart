@@ -41,7 +41,10 @@ void main() {
         var data = snapshot.data;
         expect(data, new isInstanceOf<DocumentData>());
         expect(data, hasLength(3));
-        expect(data.keys, ['name', 'profile.url', 'nested']);
+        expect(data.keys, hasLength(3));
+        expect(data.keys, contains('name'));
+        expect(data.keys, contains('profile.url'));
+        expect(data.keys, contains('nested'));
         expect(data.getString('name'), 'Firestore');
         expect(data.getString('profile.url'), 'https://pic.com/123');
         var nested = data.getNestedData('nested');
@@ -104,6 +107,15 @@ void main() {
         });
         var nested = new DocumentData.fromMap({'nestedVal': 'very nested'});
         data.setNestedData('nestedData', nested);
+        var fakeGeoPoint = new DocumentData.fromMap(
+            {'latitude': 23.03, 'longitude': 84.19, 'toString': 'GeoPoint'});
+        data.setNestedData('fakeGeoPoint', fakeGeoPoint);
+        var fakeRef = new DocumentData.fromMap(
+            {'firestore': 'Nope', 'id': 'Nah', 'onSnapshot': 'Function'});
+        data.setNestedData('fakeRef', fakeRef);
+        var fakeDate = new DocumentData.fromMap(
+            {'toDateString': 'date', 'getTime': 'Function'});
+        data.setNestedData('fakeDate', fakeDate);
         await ref.setData(data);
 
         var snapshot = await ref.get();
@@ -119,6 +131,12 @@ void main() {
         expect(docRef.path, 'users/23');
         expect(result['listVal'], [23, 84]);
         expect(result['nestedData'], {'nestedVal': 'very nested'});
+        expect(result['fakeGeoPoint'],
+            {'latitude': 23.03, 'longitude': 84.19, 'toString': 'GeoPoint'});
+        expect(result['fakeRef'],
+            {'firestore': 'Nope', 'id': 'Nah', 'onSnapshot': 'Function'});
+        expect(result['fakeDate'],
+            {'toDateString': 'date', 'getTime': 'Function'});
       });
 
       test('unsupported data types', () async {
