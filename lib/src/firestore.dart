@@ -80,8 +80,8 @@ class CollectionReference extends DocumentQuery {
   ///
   /// The unique key generated is prefixed with a client-generated timestamp
   /// so that the resulting list will be chronologically-sorted.
-  Future<DocumentReference> add(Map<String, dynamic> data) {
-    return promiseToFuture(nativeInstance.add(jsify(data)))
+  Future<DocumentReference> add(DocumentData data) {
+    return promiseToFuture(nativeInstance.add(data.nativeInstance))
         .then((jsRef) => new DocumentReference(jsRef, firestore));
   }
 }
@@ -428,6 +428,15 @@ class DocumentData extends _FirestoreData {
     final doc = new DocumentData();
     data.forEach(doc._setField);
     return doc;
+  }
+
+  @override
+  void _setField(String key, value) {
+    if (value is Map) {
+      setNestedData(key, new DocumentData.fromMap(value));
+    } else {
+      super._setField(key, value);
+    }
   }
 
   DocumentData getNestedData(String key) {

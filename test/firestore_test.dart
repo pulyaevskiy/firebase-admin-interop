@@ -74,7 +74,8 @@ void main() {
           'dateVal': date,
           'geoVal': new GeoPoint(23.03, 19.84),
           'refVal': app.firestore().document('users/23'),
-          'listVal': [23, 84]
+          'listVal': [23, 84],
+          'nestedVal': {'nestedKey': 'much nested'},
         });
         await ref.setData(data);
 
@@ -90,6 +91,8 @@ void main() {
         expect(docRef, new isInstanceOf<DocumentReference>());
         expect(docRef.path, 'users/23');
         expect(result.getList('listVal'), [23, 84]);
+        var nested = result.getNestedData('nestedVal');
+        expect(nested.getString('nestedKey'), 'much nested');
       });
 
       test('$DocumentData.toMap', () async {
@@ -170,11 +173,12 @@ void main() {
       });
 
       test('add document to collection', () async {
-        final doc = await ref.add({'name': 'Added Doc'});
+        final data = new DocumentData.fromMap({'name': 'Added Doc'});
+        final doc = await ref.add(data);
         expect(doc.documentID, isNotNull);
         final snapshot = await doc.get();
-        var data = snapshot.data;
-        expect(data.getString('name'), 'Added Doc');
+        var result = snapshot.data;
+        expect(result.getString('name'), 'Added Doc');
       });
 
       test('set new document in collection', () async {

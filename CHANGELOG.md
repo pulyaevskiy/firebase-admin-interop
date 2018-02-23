@@ -1,3 +1,10 @@
+## 1.0.0-dev.4.0
+
+- Breaking change: `CollectionReference.add` now expects instance of
+  `DocumentData` instead of regular Dart `Map`. Use `DocumentData.fromMap` to
+  upgrade from previous version.
+  Fixed: Handle nested maps in `DocumentData.fromMap`.
+
 ## 1.0.0-dev.3.0
 
 - Added: Firestore `DocumentData.keys` and `DocumentData.toMap()`.
