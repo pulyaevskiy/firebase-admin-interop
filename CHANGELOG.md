@@ -3,7 +3,7 @@
 - Breaking change: `CollectionReference.add` now expects instance of
   `DocumentData` instead of regular Dart `Map`. Use `DocumentData.fromMap` to
   upgrade from previous version.
-  Fixed: Handle nested maps in `DocumentData.fromMap`.
+- Fixed: Handle nested maps in `DocumentData.fromMap`.
 
 ## 1.0.0-dev.3.0
 
