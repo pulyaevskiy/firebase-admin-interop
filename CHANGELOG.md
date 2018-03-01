@@ -1,3 +1,8 @@
+## 1.0.0-dev.5.0
+
+- Added: Auth service implementation. See `App.auth()` method and `Auth` class
+  for more details.
+
 ## 1.0.0-dev.4.0
 
 - Breaking change: `CollectionReference.add` now expects instance of
