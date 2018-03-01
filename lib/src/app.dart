@@ -7,6 +7,7 @@ import 'package:meta/meta.dart';
 import 'package:node_interop/util.dart';
 
 import 'admin.dart';
+import 'auth.dart';
 import 'bindings.dart' as js;
 import 'database.dart';
 import 'firestore.dart';
@@ -26,12 +27,16 @@ class App {
   /// parameters given in [FirebaseAdmin.initializeApp].
   js.AppOptions get options => nativeInstance.options;
 
-  /// Returns Realtime [Database] client for this application.
+  /// Gets the [Auth] service for this application.
+  Auth auth() => _auth ??= new Auth(nativeInstance.auth());
+  Auth _auth;
+
+  /// Gets Realtime [Database] client for this application.
   Database database() =>
       _database ??= new Database(this.nativeInstance.database(), this);
   Database _database;
 
-  /// Returns [Firestore] client for this application.
+  /// Gets [Firestore] client for this application.
   Firestore firestore() =>
       _firestore ??= new Firestore(nativeInstance.firestore());
   Firestore _firestore;

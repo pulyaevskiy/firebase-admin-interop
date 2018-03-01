@@ -113,7 +113,7 @@ be described there.
 Current implementation coverage report:
 
 - [x] admin
-- [ ] admin.auth
+- [x] admin.auth
 - [x] admin.app
 - [x] admin.credential
 - [x] admin.database

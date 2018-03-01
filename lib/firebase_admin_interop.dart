@@ -37,12 +37,15 @@
 ///
 /// See also:
 ///   * [FirebaseAdmin]
+///   * [Auth]
 ///   * [App]
 ///   * [Database]
+///   * [Firestore]
 library firebase_admin_interop;
 
 export 'src/admin.dart';
 export 'src/app.dart';
+export 'src/auth.dart';
 export 'src/bindings.dart' show AppOptions;
 export 'src/database.dart';
 export 'src/firestore.dart';
