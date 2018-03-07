@@ -26,6 +26,13 @@ void main() {
         var snapshot = await ref.once<String>('value');
         expect(snapshot.val(), 'Firebase');
       });
+
+      test('querying works', () async {
+        var ref = app.database().ref('/app/users').endAt('Firebase');
+        var value = await ref.once('value');
+        var records = new Map<String, dynamic>.from(value.val());
+        expect(records, hasLength(2));
+      });
     });
 
     group('Reference', () {

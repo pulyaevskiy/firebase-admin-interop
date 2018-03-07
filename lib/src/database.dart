@@ -60,12 +60,164 @@ class Query {
 
   Query(this.nativeInstance);
 
+  /// Returns a [Reference] to the [Query]'s location.
+  Reference get ref => _ref ??= new Reference(nativeInstance.ref);
+  Reference _ref;
+
+  /// Creates a [Query] with the specified ending point.
+  ///
+  /// Using [startAt], [endAt], and [equalTo] allows you to choose arbitrary
+  /// starting and ending points for your queries.
+  /// The ending point is inclusive, so children with exactly the specified
+  /// value will be included in the query. The optional key argument can be used
+  /// to further limit the range of the query. If it is specified, then children
+  /// that have exactly the specified value must also have a key name less than
+  /// or equal to the specified key.
+  ///
+  /// The [value] type depends on which `orderBy*()` function was used in this
+  /// query. Specify a value that matches the `orderBy*()` type. When used in
+  /// combination with [orderByKey], the value must be a `String`.
+  ///
+  /// Optional [key] is only allowed if ordering by priority and defines the
+  /// child key to end at, among the children with the previously specified
+  /// priority.
+  Query endAt(value, [String key]) {
+    if (key == null) {
+      return new Query(nativeInstance.endAt(value));
+    }
+    return new Query(nativeInstance.endAt(value, key));
+  }
+
+  /// Creates a [Query] that includes children that match the specified value.
+  ///
+  /// Using [startAt], [endAt], and [equalTo] allows you to choose arbitrary
+  /// starting and ending points for your queries.
+  ///
+  /// The [value] type depends on which `orderBy*()` function was used in this
+  /// query. Specify a value that matches the `orderBy*()` type. When used in
+  /// combination with [orderByKey], the value must be a `String`.
+  ///
+  /// The optional [key] argument can be used to further limit the range of the
+  /// query. If it is specified, then children that have exactly the specified
+  /// value must also have exactly the specified key as their key name. This can
+  /// be used to filter result sets with many matches for the same value.
+  Query equalTo(value, [String key]) {
+    if (key == null) {
+      return new Query(nativeInstance.equalTo(value));
+    }
+    return new Query(nativeInstance.equalTo(value, key));
+  }
+
+  /// Returns `true` if this and [other] query are equal.
+  ///
+  /// Returns whether or not the current and provided queries represent the same
+  /// location, have the same query parameters, and are from the same instance
+  /// of [App]. Equivalent queries share the same sort order, limits, and
+  /// starting and ending points.
+  ///
+  /// Two [Reference] objects are equivalent if they represent the same location
+  /// and are from the same instance of [App].
+  bool isEqual(Query other) => nativeInstance.isEqual(other.nativeInstance);
+
+  /// Generates a new [Query] limited to the first specific number of children.
+  ///
+  /// This method is used to set a maximum number of children to be synced for a
+  /// given callback. If we set a limit of 100, we will initially only receive
+  /// up to 100 child_added events. If we have fewer than 100 messages stored in
+  /// our [Database], a child_added event will fire for each message. However,
+  /// if we have over 100 messages, we will only receive a child_added event for
+  /// the first 100 ordered messages. As items change, we will receive
+  /// child_removed events for each item that drops out of the active list so
+  /// that the total number stays at 100.
+  Query limitToFirst(int limit) =>
+      new Query(nativeInstance.limitToFirst(limit));
+
+  /// Generates a new [Query] limited to the last specific number of children.
+  ///
+  /// This method is used to set a maximum number of children to be synced for a
+  /// given callback. If we set a limit of 100, we will initially only receive
+  /// up to 100 child_added events. If we have fewer than 100 messages stored in
+  /// our Database, a child_added event will fire for each message. However, if
+  /// we have over 100 messages, we will only receive a child_added event for
+  /// the last 100 ordered messages. As items change, we will receive
+  /// child_removed events for each item that drops out of the active list so
+  /// that the total number stays at 100.
+  Query limitToLast(int limit) => new Query(nativeInstance.limitToLast(limit));
+
   /// Listens for exactly one event of the specified [eventType], and then stops
   /// listening.
   Future<DataSnapshot<T>> once<T>(String eventType) {
     return promiseToFuture(nativeInstance.once(eventType))
         .then((snapshot) => new DataSnapshot(snapshot));
   }
+
+  /// Generates a new [Query] object ordered by the specified child key.
+  ///
+  /// Queries can only order by one key at a time. Calling [orderByChild]
+  /// multiple times on the same query is an error.
+  Query orderByChild(String path) =>
+      new Query(nativeInstance.orderByChild(path));
+
+  /// Generates a new [Query] object ordered by key.
+  ///
+  /// Sorts the results of a query by their (ascending) key values.
+  ///
+  /// See also:
+  /// - [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data)
+  Query orderByKey() => new Query(nativeInstance.orderByKey());
+
+  /// Generates a new [Query] object ordered by priority.
+  ///
+  /// Applications need not use priority but can order collections by ordinary
+  /// properties.
+  ///
+  /// See also:
+  /// - [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data)
+  Query orderByPriority() => new Query(nativeInstance.orderByPriority());
+
+  /// Generates a new [Query] object ordered by value.
+  ///
+  /// If the children of a query are all scalar values (string, number, or
+  /// boolean), you can order the results by their (ascending) values.
+  ///
+  /// See also:
+  /// - [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data)
+  Query orderByValue() => new Query(nativeInstance.orderByValue());
+
+  /// Creates a [Query] with the specified starting point.
+  ///
+  /// The starting point is inclusive, so children with exactly the specified
+  /// [value] will be included in the query.
+  ///
+  /// The optional [key] argument can be used to further limit the range of the
+  /// query. If it is specified, then children that have exactly the specified
+  /// [value] must also have a `key` name greater than or equal to the specified
+  /// [key].
+  ///
+  /// See also:
+  /// - [Filtering data](https://firebase.google.com/docs/database/web/lists-of-data#filtering_data)
+  Query startAt(value, [String key]) {
+    if (key == null) {
+      return new Query(nativeInstance.startAt(value));
+    }
+    return new Query(nativeInstance.startAt(value, key));
+  }
+
+  // Note: intentionally not following JS convention and using Dart convention instead.
+  /// Returns a JSON-serializable representation of this object.
+  dynamic toJson() => nativeInstance.toJSON();
+
+  /// Gets the absolute URL for this location.
+  ///
+  /// Returned URL is ready to be put into a browser, curl command, or
+  /// [Database.refFromURL] call. Since all of those expect the URL to be
+  /// url-encoded, [toString] returns an encoded URL.
+  ///
+  /// Append '.json' to the returned URL when typed into a browser to download
+  /// JSON-formatted data. If the location is secured (that is, not publicly
+  /// readable), you will get a permission-denied error.
+  @override
+  String toString() => nativeInstance.toString();
 }
 
 /// A Reference represents a specific location in your [Database] and can be
