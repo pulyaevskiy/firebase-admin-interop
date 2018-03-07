@@ -663,6 +663,62 @@ abstract class Reference extends Query {
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
   external Promise setWithPriority(value, priority,
       [onComplete(JsError error)]);
+
+  /// Atomically modifies the data at this location.
+  ///
+  /// Atomically modify the data at this location. Unlike a normal [set), which
+  /// just overwrites the data regardless of its previous value, [transaction]
+  /// is used to modify the existing value to a new value, ensuring there are no
+  /// conflicts with other clients writing to the same location at the same time.
+  ///
+  /// To accomplish this, you pass transaction() an update function which is used
+  /// to transform the current value into a new value. If another client writes to
+  /// the location before your new value is successfully written, your update
+  /// function will be called again with the new current value, and the write will
+  /// be retried. This will happen repeatedly until your write succeeds without
+  /// conflict or you abort the transaction by not returning a value from your
+  /// update function.
+
+  /// Note: Modifying data with [set] will cancel any pending transactions at that
+  /// location, so extreme care should be taken if mixing set() and transaction()
+  /// to update the same data.
+
+  /// Note: When using transactions with Security and Firebase Rules in place, be
+  /// aware that a client needs .read access in addition to .write access in order
+  /// to perform a transaction. This is because the client-side nature of
+  /// transactions requires the client to read the data in order to
+  /// transactionally update it.
+  external Promise transaction(transactionUpdate(snapshot),
+      onComplete(error, bool committed, snapshot), bool applyLocally);
+
+  /// Writes multiple values to the Database at once.
+  ///
+  /// The [values] argument contains multiple property-value pairs that will be
+  /// written to the Database together. Each child property can either be a simple
+  /// property (for example, "name") or a relative path (for example,
+  /// "name/first") from the current location to the data to update.
+  ///
+  /// As opposed to the [set] method, [update] can be used to selectively update
+  /// only the referenced properties at the current location (instead of replacing
+  /// all the child properties at the current location).
+  ///
+  /// The effect of the write will be visible immediately, and the corresponding
+  /// events ('value', 'child_added', etc.) will be triggered. Synchronization of
+  /// the data to the Firebase servers will also be started, and the returned
+  /// `Promise` will resolve when complete.
+  ///
+  /// If provided, the [onComplete] callback will be called asynchronously after
+  /// synchronization has finished.
+  ///
+  /// A single [update] will generate a single "value" event at the location where
+  /// the `update` was performed, regardless of how many children were modified.
+  ///
+  /// Note that modifying data with [update] will cancel any pending transactions
+  /// at that location, so extreme care should be taken if mixing [update] and
+  /// [transaction] to modify the same data.
+  ///
+  /// Passing `null` to [update] will remove the data at this location.
+  external Promise update(values, [onComplete(JsError error)]);
 }
 
 @JS()
