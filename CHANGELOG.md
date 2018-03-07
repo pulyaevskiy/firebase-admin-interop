@@ -3,6 +3,7 @@
 - Added: following methods to Firebase `Query`: `ref`, `endAt`, `equalTo`,
   `isEqual`, `limitToFirst`, `limitToLast`, `orderByChild`, `orderByKey`, 
   `orderByPriority`, `orderByValue`, `startAt`, `toJson`, `toString`.
+- Added: Firebase Database `Reference.update` method.
 
 ## 1.0.0-dev.5.0
 

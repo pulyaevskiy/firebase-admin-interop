@@ -37,6 +37,11 @@ void main() {
 
     group('Reference', () {
       var ref = app.database().ref('/app/users/23');
+      var refUpdate = app.database().ref('/tests/refUpdate');
+
+      setUp(() async {
+        await refUpdate.remove();
+      });
 
       test('get key', () {
         expect(ref.key, '23');
@@ -84,6 +89,15 @@ void main() {
 
       test('setValue()', () {
         expect(ref.setValue('Firebase'), completes);
+      });
+
+      test('update()', () async {
+        await refUpdate.update({'num': 23, 'nested/thing': '1984'});
+        var snapshot = await refUpdate.once('value');
+        Map<String, dynamic> data = snapshot.val();
+        expect(data, hasLength(2));
+        expect(data['num'], 23);
+        expect(data['nested']['thing'], '1984');
       });
     });
 
