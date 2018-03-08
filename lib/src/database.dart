@@ -344,6 +344,77 @@ class Reference extends Query {
         nativeInstance.setWithPriority(jsify(value), priority));
   }
 
+  /// Atomically modifies the data at this location.
+  ///
+  /// [handler] function must always return an instance of [TransactionData]
+  /// created with either [TransactionData.abort] or [TransactionData.success].
+  ///
+  ///     // Aborting a transaction
+  ///     var result = await ref.transaction((currentData) {
+  ///       // your logic
+  ///       return TransactionData.abort;
+  ///     });
+  ///
+  ///     // Committing a transaction
+  ///     var result = await ref.transaction((currentData) {
+  ///       var data = yourUpdateDataLogic(currentData);
+  ///       return TransactionData.success(data);
+  ///     });
+  ///
+  /// Unlike a normal [set], which
+  /// just overwrites the data regardless of its previous value, [transaction]
+  /// is used to modify the existing value to a new value, ensuring there are no
+  /// conflicts with other clients writing to the same location at the same time.
+  ///
+  /// To accomplish this, you pass transaction() an update function which is used
+  /// to transform the current value into a new value. If another client writes to
+  /// the location before your new value is successfully written, your update
+  /// function will be called again with the new current value, and the write will
+  /// be retried. This will happen repeatedly until your write succeeds without
+  /// conflict or you abort the transaction by returning [TransactionData.abort].
+
+  /// Note: Modifying data with [set] will cancel any pending transactions at that
+  /// location, so extreme care should be taken if mixing set() and transaction()
+  /// to update the same data.
+
+  /// Note: When using transactions with Security and Firebase Rules in place, be
+  /// aware that a client needs .read access in addition to .write access in order
+  /// to perform a transaction. This is because the client-side nature of
+  /// transactions requires the client to read the data in order to
+  /// transactionally update it.
+  Future<TransactionResult> transaction<T>(TransactionHandler<T> handler,
+      [bool applyLocally = true]) {
+    var promise = nativeInstance.transaction(
+      allowInterop(_createTransactionHandler(handler)),
+      allowInterop(_onComplete),
+      applyLocally,
+    );
+    return promiseToFuture(promise).then(
+      (result) {
+        final jsResult = result as js.TransactionResult;
+        return new TransactionResult(
+            jsResult.committed, new DataSnapshot(jsResult.snapshot));
+      },
+    );
+  }
+
+  _onComplete(error, bool committed, snapshot) {
+    // no-op, we use returned Promise instead.
+  }
+
+  Function _createTransactionHandler<T>(TransactionHandler<T> handler) {
+    // This is a workaround for analyzer which complains if a function contains
+    // return statements with and without value.
+    void undefined() {}
+
+    return (currentData) {
+      final data = dartify(currentData);
+      final result = handler(data);
+      if (result._abort) return undefined(); // workaround continues...
+      return jsify(result.data);
+    };
+  }
+
   /// Writes multiple values to the Database at once.
   ///
   /// The [values] argument contains multiple property-value pairs that will be
@@ -371,6 +442,35 @@ class Reference extends Query {
   Future<void> update(Map<String, dynamic> values) {
     return promiseToFuture(nativeInstance.update(jsify(values)));
   }
+}
+
+/// Interface for a transaction handler function used in [Reference.transaction].
+typedef TransactionHandler<T> = TransactionData<T> Function(T currentData);
+
+/// Data returned from [TransactionHandler].
+///
+/// Use [TransactionData.success] and [TransactionData.abort] to create an
+/// instance of this class according to logic in your transactions.
+class TransactionData<T> {
+  TransactionData._(this._abort, this.data);
+  final bool _abort;
+  final T data;
+
+  static TransactionData abort = new TransactionData._(true, null);
+  static TransactionData<T> success<T>(T data) =>
+      new TransactionData._(false, data);
+}
+
+/// Result of a database transaction returned from [Reference.transaction].
+class TransactionResult {
+  TransactionResult(this.committed, this.snapshot);
+
+  /// Returns `true` if this transaction was committed, returns `false` if
+  /// aborted.
+  final bool committed;
+
+  /// Resulting data snapshot of this transaction.
+  final DataSnapshot snapshot;
 }
 
 /// A special [Reference] which notifies when it's written to the database.

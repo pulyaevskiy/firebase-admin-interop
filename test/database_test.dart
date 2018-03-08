@@ -99,6 +99,29 @@ void main() {
         expect(data['num'], 23);
         expect(data['nested']['thing'], '1984');
       });
+
+      test('transaction abort', () async {
+        var result = await refUpdate.transaction((currentData) {
+          return TransactionData.abort;
+        });
+        expect(result.committed, isFalse);
+      });
+
+      test('transaction commit', () async {
+        await refUpdate.update({'num': 23, 'nested/thing': '1984'});
+
+        var result = await refUpdate.transaction((currentData) {
+          // Not sure I fully understand why Firebase sends initial `null` value
+          // here, but this should not have anything to do with our Dart code.
+          if (currentData == null) return TransactionData.success(currentData);
+          final data = new Map<String, dynamic>.from(currentData);
+          data['tx'] = true;
+          return TransactionData.success(data);
+        });
+        expect(result.committed, isTrue);
+        Map<String, dynamic> value = result.snapshot.val();
+        expect(value['tx'], isTrue);
+      });
     });
 
     group('DataSnapshot', () {

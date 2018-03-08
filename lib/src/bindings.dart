@@ -723,6 +723,13 @@ abstract class Reference extends Query {
 
 @JS()
 @anonymous
+abstract class TransactionResult {
+  bool get committed;
+  DataSnapshot get snapshot;
+}
+
+@JS()
+@anonymous
 abstract class ThenableReference extends Reference implements Promise {}
 
 /// Allows you to write or clear data when your client disconnects from the
