@@ -1,7 +1,6 @@
-import 'dart:async';
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 
-Future<void> main() async {
+main() async {
   final serviceAccountKeyFilename = '/absolute/path/to/service-account.json';
   final admin = FirebaseAdmin.instance;
   final cert = admin.certFromPath(serviceAccountKeyFilename);

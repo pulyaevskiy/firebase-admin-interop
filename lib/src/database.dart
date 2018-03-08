@@ -6,6 +6,7 @@ import 'dart:js';
 
 import 'package:meta/meta.dart';
 import 'package:node_interop/util.dart';
+import 'package:node_interop/js.dart';
 
 import 'app.dart';
 import 'bindings.dart' as js;
@@ -346,19 +347,19 @@ class Reference extends Query {
 
   /// Atomically modifies the data at this location.
   ///
-  /// [handler] function must always return an instance of [TransactionData]
-  /// created with either [TransactionData.abort] or [TransactionData.success].
+  /// [handler] function must always return an instance of [TransactionResult]
+  /// created with either [TransactionResult.abort] or [TransactionResult.success].
   ///
   ///     // Aborting a transaction
   ///     var result = await ref.transaction((currentData) {
   ///       // your logic
-  ///       return TransactionData.abort;
+  ///       return TransactionResult.abort;
   ///     });
   ///
   ///     // Committing a transaction
   ///     var result = await ref.transaction((currentData) {
   ///       var data = yourUpdateDataLogic(currentData);
-  ///       return TransactionData.success(data);
+  ///       return TransactionResult.success(data);
   ///     });
   ///
   /// Unlike a normal [set], which
@@ -371,7 +372,7 @@ class Reference extends Query {
   /// the location before your new value is successfully written, your update
   /// function will be called again with the new current value, and the write will
   /// be retried. This will happen repeatedly until your write succeeds without
-  /// conflict or you abort the transaction by returning [TransactionData.abort].
+  /// conflict or you abort the transaction by returning [TransactionResult.abort].
 
   /// Note: Modifying data with [set] will cancel any pending transactions at that
   /// location, so extreme care should be taken if mixing set() and transaction()
@@ -382,7 +383,8 @@ class Reference extends Query {
   /// to perform a transaction. This is because the client-side nature of
   /// transactions requires the client to read the data in order to
   /// transactionally update it.
-  Future<TransactionResult> transaction<T>(TransactionHandler<T> handler,
+  Future<DatabaseTransaction> transaction<T>(
+      DatabaseTransactionHandler<T> handler,
       [bool applyLocally = true]) {
     var promise = nativeInstance.transaction(
       allowInterop(_createTransactionHandler(handler)),
@@ -392,7 +394,7 @@ class Reference extends Query {
     return promiseToFuture(promise).then(
       (result) {
         final jsResult = result as js.TransactionResult;
-        return new TransactionResult(
+        return new DatabaseTransaction(
             jsResult.committed, new DataSnapshot(jsResult.snapshot));
       },
     );
@@ -402,15 +404,15 @@ class Reference extends Query {
     // no-op, we use returned Promise instead.
   }
 
-  Function _createTransactionHandler<T>(TransactionHandler<T> handler) {
-    // This is a workaround for analyzer which complains if a function contains
-    // return statements with and without value.
-    void undefined() {}
-
+  Function _createTransactionHandler<T>(DatabaseTransactionHandler<T> handler) {
     return (currentData) {
       final data = dartify(currentData);
       final result = handler(data);
-      if (result._abort) return undefined(); // workaround continues...
+      assert(
+          result != null,
+          'Transaction handler returned null and this is not allowed. '
+          'Make sure to always return an instance of TransactionResult.');
+      if (result.aborted) return undefined;
       return jsify(result.data);
     };
   }
@@ -444,29 +446,31 @@ class Reference extends Query {
   }
 }
 
-/// Interface for a transaction handler function used in [Reference.transaction].
-typedef TransactionHandler<T> = TransactionData<T> Function(T currentData);
+/// Interface for a Realtime Database transaction handler function used
+/// in [Reference.transaction].
+typedef DatabaseTransactionHandler<T> = TransactionResult<T> Function(
+    T currentData);
 
-/// Data returned from [TransactionHandler].
+/// Realtime Database transaction result returned from [DatabaseTransactionHandler].
 ///
-/// Use [TransactionData.success] and [TransactionData.abort] to create an
+/// Use [TransactionResult.success] and [TransactionResult.abort] to create an
 /// instance of this class according to logic in your transactions.
-class TransactionData<T> {
-  TransactionData._(this._abort, this.data);
-  final bool _abort;
+class TransactionResult<T> {
+  TransactionResult._(this.aborted, this.data);
+  final bool aborted;
   final T data;
 
-  static TransactionData abort = new TransactionData._(true, null);
-  static TransactionData<T> success<T>(T data) =>
-      new TransactionData._(false, data);
+  static TransactionResult abort = new TransactionResult._(true, null);
+  static TransactionResult<T> success<T>(T data) =>
+      new TransactionResult._(false, data);
 }
 
-/// Result of a database transaction returned from [Reference.transaction].
-class TransactionResult {
-  TransactionResult(this.committed, this.snapshot);
+/// Firebase Realtime Database transaction result returned from
+/// [Reference.transaction].
+class DatabaseTransaction {
+  DatabaseTransaction(this.committed, this.snapshot);
 
-  /// Returns `true` if this transaction was committed, returns `false` if
-  /// aborted.
+  /// Returns `true` if this transaction was committed, `false` if aborted.
   final bool committed;
 
   /// Resulting data snapshot of this transaction.
