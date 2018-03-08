@@ -1,3 +1,7 @@
+## 1.0.0-dev.7.0
+
+- Added: Firebase Database `Reference.transaction` method.
+
 ## 1.0.0-dev.6.0
 
 - Added: following methods to Firebase `Query`: `ref`, `endAt`, `equalTo`,
