@@ -13,10 +13,20 @@ import 'package:quiver_hashcode/hashcode.dart';
 
 import 'bindings.dart' as js;
 
-final js.FirestoreModule _firestoreModule = require('@google-cloud/firestore');
+js.GeoPoint createGeoPoint(num latitude, num longitude) {
+  final proto = new js.GeoPointProto(latitude: latitude, longitude: longitude);
+  return js.admin.firestore.GeoPoint.fromProto(proto);
+}
 
-js.Firestore _initWithOptions(js.AppOptions options) {
-  return js.createFirestore(_firestoreModule, options);
+js.FieldPath createFieldPath(List<String> fieldNames) {
+  return callConstructor(js.admin.firestore.FieldPath, jsify(fieldNames));
+}
+
+/// Returns a special sentinel [FieldPath] to refer to the ID of a document.
+/// It can be used in queries to sort or filter by the document ID.
+js.FieldPath documentId() {
+  final js.FieldPathPrototype proto = js.admin.firestore.FieldPath;
+  return proto.documentId();
 }
 
 /// Represents a Firestore Database and is the entry point for all
@@ -28,9 +38,6 @@ class Firestore {
 
   /// Creates new Firestore Database client which wraps [nativeInstance].
   Firestore(this.nativeInstance);
-
-  Firestore.withOptions(js.AppOptions options)
-      : nativeInstance = _initWithOptions(options);
 
   /// Gets a [CollectionReference] for the specified Firestore path.
   CollectionReference collection(String path) {
@@ -336,7 +343,7 @@ class _FirestoreData {
   void setGeoPoint(String key, GeoPoint value) {
     assert(key != null);
     final data = (value != null)
-        ? js.createGeoPoint(_firestoreModule, value.latitude, value.longitude)
+        ? createGeoPoint(value.latitude, value.longitude)
         : null;
     setProperty(nativeInstance, key, data);
   }

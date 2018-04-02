@@ -6,13 +6,16 @@ library firebase_admin;
 import 'package:js/js.dart';
 import 'package:node_interop/node.dart';
 
-import 'firestore_bindings.dart' show Firestore;
+import 'firestore_bindings.dart' show Firestore, GeoPointUtil, FieldValues;
 
 export 'firestore_bindings.dart';
 
-// admin =======================================================================
+// admin =========================================================================
 
 const defaultAppName = '[DEFAULT]';
+
+/// Singleton instance of [FirebaseAdmin] module.
+final FirebaseAdmin admin = require('firebase-admin');
 
 @JS()
 @anonymous
@@ -42,7 +45,7 @@ abstract class FirebaseAdmin {
   external DatabaseService get database;
 
   /// Gets the [Firestore] client for the default app or a given [app].
-  external Firestore firestore([App app]);
+  external FirestoreService get firestore;
 
   external Credentials get credential;
 }
@@ -514,7 +517,17 @@ abstract class FirebaseSignInInfo {
   external String get sign_in_provider;
 }
 
-// admin.database ==============================================================
+// admin.firestore ===============================================================
+
+@JS()
+@anonymous
+abstract class FirestoreService {
+  external GeoPointUtil get GeoPoint;
+  external FieldValues get FieldValue;
+  external dynamic get FieldPath;
+}
+
+// admin.database ================================================================
 
 @JS()
 @anonymous
