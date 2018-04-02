@@ -173,12 +173,15 @@ void main() {
       });
 
       test('add document to collection', () async {
+        final point = new GeoPoint(37.7991232, -122.4485953);
         final data = new DocumentData.fromMap({'name': 'Added Doc'});
+        data.setGeoPoint("location", point);
         final doc = await ref.add(data);
         expect(doc.documentID, isNotNull);
         final snapshot = await doc.get();
         var result = snapshot.data;
         expect(result.getString('name'), 'Added Doc');
+        expect(result.getGeoPoint('location'), point);
       });
 
       test('set new document in collection', () async {

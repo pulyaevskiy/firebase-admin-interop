@@ -2,7 +2,6 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'package:meta/meta.dart';
-import 'package:node_interop/node.dart';
 
 import 'app.dart';
 import 'bindings.dart' as js;
@@ -18,7 +17,7 @@ class FirebaseAdmin {
   static FirebaseAdmin get instance => _instance ??= new FirebaseAdmin._();
   static FirebaseAdmin _instance;
 
-  FirebaseAdmin._() : _admin = require('firebase-admin');
+  FirebaseAdmin._() : _admin = js.admin;
 
   ///
   /// Creates and initializes a Firebase [App] instance with the given

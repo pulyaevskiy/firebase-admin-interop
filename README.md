@@ -17,10 +17,10 @@ Run `pub get`.
 
 ```json
 {
-    "dependencies": {
-        "firebase-admin": "~5.8.1",
-        "@google-cloud/firestore": "~0.11.1"
-    }
+  "dependencies": {
+    "firebase-admin": "5.10.0",
+    "@google-cloud/firestore": "0.13.1"
+  }
 }
 ```
 
@@ -62,7 +62,7 @@ any `List` or `Map` instance.
 
 ## Building
 
-This library depends on [node_interop][] package which provides Node.js 
+This library depends on [node_interop][] package which provides Node.js
 bindings and [build_node_compilers][] package which allows compiling
 Dart applications as Node.js modules.
 

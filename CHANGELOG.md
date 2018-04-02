@@ -1,3 +1,7 @@
+## 1.0.0-dev.8.0
+
+- Fixed: GeoPoint treated as invalid type when used in Firebase Functions.
+
 ## 1.0.0-dev.7.0
 
 - Added: Firebase Database `Reference.transaction` method.
@@ -5,7 +9,7 @@
 ## 1.0.0-dev.6.0
 
 - Added: following methods to Firebase `Query`: `ref`, `endAt`, `equalTo`,
-  `isEqual`, `limitToFirst`, `limitToLast`, `orderByChild`, `orderByKey`, 
+  `isEqual`, `limitToFirst`, `limitToLast`, `orderByChild`, `orderByKey`,
   `orderByPriority`, `orderByValue`, `startAt`, `toJson`, `toString`.
 - Added: Firebase Database `Reference.update` method.
 

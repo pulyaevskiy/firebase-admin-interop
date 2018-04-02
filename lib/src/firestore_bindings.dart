@@ -2,7 +2,6 @@
 library firestore;
 
 import "package:js/js.dart";
-import 'package:js/js_util.dart';
 import "package:node_interop/node.dart";
 import "package:node_interop/stream.dart";
 
@@ -13,7 +12,7 @@ abstract class FirestoreModule {
   external void setLogFunction(void logger(String msg));
 
   external Function get Firestore;
-  external Function get GeoPoint;
+  external GeoPointUtil get GeoPoint;
   external FieldValues get FieldValue;
 
   /// Reference to constructor function of [FieldPath].
@@ -25,23 +24,18 @@ abstract class FirestoreModule {
   external dynamic get FieldPath;
 }
 
-Firestore createFirestore(FirestoreModule module, dynamic options) {
-  return callConstructor(module.Firestore, [options]);
+@JS()
+@anonymous
+abstract class GeoPointUtil {
+  external GeoPoint fromProto(proto);
 }
 
-GeoPoint createGeoPoint(FirestoreModule module, num latitude, num longitude) {
-  return callConstructor(module.GeoPoint, [latitude, longitude]);
-}
-
-FieldPath createFieldPath(FirestoreModule module, List<String> fieldNames) {
-  return callConstructor(module.FieldPath, jsify(fieldNames));
-}
-
-/// Returns a special sentinel [FieldPath] to refer to the ID of a document.
-/// It can be used in queries to sort or filter by the document ID.
-FieldPath documentId(FirestoreModule module) {
-  final FieldPathPrototype proto = module.FieldPath;
-  return proto.documentId();
+@JS()
+@anonymous
+abstract class GeoPointProto {
+  external factory GeoPointProto({num latitude, num longitude});
+  external num get latitude;
+  external num get longitude;
 }
 
 /// Document data (for use with `DocumentReference.set()`) consists of fields
