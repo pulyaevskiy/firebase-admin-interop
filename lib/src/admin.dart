@@ -47,8 +47,16 @@ class FirebaseAdmin {
   ///   * [App]
   ///   * [cert]
   ///   * [certFromPath]
-  App initializeApp(js.AppOptions options, [String name]) {
-    assert(options != null);
+  App initializeApp([js.AppOptions options, String name]) {
+    if (options == null && name == null) {
+      // Special case for default app with Application Default Credentials.
+      name = js.defaultAppName;
+      if (!_apps.containsKey(name)) {
+        _apps[name] = new App(_admin.initializeApp());
+      }
+      return _apps[name];
+    }
+
     name ??= js.defaultAppName;
     if (!_apps.containsKey(name)) {
       _apps[name] = new App(_admin.initializeApp(options, name));

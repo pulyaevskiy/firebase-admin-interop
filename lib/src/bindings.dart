@@ -21,7 +21,7 @@ final FirebaseAdmin admin = require('firebase-admin');
 @anonymous
 abstract class FirebaseAdmin {
   /// Creates and initializes a Firebase app instance.
-  external App initializeApp(options, [String name]);
+  external App initializeApp([options, String name]);
 
   /// The current SDK version.
   external String get SDK_VERSION;

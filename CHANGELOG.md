@@ -1,3 +1,10 @@
+## 1.0.0-dev.9.0
+
+- Upgraded to JS sdk v5.11.0
+- `FirebaseAdmin.initializeApp` can now be invoked without explicit
+  credentials, in which case the app will be initialized with Google
+  Application Default Credentials (introduced in JS SDK v5.9.1).
+
 ## 1.0.0-dev.8.0
 
 - Fixed: GeoPoint treated as invalid type when used in Firebase Functions.
