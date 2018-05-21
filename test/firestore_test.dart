@@ -63,22 +63,44 @@ void main() {
         expect(nested.getString('author'), 'Isaac Asimov');
       });
 
+      // test setter and getters and fromMap/toMap round trip for
+      // all types
       test('get set', () {
         var data = new DocumentData();
         DateTime now = new DateTime.now();
-        data.setFieldValue('fieldValue', FieldValue.serverTimestamp);
         data.setInt('intVal', 1);
         data.setDouble('doubleVal', 1.5);
         data.setBool('boolVal', true);
         data.setString('stringVal', 'text');
         data.setDateTime('dateVal', now);
+        data.setGeoPoint('geoVal', new GeoPoint(23.03, 19.84));
+        data.setReference('refVal', app.firestore().document('users/23'));
+        data.setList('listVal', [23, 84]);
+        var nestedData = new DocumentData();
+        nestedData.setString('nestedVal', 'very nested');
+        data.setNestedData('nestedData', nestedData);
+        data.setFieldValue(
+            'serverTimestampFieldValue', FieldValue.serverTimestamp);
+        data.setFieldValue('deleteFieldValue', FieldValue.delete);
 
         _check() {
+          expect(data.keys.length, 11);
           expect(data.getInt('intVal'), 1);
           expect(data.getDouble('doubleVal'), 1.5);
+          expect(data.getBool('boolVal'), true);
           expect(data.getString('stringVal'), 'text');
           expect(data.getDateTime('dateVal'), now);
-          expect(data.getFieldValue('fieldValue'), FieldValue.serverTimestamp);
+          expect(data.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
+          var documentReference = data.getReference('refVal');
+          expect(documentReference.path, 'users/23');
+          expect(data.getList('listVal'), [23, 84]);
+          DocumentData nestedData = data.getNestedData('nestedData');
+          expect(nestedData.keys.length, 1);
+          expect(nestedData.getString('nestedVal'), 'very nested');
+          // Check the field value (no getter here)
+          Map<String, dynamic> map = data.toMap();
+          expect(map['serverTimestampFieldValue'], FieldValue.serverTimestamp);
+          expect(map['deleteFieldValue'], FieldValue.delete);
         }
 
         _check();

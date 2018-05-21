@@ -4,7 +4,6 @@
 import 'dart:async';
 import 'dart:js';
 
-import 'package:firebase_admin_interop/js.dart';
 import 'package:js/js.dart';
 import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
@@ -333,7 +332,7 @@ class _FirestoreData {
     setProperty(nativeInstance, key, value);
   }
 
-  /// true if the data contains an entry with the given [key]
+  /// Returns true if the data contains an entry with the given [key].
   bool has(String key) => hasProperty(nativeInstance, key);
 
   DateTime getDateTime(String key) {
@@ -386,8 +385,8 @@ class _FirestoreData {
     setProperty(nativeInstance, key, data);
   }
 
-  // only for testing we should never read such value
-  FieldValue getFieldValue(String key) {
+  // Private only as we should never read such value
+  FieldValue _getFieldValue(String key) {
     var data = getProperty(nativeInstance, key);
     if (data != null) {
       if (data == fieldValueDelete()) {
@@ -560,7 +559,7 @@ class DocumentData extends _FirestoreData {
     } else if (value is List) {
       return getList(key);
     } else if (_isFieldValue(value)) {
-      return getFieldValue(key);
+      return _getFieldValue(key);
     } else {
       return getNestedData(key).toMap();
     }
@@ -614,7 +613,15 @@ class GeoPoint {
   int get hashCode => hash2(latitude, longitude);
 }
 
-enum FieldValue { serverTimestamp, delete }
+/// Sentinel values that can be used when writing document fields with set() or update().
+enum FieldValue {
+  /// Sentinel used with set() or update() to include a server-generated
+  /// timestamp in the written data.
+  serverTimestamp,
+
+  /// Sentinel for use with update() to mark a field for deletion.
+  delete
+}
 
 /// A QuerySnapshot contains zero or more DocumentSnapshot objects.
 class QuerySnapshot {
@@ -739,9 +746,10 @@ class DocumentQuery {
         nativeInstance.orderBy(field, direction), firestore);
   }
 
-  /// Takes a list of [values], creates and returns a new [DocumentQuery] that starts after
-  /// the provided fields relative to the order of the query.
+  /// Takes a [snapshot] or a list of [values], creates and returns a new [DocumentQuery]
+  /// that starts after the provided fields relative to the order of the query.
   ///
+  /// Either [snapshot] or [values] can be provided at the same time, not both.
   /// The [values] must be in order of [orderBy] filters.
   ///
   /// Cannot be used in combination with [startAt].
@@ -750,9 +758,10 @@ class DocumentQuery {
         _wrapPaginatingFunctionCall("startAfter", snapshot, values), firestore);
   }
 
-  /// Takes a list of [values], creates and returns a new [DocumentQuery] that starts at
-  /// the provided fields relative to the order of the query.
+  /// Takes a [snapshot] or a list of [values], creates and returns a new [DocumentQuery]
+  /// that starts at the provided fields relative to the order of the query.
   ///
+  /// Either [snapshot] or [values] can be provided at the same time, not both.
   /// The [values] must be in order of [orderBy] filters.
   ///
   /// Cannot be used in combination with [startAfter].
@@ -761,9 +770,10 @@ class DocumentQuery {
         _wrapPaginatingFunctionCall("startAt", snapshot, values), firestore);
   }
 
-  /// Takes a list of [values], creates and returns a new [DocumentQuery] that ends at the
-  /// provided fields relative to the order of the query.
+  /// Takes a [snapshot] or a list of [values], creates and returns a new [DocumentQuery]
+  /// that ends at the provided fields relative to the order of the query.
   ///
+  /// Either [snapshot] or [values] can be provided at the same time, not both.
   /// The [values] must be in order of [orderBy] filters.
   ///
   /// Cannot be used in combination with [endBefore].
@@ -772,9 +782,10 @@ class DocumentQuery {
         _wrapPaginatingFunctionCall("endAt", snapshot, values), firestore);
   }
 
-  /// Takes a list of [values], creates and returns a new [DocumentQuery] that ends before
-  /// the provided fields relative to the order of the query.
+  /// Takes a [snapshot] or a list of [values], creates and returns a new [DocumentQuery]
+  /// that ends before the provided fields relative to the order of the query.
   ///
+  /// Either [snapshot] or [values] can be provided at the same time, not both.
   /// The [values] must be in order of [orderBy] filters.
   ///
   /// Cannot be used in combination with [endAt].
@@ -799,11 +810,14 @@ class DocumentQuery {
   /// Calls js paginating [method] with [DocumentSnapshot] or List of [values].
   /// We need to call this method in all paginating methods to fix that Dart
   /// doesn't support varargs - we need to use [List] to call js function.
-  _wrapPaginatingFunctionCall(
+  js.DocumentQuery _wrapPaginatingFunctionCall(
       String method, DocumentSnapshot snapshot, List<dynamic> values) {
     if (snapshot == null && values == null) {
       throw new ArgumentError(
           "Please provide either snapshot or values parameter.");
+    } else if (snapshot != null && values != null) {
+      throw new ArgumentError(
+          'Cannot provide both snapshot and values parameters.');
     }
     List<dynamic> args = (snapshot != null)
         ? [snapshot.nativeInstance]
