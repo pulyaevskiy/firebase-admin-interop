@@ -217,6 +217,9 @@ void main() {
       test('delete field', () async {
         var ref = app.firestore().document('tests/delete_field');
 
+        // Make sure FieldValue class is exported by using it here
+        FieldValue fieldValueDelete = Firestore.fieldValues.delete();
+
         // create document
         var documentData = new DocumentData();
         documentData.setString("some_key", "some_value");
@@ -229,7 +232,7 @@ void main() {
 
         // delete field
         var updateData = new UpdateData();
-        updateData.setFieldValue("some_key", Firestore.fieldValues.delete());
+        updateData.setFieldValue("some_key", fieldValueDelete);
         await ref.updateData(updateData);
 
         // read again
