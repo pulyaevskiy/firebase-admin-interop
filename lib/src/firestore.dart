@@ -22,14 +22,6 @@ js.FieldPath createFieldPath(List<String> fieldNames) {
   return callConstructor(js.admin.firestore.FieldPath, jsify(fieldNames));
 }
 
-js.FieldValue fieldValueDelete() {
-  return js.admin.firestore.FieldValue.delete();
-}
-
-js.FieldValue fieldValueServerTimestamp() {
-  return js.admin.firestore.FieldValue.serverTimestamp();
-}
-
 /// Returns a special sentinel [FieldPath] to refer to the ID of a document.
 /// It can be used in queries to sort or filter by the document ID.
 js.FieldPath documentId() {
@@ -40,6 +32,10 @@ js.FieldPath documentId() {
 /// Represents a Firestore Database and is the entry point for all
 /// Firestore operations.
 class Firestore {
+  /// Sentinel field values that can be used when writing document fields with
+  /// `set` or `update`.
+  static js.FieldValues get fieldValues => js.admin.firestore.FieldValue;
+
   /// JavaScript Firestore object wrapped by this instance.
   @protected
   final js.Firestore nativeInstance;
@@ -300,7 +296,7 @@ class _FirestoreData {
       setReference(key, value);
     } else if (value is List) {
       setList(key, value);
-    } else if (value is FieldValue) {
+    } else if (_isFieldValue(value)) {
       setFieldValue(key, value);
     } else {
       throw new ArgumentError.value(
@@ -366,36 +362,20 @@ class _FirestoreData {
     setProperty(nativeInstance, key, data);
   }
 
-  void setFieldValue(String key, FieldValue value) {
+  void setFieldValue(String key, js.FieldValue value) {
     assert(key != null);
-    var data;
-    if (value != null) {
-      switch (value) {
-        case FieldValue.serverTimestamp:
-          data = fieldValueServerTimestamp();
-          break;
-        case FieldValue.delete:
-          data = fieldValueDelete();
-          break;
-        default:
-          throw new ArgumentError.value(
-              value, key, 'Unsupported value type for Firestore.');
-      }
-    }
-    setProperty(nativeInstance, key, data);
+    setProperty(nativeInstance, key, value);
   }
 
   // Private only as we should never read such value
-  FieldValue _getFieldValue(String key) {
-    var data = getProperty(nativeInstance, key);
-    if (data != null) {
-      if (data == fieldValueDelete()) {
-        return FieldValue.delete;
-      } else if (data == fieldValueServerTimestamp()) {
-        return FieldValue.serverTimestamp;
+  js.FieldValue _getFieldValue(String key) {
+    var value = getProperty(nativeInstance, key);
+    if (value != null) {
+      if (_isFieldValue(value)) {
+        return value;
       } else {
-        throw new ArgumentError.value(
-            data, key, 'Invalid value provided to $runtimeType.getFieldValue.');
+        throw new ArgumentError.value(value, key,
+            'Invalid value provided to $runtimeType.getFieldValue.');
       }
     }
     return null;
@@ -470,7 +450,8 @@ class _FirestoreData {
       getProperty(value, 'onSnapshot') is Function;
 
   bool _isFieldValue(value) =>
-      (value == fieldValueServerTimestamp() || value == fieldValueDelete());
+      value == Firestore.fieldValues.delete() ||
+      value == Firestore.fieldValues.serverTimestamp();
 
   @override
   String toString() => '$runtimeType';
@@ -611,16 +592,6 @@ class GeoPoint {
 
   @override
   int get hashCode => hash2(latitude, longitude);
-}
-
-/// Sentinel values that can be used when writing document fields with set() or update().
-enum FieldValue {
-  /// Sentinel used with set() or update() to include a server-generated
-  /// timestamp in the written data.
-  serverTimestamp,
-
-  /// Sentinel for use with update() to mark a field for deletion.
-  delete
 }
 
 /// A QuerySnapshot contains zero or more DocumentSnapshot objects.

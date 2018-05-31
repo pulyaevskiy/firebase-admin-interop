@@ -79,9 +79,9 @@ void main() {
         var nestedData = new DocumentData();
         nestedData.setString('nestedVal', 'very nested');
         data.setNestedData('nestedData', nestedData);
-        data.setFieldValue(
-            'serverTimestampFieldValue', FieldValue.serverTimestamp);
-        data.setFieldValue('deleteFieldValue', FieldValue.delete);
+        data.setFieldValue('serverTimestampFieldValue',
+            Firestore.fieldValues.serverTimestamp());
+        data.setFieldValue('deleteFieldValue', Firestore.fieldValues.delete());
 
         _check() {
           expect(data.keys.length, 11);
@@ -99,8 +99,9 @@ void main() {
           expect(nestedData.getString('nestedVal'), 'very nested');
           // Check the field value (no getter here)
           Map<String, dynamic> map = data.toMap();
-          expect(map['serverTimestampFieldValue'], FieldValue.serverTimestamp);
-          expect(map['deleteFieldValue'], FieldValue.delete);
+          expect(map['serverTimestampFieldValue'],
+              Firestore.fieldValues.serverTimestamp());
+          expect(map['deleteFieldValue'], Firestore.fieldValues.delete());
         }
 
         _check();
@@ -122,7 +123,7 @@ void main() {
           'refVal': app.firestore().document('users/23'),
           'listVal': [23, 84],
           'nestedVal': {'nestedKey': 'much nested'},
-          'serverTimestamp': FieldValue.serverTimestamp
+          'serverTimestamp': Firestore.fieldValues.serverTimestamp()
         });
         await ref.setData(data);
 
@@ -193,6 +194,16 @@ void main() {
       test('unsupported data types', () async {
         var ref = app.firestore().document('tests/unsupported');
         var snapshot = await ref.get();
+
+        // This tests assume existing data
+        // First time, create the item
+        if (!snapshot.exists) {
+          await ref.setData(new DocumentData()
+            ..setGeoPoint('geoVal', new GeoPoint(23.03, 19.84)));
+          // re-do the query
+          snapshot = await ref.get();
+        }
+
         var data = snapshot.data;
         expect(() => data.getList('geoVal'),
             throwsA(new isInstanceOf<AssertionError>()));
@@ -218,7 +229,7 @@ void main() {
 
         // delete field
         var updateData = new UpdateData();
-        updateData.setFieldValue("some_key", FieldValue.delete);
+        updateData.setFieldValue("some_key", Firestore.fieldValues.delete());
         await ref.updateData(updateData);
 
         // read again
@@ -265,6 +276,18 @@ void main() {
     });
 
     group('$DocumentQuery', () {
+      setUpAll(() async {
+        // setup tests/query/docs content as expected in the tests
+        var ref = app.firestore().collection('tests/query/docs');
+        var snapshot = await ref.get();
+
+        // Some test assume that this collection is empty or already contains
+        // one item. On the first ever call, create the item
+        if (snapshot.isEmpty) {
+          await ref.add(new DocumentData()..setString('name', 'John Doe'));
+        }
+      });
+
       test('get query snapshot', () async {
         var ref = app.firestore().collection('tests/query/docs');
         var snapshot = await ref.get();
