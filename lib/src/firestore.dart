@@ -14,7 +14,10 @@ import 'package:quiver_hashcode/hashcode.dart';
 import 'bindings.dart' as js;
 
 @Deprecated('This function will be hidden from public API in future versions.')
-js.GeoPoint createGeoPoint(num latitude, num longitude) {
+js.GeoPoint createGeoPoint(num latitude, num longitude) =>
+    _createGeoPoint(latitude, longitude);
+
+js.GeoPoint _createGeoPoint(num latitude, num longitude) {
   final proto = new js.GeoPointProto(latitude: latitude, longitude: longitude);
   return js.admin.firestore.GeoPoint.fromProto(proto);
 }
@@ -367,7 +370,7 @@ class _FirestoreData {
   void setGeoPoint(String key, GeoPoint value) {
     assert(key != null);
     final data = (value != null)
-        ? createGeoPoint(value.latitude, value.longitude)
+        ? _createGeoPoint(value.latitude, value.longitude)
         : null;
     setProperty(nativeInstance, key, data);
   }
