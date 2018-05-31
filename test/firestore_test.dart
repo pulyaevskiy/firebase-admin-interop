@@ -63,6 +63,53 @@ void main() {
         expect(nested.getString('author'), 'Isaac Asimov');
       });
 
+      // test setter and getters and fromMap/toMap round trip for
+      // all types
+      test('get set', () {
+        var data = new DocumentData();
+        DateTime now = new DateTime.now();
+        data.setInt('intVal', 1);
+        data.setDouble('doubleVal', 1.5);
+        data.setBool('boolVal', true);
+        data.setString('stringVal', 'text');
+        data.setDateTime('dateVal', now);
+        data.setGeoPoint('geoVal', new GeoPoint(23.03, 19.84));
+        data.setReference('refVal', app.firestore().document('users/23'));
+        data.setList('listVal', [23, 84]);
+        var nestedData = new DocumentData();
+        nestedData.setString('nestedVal', 'very nested');
+        data.setNestedData('nestedData', nestedData);
+        data.setFieldValue('serverTimestampFieldValue',
+            Firestore.fieldValues.serverTimestamp());
+        data.setFieldValue('deleteFieldValue', Firestore.fieldValues.delete());
+
+        _check() {
+          expect(data.keys.length, 11);
+          expect(data.getInt('intVal'), 1);
+          expect(data.getDouble('doubleVal'), 1.5);
+          expect(data.getBool('boolVal'), true);
+          expect(data.getString('stringVal'), 'text');
+          expect(data.getDateTime('dateVal'), now);
+          expect(data.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
+          var documentReference = data.getReference('refVal');
+          expect(documentReference.path, 'users/23');
+          expect(data.getList('listVal'), [23, 84]);
+          DocumentData nestedData = data.getNestedData('nestedData');
+          expect(nestedData.keys.length, 1);
+          expect(nestedData.getString('nestedVal'), 'very nested');
+          // Check the field value (no getter here)
+          Map<String, dynamic> map = data.toMap();
+          expect(map['serverTimestampFieldValue'],
+              Firestore.fieldValues.serverTimestamp());
+          expect(map['deleteFieldValue'], Firestore.fieldValues.delete());
+        }
+
+        _check();
+        // from/to map
+        data = new DocumentData.fromMap(data.toMap());
+        _check();
+      });
+
       test('data types', () async {
         var date = new DateTime.now();
         var ref = app.firestore().document('tests/data-types');
@@ -76,6 +123,7 @@ void main() {
           'refVal': app.firestore().document('users/23'),
           'listVal': [23, 84],
           'nestedVal': {'nestedKey': 'much nested'},
+          'serverTimestamp': Firestore.fieldValues.serverTimestamp()
         });
         await ref.setData(data);
 
@@ -93,6 +141,7 @@ void main() {
         expect(result.getList('listVal'), [23, 84]);
         var nested = result.getNestedData('nestedVal');
         expect(nested.getString('nestedKey'), 'much nested');
+        expect(result.getDateTime('serverTimestamp'), isNotNull);
       });
 
       test('$DocumentData.toMap', () async {
@@ -145,6 +194,16 @@ void main() {
       test('unsupported data types', () async {
         var ref = app.firestore().document('tests/unsupported');
         var snapshot = await ref.get();
+
+        // This tests assume existing data
+        // First time, create the item
+        if (!snapshot.exists) {
+          await ref.setData(new DocumentData()
+            ..setGeoPoint('geoVal', new GeoPoint(23.03, 19.84)));
+          // re-do the query
+          snapshot = await ref.get();
+        }
+
         var data = snapshot.data;
         expect(() => data.getList('geoVal'),
             throwsA(new isInstanceOf<AssertionError>()));
@@ -153,6 +212,34 @@ void main() {
         expect(() {
           setData.setList('foo', [new GeoPoint(1.0, 2.2)]);
         }, throwsA(new isInstanceOf<AssertionError>()));
+      });
+
+      test('delete field', () async {
+        var ref = app.firestore().document('tests/delete_field');
+
+        // Make sure FieldValue class is exported by using it here
+        FieldValue fieldValueDelete = Firestore.fieldValues.delete();
+
+        // create document
+        var documentData = new DocumentData();
+        documentData.setString("some_key", "some_value");
+        documentData.setString("other_key", "other_value");
+        await ref.setData(documentData);
+
+        // read it
+        documentData = (await ref.get()).data;
+        expect(documentData.getString("some_key"), "some_value");
+
+        // delete field
+        var updateData = new UpdateData();
+        updateData.setFieldValue("some_key", fieldValueDelete);
+        await ref.updateData(updateData);
+
+        // read again
+        documentData = (await ref.get()).data;
+        expect(documentData.getString("some_key"), isNull);
+        expect(documentData.has("some_key"), isFalse);
+        expect(documentData.getString("other_key"), "other_value");
       });
     });
 
@@ -192,6 +279,18 @@ void main() {
     });
 
     group('$DocumentQuery', () {
+      setUpAll(() async {
+        // setup tests/query/docs content as expected in the tests
+        var ref = app.firestore().collection('tests/query/docs');
+        var snapshot = await ref.get();
+
+        // Some test assume that this collection is empty or already contains
+        // one item. On the first ever call, create the item
+        if (snapshot.isEmpty) {
+          await ref.add(new DocumentData()..setString('name', 'John Doe'));
+        }
+      });
+
       test('get query snapshot', () async {
         var ref = app.firestore().collection('tests/query/docs');
         var snapshot = await ref.get();
@@ -225,6 +324,102 @@ void main() {
         expect(snapshot, isNotNull);
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
+      });
+
+      test('select', () async {
+        var collRef = app.firestore().collection('tests/query/select');
+
+        // set the content
+        var docRef = collRef.document('one');
+        await docRef.setData(
+            new DocumentData()..setInt('field1', 1)..setInt('field2', 2));
+
+        QuerySnapshot querySnapshot = await collRef.select(['field2']).get();
+        var documentdata = querySnapshot.documents.first.data;
+        expect(documentdata.has('field2'), isTrue);
+        expect(documentdata.has('field1'), isFalse);
+
+        querySnapshot = await collRef.select(['field2']).get();
+        documentdata = querySnapshot.documents.first.data;
+        expect(documentdata.has('field2'), isTrue);
+        expect(documentdata.has('field1'), isFalse);
+      });
+
+      test('order and limits', () async {
+        var collRef =
+            app.firestore().collection('tests/query/order_and_limits');
+
+        // Create or update the content
+        var docRefOne = collRef.document('one');
+        await docRefOne.setData(new DocumentData()..setInt('value', 1));
+        var docRefTwo = collRef.document('two');
+        await docRefTwo.setData(new DocumentData()..setInt('value', 2));
+
+        List<DocumentSnapshot> list;
+
+        // limit
+        QuerySnapshot querySnapshot = await collRef.limit(1).get();
+        list = querySnapshot.documents;
+        expect(list.length, 1);
+
+        // offset
+        querySnapshot = await collRef.orderBy('value').offset(1).get();
+        list = querySnapshot.documents;
+        expect(list.length, 1);
+
+        // order by
+        querySnapshot = await collRef.orderBy('value').get();
+        list = querySnapshot.documents;
+        expect(list.length, 2);
+        expect(list.first.reference.documentID, "one");
+
+        // desc
+        querySnapshot = await collRef.orderBy('value', descending: true).get();
+        list = querySnapshot.documents;
+        expect(list.length, 2);
+        expect(list.first.reference.documentID, "two");
+
+        // start at
+        querySnapshot =
+            await collRef.orderBy('value').startAt(values: [2]).get();
+        list = querySnapshot.documents;
+        expect(list.length, 1);
+        expect(list.first.reference.documentID, "two");
+
+        // start after
+        querySnapshot =
+            await collRef.orderBy('value').startAfter(values: [1]).get();
+        list = querySnapshot.documents;
+        expect(list.length, 1);
+        expect(list.first.reference.documentID, "two");
+
+        // end at
+        querySnapshot = await collRef.orderBy('value').endAt(values: [1]).get();
+        list = querySnapshot.documents;
+        expect(list.length, 1);
+        expect(list.first.reference.documentID, "one");
+
+        // end before
+        querySnapshot =
+            await collRef.orderBy('value').endBefore(values: [2]).get();
+        list = querySnapshot.documents;
+        expect(list.length, 1);
+        expect(list.first.reference.documentID, "one");
+
+        // start after using snapshot
+        querySnapshot = await collRef
+            .orderBy('value')
+            .startAfter(snapshot: list.first)
+            .get();
+        list = querySnapshot.documents;
+        expect(list.length, 1);
+        expect(list.first.reference.documentID, "two");
+
+        // where
+        querySnapshot = await collRef.where('value', isGreaterThan: 1).get();
+        list = querySnapshot.documents;
+        expect(list.length, 1);
+        expect(list.first.reference.documentID, "two");
       });
     });
   });

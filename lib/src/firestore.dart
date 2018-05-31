@@ -32,6 +32,10 @@ js.FieldPath documentId() {
 /// Represents a Firestore Database and is the entry point for all
 /// Firestore operations.
 class Firestore {
+  /// Sentinel field values that can be used when writing document fields with
+  /// `set` or `update`.
+  static js.FieldValues get fieldValues => js.admin.firestore.FieldValue;
+
   /// JavaScript Firestore object wrapped by this instance.
   @protected
   final js.Firestore nativeInstance;
@@ -272,6 +276,7 @@ class _FirestoreData {
   int get length => objectKeys(nativeInstance).length;
 
   bool get isEmpty => length == 0;
+
   bool get isNotEmpty => !isEmpty;
 
   void _setField(String key, dynamic value) {
@@ -291,6 +296,8 @@ class _FirestoreData {
       setReference(key, value);
     } else if (value is List) {
       setList(key, value);
+    } else if (_isFieldValue(value)) {
+      setFieldValue(key, value);
     } else {
       throw new ArgumentError.value(
           value, key, 'Unsupported value type for Firestore.');
@@ -298,24 +305,31 @@ class _FirestoreData {
   }
 
   String getString(String key) => (getProperty(nativeInstance, key) as String);
+
   void setString(String key, String value) {
     setProperty(nativeInstance, key, value);
   }
 
   int getInt(String key) => (getProperty(nativeInstance, key) as int);
+
   void setInt(String key, int value) {
     setProperty(nativeInstance, key, value);
   }
 
   double getDouble(String key) => (getProperty(nativeInstance, key) as double);
+
   void setDouble(String key, double value) {
     setProperty(nativeInstance, key, value);
   }
 
   bool getBool(String key) => (getProperty(nativeInstance, key) as bool);
+
   void setBool(String key, bool value) {
     setProperty(nativeInstance, key, value);
   }
+
+  /// Returns true if the data contains an entry with the given [key].
+  bool has(String key) => hasProperty(nativeInstance, key);
 
   DateTime getDateTime(String key) {
     Date date = getProperty(nativeInstance, key);
@@ -346,6 +360,25 @@ class _FirestoreData {
         ? createGeoPoint(value.latitude, value.longitude)
         : null;
     setProperty(nativeInstance, key, data);
+  }
+
+  void setFieldValue(String key, js.FieldValue value) {
+    assert(key != null);
+    setProperty(nativeInstance, key, value);
+  }
+
+  // Private only as we should never read such value
+  js.FieldValue _getFieldValue(String key) {
+    var value = getProperty(nativeInstance, key);
+    if (value != null) {
+      if (_isFieldValue(value)) {
+        return value;
+      } else {
+        throw new ArgumentError.value(value, key,
+            'Invalid value provided to $runtimeType.getFieldValue.');
+      }
+    }
+    return null;
   }
 
   bool _isPrimitive(value) =>
@@ -402,17 +435,23 @@ class _FirestoreData {
       hasProperty(value, 'toDateString') &&
       hasProperty(value, 'getTime') &&
       getProperty(value, 'getTime') is Function;
+
   bool _isGeoPoint(value) =>
       hasProperty(value, 'latitude') &&
       hasProperty(value, 'longitude') &&
       hasProperty(value, 'toString') &&
       getProperty(value, 'toString') is Function &&
       value.toString().contains('GeoPoint');
+
   bool _isReference(value) =>
       hasProperty(value, 'firestore') &&
       hasProperty(value, 'id') &&
       hasProperty(value, 'onSnapshot') &&
       getProperty(value, 'onSnapshot') is Function;
+
+  bool _isFieldValue(value) =>
+      value == Firestore.fieldValues.delete() ||
+      value == Firestore.fieldValues.serverTimestamp();
 
   @override
   String toString() => '$runtimeType';
@@ -500,6 +539,8 @@ class DocumentData extends _FirestoreData {
       return getGeoPoint(key);
     } else if (value is List) {
       return getList(key);
+    } else if (_isFieldValue(value)) {
+      return _getFieldValue(key);
     } else {
       return getNestedData(key).toMap();
     }
@@ -562,6 +603,7 @@ class QuerySnapshot {
   final Firestore firestore;
 
   bool get isEmpty => nativeInstance.empty;
+
   bool get isNotEmpty => !isEmpty;
 
   /// Gets a list of all the documents included in this snapshot
@@ -675,50 +717,52 @@ class DocumentQuery {
         nativeInstance.orderBy(field, direction), firestore);
   }
 
-  /// Takes a list of [values], creates and returns a new [DocumentQuery] that starts after
-  /// the provided fields relative to the order of the query.
+  /// Takes a [snapshot] or a list of [values], creates and returns a new [DocumentQuery]
+  /// that starts after the provided fields relative to the order of the query.
   ///
+  /// Either [snapshot] or [values] can be provided at the same time, not both.
   /// The [values] must be in order of [orderBy] filters.
   ///
   /// Cannot be used in combination with [startAt].
-  DocumentQuery startAfter(List<dynamic> values) {
-    final jsValues = jsify(values);
-    return new DocumentQuery(nativeInstance.startAfter(jsValues), firestore);
+  DocumentQuery startAfter({DocumentSnapshot snapshot, List<dynamic> values}) {
+    return new DocumentQuery(
+        _wrapPaginatingFunctionCall("startAfter", snapshot, values), firestore);
   }
 
-  /// Takes a list of [values], creates and returns a new [DocumentQuery] that starts at
-  /// the provided fields relative to the order of the query.
+  /// Takes a [snapshot] or a list of [values], creates and returns a new [DocumentQuery]
+  /// that starts at the provided fields relative to the order of the query.
   ///
+  /// Either [snapshot] or [values] can be provided at the same time, not both.
   /// The [values] must be in order of [orderBy] filters.
   ///
   /// Cannot be used in combination with [startAfter].
-  DocumentQuery startAt(List<dynamic> values) {
-    final jsValues = jsify(values);
-    return new DocumentQuery(nativeInstance.startAt(jsValues), firestore);
+  DocumentQuery startAt({DocumentSnapshot snapshot, List<dynamic> values}) {
+    return new DocumentQuery(
+        _wrapPaginatingFunctionCall("startAt", snapshot, values), firestore);
   }
 
-  /// Takes a list of [values], creates and returns a new [DocumentQuery] that ends at the
-  /// provided fields relative to the order of the query.
+  /// Takes a [snapshot] or a list of [values], creates and returns a new [DocumentQuery]
+  /// that ends at the provided fields relative to the order of the query.
   ///
+  /// Either [snapshot] or [values] can be provided at the same time, not both.
   /// The [values] must be in order of [orderBy] filters.
   ///
   /// Cannot be used in combination with [endBefore].
-  DocumentQuery endAt(List<dynamic> values) {
-    assert(values != null);
-    final jsValues = jsify(values);
-    return new DocumentQuery(nativeInstance.endAt(jsValues), firestore);
+  DocumentQuery endAt({DocumentSnapshot snapshot, List<dynamic> values}) {
+    return new DocumentQuery(
+        _wrapPaginatingFunctionCall("endAt", snapshot, values), firestore);
   }
 
-  /// Takes a list of [values], creates and returns a new [DocumentQuery] that ends before
-  /// the provided fields relative to the order of the query.
+  /// Takes a [snapshot] or a list of [values], creates and returns a new [DocumentQuery]
+  /// that ends before the provided fields relative to the order of the query.
   ///
+  /// Either [snapshot] or [values] can be provided at the same time, not both.
   /// The [values] must be in order of [orderBy] filters.
   ///
   /// Cannot be used in combination with [endAt].
-  DocumentQuery endBefore(List<dynamic> values) {
-    assert(values != null);
-    final jsValues = jsify(values);
-    return new DocumentQuery(nativeInstance.endBefore(jsValues), firestore);
+  DocumentQuery endBefore({DocumentSnapshot snapshot, List<dynamic> values}) {
+    return new DocumentQuery(
+        _wrapPaginatingFunctionCall("endBefore", snapshot, values), firestore);
   }
 
   /// Creates and returns a new Query that's additionally limited to only return up
@@ -726,5 +770,40 @@ class DocumentQuery {
   DocumentQuery limit(int length) {
     assert(length != null);
     return new DocumentQuery(nativeInstance.limit(length), firestore);
+  }
+
+  /// Specifies the offset of the returned results.
+  DocumentQuery offset(int offset) {
+    assert(offset != null);
+    return new DocumentQuery(nativeInstance.offset(offset), firestore);
+  }
+
+  /// Calls js paginating [method] with [DocumentSnapshot] or List of [values].
+  /// We need to call this method in all paginating methods to fix that Dart
+  /// doesn't support varargs - we need to use [List] to call js function.
+  js.DocumentQuery _wrapPaginatingFunctionCall(
+      String method, DocumentSnapshot snapshot, List<dynamic> values) {
+    if (snapshot == null && values == null) {
+      throw new ArgumentError(
+          "Please provide either snapshot or values parameter.");
+    } else if (snapshot != null && values != null) {
+      throw new ArgumentError(
+          'Cannot provide both snapshot and values parameters.');
+    }
+    List<dynamic> args = (snapshot != null)
+        ? [snapshot.nativeInstance]
+        : values.map(jsify).toList();
+    return callMethod(nativeInstance, method, args);
+  }
+
+  /// Creates and returns a new Query instance that applies a field mask
+  /// to the result and returns only the specified subset of fields.
+  /// You can specify a list of field paths to return, or use an empty
+  /// list to only return the references of matching documents.
+  DocumentQuery select(List<String> fieldPaths) {
+    assert(fieldPaths != null);
+    //  Dart doesn't support varargs
+    return new DocumentQuery(
+        callMethod(nativeInstance, "select", fieldPaths), firestore);
   }
 }
