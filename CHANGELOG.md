@@ -1,3 +1,16 @@
+## 1.0.0-dev.10.0
+
+- Cloud Firestore: added support for `select`, `offset`, `startAt`,
+    `startAfter`, `endAt`, `endBefore`, `FieldValue.delete` and
+    `FieldValue.timestamp` (#8).
+- Cloud Firestore: deprecated `createGeoPoint` and `createFieldPath`
+    functions. These will be hidden from public API before stable
+    `1.0.0` release.
+- Cloud Firestore: Added `Firestore.documentId()` function as a
+    replacement for the library-level `documentId()` function.
+    The library-level function is now deprecated and will be removed
+    before stable `1.0.0` release.
+
 ## 1.0.0-dev.9.0
 
 - Upgraded to JS sdk v5.11.0

@@ -13,17 +13,20 @@ import 'package:quiver_hashcode/hashcode.dart';
 
 import 'bindings.dart' as js;
 
+@Deprecated('This function will be hidden from public API in future versions.')
 js.GeoPoint createGeoPoint(num latitude, num longitude) {
   final proto = new js.GeoPointProto(latitude: latitude, longitude: longitude);
   return js.admin.firestore.GeoPoint.fromProto(proto);
 }
 
+@Deprecated('This function will be hidden from public API in future versions.')
 js.FieldPath createFieldPath(List<String> fieldNames) {
   return callConstructor(js.admin.firestore.FieldPath, jsify(fieldNames));
 }
 
 /// Returns a special sentinel [FieldPath] to refer to the ID of a document.
 /// It can be used in queries to sort or filter by the document ID.
+@Deprecated('Use "Firestore.documentId" instead.')
 js.FieldPath documentId() {
   final js.FieldPathPrototype proto = js.admin.firestore.FieldPath;
   return proto.documentId();
@@ -35,6 +38,13 @@ class Firestore {
   /// Sentinel field values that can be used when writing document fields with
   /// `set` or `update`.
   static js.FieldValues get fieldValues => js.admin.firestore.FieldValue;
+
+  /// Returns a special sentinel [FieldPath] to refer to the ID of a document.
+  /// It can be used in queries to sort or filter by the document ID.
+  static js.FieldPath documentId() {
+    final js.FieldPathPrototype proto = js.admin.firestore.FieldPath;
+    return proto.documentId();
+  }
 
   /// JavaScript Firestore object wrapped by this instance.
   @protected
