@@ -633,10 +633,15 @@ class QuerySnapshot {
   /// An array of the documents that changed since the last snapshot. If this
   /// is the first snapshot, all documents will be in the list as Added changes.
   List<DocumentChange> get documentChanges {
-    if (isEmpty) return const <DocumentChange>[];
-    _changes ??= nativeInstance.docChanges
-        .map((jsChange) => new DocumentChange(jsChange, firestore))
-        .toList(growable: false);
+    if (_changes == null) {
+      if (nativeInstance.docChanges == null) {
+        _changes = const <DocumentChange>[];
+      } else {
+        _changes = nativeInstance.docChanges
+            .map((jsChange) => new DocumentChange(jsChange, firestore))
+            .toList(growable: false);
+      }
+    }
     return _changes;
   }
 
