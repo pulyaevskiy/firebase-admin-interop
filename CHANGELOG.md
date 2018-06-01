@@ -1,3 +1,8 @@
+## 1.0.0-dev.11.0
+
+- Fixed: Firestore QuerySnapshot.documentChanges was wrongly testing for
+    isEmpty (#11).
+
 ## 1.0.0-dev.10.0
 
 - Cloud Firestore: added support for `select`, `offset`, `startAt`,
