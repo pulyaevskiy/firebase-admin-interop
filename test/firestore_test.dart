@@ -421,6 +421,71 @@ void main() {
         expect(list.length, 1);
         expect(list.first.reference.documentID, "two");
       });
+
+      test('snapshots changes', () async {
+        var collRef =
+            app.firestore().collection('tests/query/snapshots_changes');
+
+        var docRef = collRef.document('item');
+        // delete it
+        await docRef.delete();
+
+        var completer1 = new Completer();
+        var completer2 = new Completer();
+        var completer3 = new Completer();
+        var completer4 = new Completer();
+        int count = 0;
+        var subscription =
+            collRef.snapshots.listen((QuerySnapshot querySnapshot) {
+          if (++count == 1) {
+            // first step ignore the result
+            completer1.complete();
+          } else if (count == 2) {
+            // second step expect an added item
+            expect(querySnapshot.documentChanges.length, 1);
+            expect(querySnapshot.documentChanges.first.type,
+                DocumentChangeType.added);
+
+            completer2.complete();
+          } else if (count == 3) {
+            // second step expect a modified item
+            expect(querySnapshot.documentChanges.length, 1);
+            expect(querySnapshot.documentChanges.first.type,
+                DocumentChangeType.modified);
+
+            completer3.complete();
+          } else if (count == 4) {
+            // second step expect a deletion
+            expect(querySnapshot.documentChanges.length, 1);
+            expect(querySnapshot.documentChanges.first.type,
+                DocumentChangeType.removed);
+
+            completer4.complete();
+          }
+        });
+        // wait for receiving first data
+        await completer1.future;
+
+        // create it
+        await docRef.setData(new DocumentData());
+
+        // wait for receiving change data
+        await completer2.future;
+
+        // modify it
+        await docRef.setData(new DocumentData()..setInt('value', 1));
+
+        // wait for receiving change data
+        await completer3.future;
+
+        // delete it
+        await docRef.delete();
+
+        // wait for receiving change data
+        await completer4.future;
+
+        await subscription.cancel();
+      });
     });
   });
 }
