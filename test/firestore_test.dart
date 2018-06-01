@@ -425,64 +425,57 @@ void main() {
       test('snapshots changes', () async {
         var collRef =
             app.firestore().collection('tests/query/snapshots_changes');
-
         var docRef = collRef.document('item');
-        // delete it
+
+        // delete item
         await docRef.delete();
 
-        var completer1 = new Completer();
-        var completer2 = new Completer();
-        var completer3 = new Completer();
-        var completer4 = new Completer();
-        int count = 0;
+        // We'll them listen for changes while creating/modifying/deleting
+        // the same item
+        final int stepCount = 4;
+
+        // Create a completer for each step
+        var completers = new List<Completer<List<DocumentChange>>>.generate(
+            stepCount, (_) => new Completer<List<DocumentChange>>());
+
+        int stepIndex = 0;
         var subscription =
             collRef.snapshots.listen((QuerySnapshot querySnapshot) {
-          if (++count == 1) {
-            // first step ignore the result
-            completer1.complete();
-          } else if (count == 2) {
-            // second step expect an added item
-            expect(querySnapshot.documentChanges.length, 1);
-            expect(querySnapshot.documentChanges.first.type,
-                DocumentChangeType.added);
-
-            completer2.complete();
-          } else if (count == 3) {
-            // second step expect a modified item
-            expect(querySnapshot.documentChanges.length, 1);
-            expect(querySnapshot.documentChanges.first.type,
-                DocumentChangeType.modified);
-
-            completer3.complete();
-          } else if (count == 4) {
-            // second step expect a deletion
-            expect(querySnapshot.documentChanges.length, 1);
-            expect(querySnapshot.documentChanges.first.type,
-                DocumentChangeType.removed);
-
-            completer4.complete();
+          // complete each step when receiving data
+          if (stepIndex < stepCount) {
+            completers[stepIndex++].complete(querySnapshot.documentChanges);
           }
         });
-        // wait for receiving first data
-        await completer1.future;
+
+        int index = 0;
+        List<DocumentChange> documentChanges;
+
+        // wait for receiving first data, ignore result
+        await completers[index++].future;
 
         // create it
         await docRef.setData(new DocumentData());
-
         // wait for receiving change data
-        await completer2.future;
+        documentChanges = await completers[index++].future;
+        // expect creation
+        expect(documentChanges.length, 1);
+        expect(documentChanges.first.type, DocumentChangeType.added);
 
         // modify it
         await docRef.setData(new DocumentData()..setInt('value', 1));
-
         // wait for receiving change data
-        await completer3.future;
+        documentChanges = await completers[index++].future;
+        // expect a modified item
+        expect(documentChanges.length, 1);
+        expect(documentChanges.first.type, DocumentChangeType.modified);
 
         // delete it
         await docRef.delete();
-
         // wait for receiving change data
-        await completer4.future;
+        documentChanges = await completers[index++].future;
+        // expect deletion
+        expect(documentChanges.length, 1);
+        expect(documentChanges.first.type, DocumentChangeType.removed);
 
         await subscription.cancel();
       });
