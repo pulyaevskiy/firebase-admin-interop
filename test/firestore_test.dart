@@ -2,6 +2,7 @@
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:typed_data';
 
 @TestOn('node')
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
@@ -74,6 +75,7 @@ void main() {
         data.setString('stringVal', 'text');
         data.setDateTime('dateVal', now);
         data.setGeoPoint('geoVal', new GeoPoint(23.03, 19.84));
+        data.setBlob('blob', new Blob([1, 2, 3]));
         data.setReference('refVal', app.firestore().document('users/23'));
         data.setList('listVal', [23, 84]);
         var nestedData = new DocumentData();
@@ -84,13 +86,14 @@ void main() {
         data.setFieldValue('deleteFieldValue', Firestore.fieldValues.delete());
 
         _check() {
-          expect(data.keys.length, 11);
+          expect(data.keys.length, 12);
           expect(data.getInt('intVal'), 1);
           expect(data.getDouble('doubleVal'), 1.5);
           expect(data.getBool('boolVal'), true);
           expect(data.getString('stringVal'), 'text');
           expect(data.getDateTime('dateVal'), now);
           expect(data.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
+          expect(data.getBlob('blob').data, [1, 2, 3]);
           var documentReference = data.getReference('refVal');
           expect(documentReference.path, 'users/23');
           expect(data.getList('listVal'), [23, 84]);
@@ -120,6 +123,7 @@ void main() {
           'doubleVal': 19.84,
           'dateVal': date,
           'geoVal': new GeoPoint(23.03, 19.84),
+          'blobVal': new Blob([1, 2, 3]),
           'refVal': app.firestore().document('users/23'),
           'listVal': [23, 84],
           'nestedVal': {'nestedKey': 'much nested'},
@@ -135,6 +139,7 @@ void main() {
         expect(result.getDouble('doubleVal'), 19.84);
         expect(result.getDateTime('dateVal'), date);
         expect(result.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
+        expect(result.getBlob('blobVal').data, [1, 2, 3]);
         var docRef = result.getReference('refVal');
         expect(docRef, new isInstanceOf<DocumentReference>());
         expect(docRef.path, 'users/23');
@@ -146,7 +151,7 @@ void main() {
 
       test('$DocumentData.toMap', () async {
         var date = new DateTime.now();
-        var ref = app.firestore().document('tests/data-types');
+        var ref = app.firestore().document('tests/data-types-toMap');
         var data = new DocumentData.fromMap({
           'boolVal': true,
           'stringVal': 'text',
@@ -155,6 +160,7 @@ void main() {
           'dateVal': date,
           'geoVal': new GeoPoint(23.03, 19.84),
           'refVal': app.firestore().document('users/23'),
+          'blobVal': new Blob([4, 5, 6]),
           'listVal': [23, 84]
         });
         var nested = new DocumentData.fromMap({'nestedVal': 'very nested'});
@@ -178,6 +184,7 @@ void main() {
         expect(result['doubleVal'], 19.84);
         expect(result['dateVal'], date);
         expect(result['geoVal'], new GeoPoint(23.03, 19.84));
+        expect((result['blobVal'] as Blob).data, [4, 5, 6]);
         var docRef = result['refVal'];
         expect(docRef, new isInstanceOf<DocumentReference>());
         expect(docRef.path, 'users/23');
