@@ -644,10 +644,16 @@ class GeoPoint {
 class Blob {
   final Uint8List _data;
 
+  /// Creates new  blob from list of bytes in [data].
   Blob(List<int> data) : _data = new Uint8List.fromList(data);
+
+  /// Creates new blob from list of bytes in [Uint8List].
+  Blob.fromUint8List(this._data);
+
+  /// List of bytes contained in this blob.
   List<int> get data => _data;
 
-  Blob.fromUint8List(this._data);
+  /// Returns byte data in this blob as an instance of [Uint8List].
   Uint8List asUint8List() => _data;
 }
 

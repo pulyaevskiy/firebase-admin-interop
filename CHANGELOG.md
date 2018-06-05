@@ -1,17 +1,21 @@
+## 1.0.0-dev.12.0
+
+- Added: Firestore, support for Blob fields (#13).
+
 ## 1.0.0-dev.11.0
 
-- Fixed: Firestore QuerySnapshot.documentChanges was wrongly testing for
+- Fixed: Firestore, QuerySnapshot.documentChanges was wrongly testing for
     isEmpty (#11).
 
 ## 1.0.0-dev.10.0
 
-- Cloud Firestore: added support for `select`, `offset`, `startAt`,
+- Added: Firestore, support for `select`, `offset`, `startAt`,
     `startAfter`, `endAt`, `endBefore`, `FieldValue.delete` and
     `FieldValue.timestamp` (#8).
-- Cloud Firestore: deprecated `createGeoPoint` and `createFieldPath`
+- Deprecated: Firestore, deprecated `createGeoPoint` and `createFieldPath`
     functions. These will be hidden from public API before stable
     `1.0.0` release.
-- Cloud Firestore: Added `Firestore.documentId()` function as a
+- Added: Firestore, `Firestore.documentId()` function as a
     replacement for the library-level `documentId()` function.
     The library-level function is now deprecated and will be removed
     before stable `1.0.0` release.
