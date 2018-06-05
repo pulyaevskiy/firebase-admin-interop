@@ -3,6 +3,7 @@
 
 import 'dart:async';
 import 'dart:js';
+import 'dart:typed_data';
 
 import 'package:js/js.dart';
 import 'package:meta/meta.dart';
@@ -305,6 +306,8 @@ class _FirestoreData {
       setDateTime(key, value);
     } else if (value is GeoPoint) {
       setGeoPoint(key, value);
+    } else if (value is Blob) {
+      setBlob(key, value);
     } else if (value is DocumentReference) {
       setReference(key, value);
     } else if (value is List) {
@@ -367,11 +370,27 @@ class _FirestoreData {
     return new GeoPoint(value.latitude.toDouble(), value.longitude.toDouble());
   }
 
+  Blob getBlob(String key) {
+    var value = getProperty(nativeInstance, key);
+    if (value == null) return null;
+    //print('blob ${hasProperty(value, , name)objectKeys(value)}');
+    // value is a JsArray
+
+    assert(_isBlob(value), 'Invalid value provided to $runtimeType.getBlob().');
+    return new Blob(new Uint8List.fromList(value));
+  }
+
   void setGeoPoint(String key, GeoPoint value) {
     assert(key != null);
     final data = (value != null)
         ? _createGeoPoint(value.latitude, value.longitude)
         : null;
+    setProperty(nativeInstance, key, data);
+  }
+
+  void setBlob(String key, Blob value) {
+    assert(key != null);
+    final data = (value != null) ? value.data : null;
     setProperty(nativeInstance, key, data);
   }
 
@@ -456,6 +475,19 @@ class _FirestoreData {
       getProperty(value, 'toString') is Function &&
       value.toString().contains('GeoPoint');
 
+  bool _isBlob(value) {
+    if (value is Uint8List) {
+      return true;
+    } else {
+      var proto = getProperty(value, '__proto__');
+      if (proto != null) {
+        return getProperty(proto, "writeUInt8") is Function &&
+            getProperty(proto, "readUInt8") is Function;
+      }
+      return false;
+    }
+  }
+
   bool _isReference(value) =>
       hasProperty(value, 'firestore') &&
       hasProperty(value, 'id') &&
@@ -528,9 +560,11 @@ class DocumentData extends _FirestoreData {
     /// We check types starting with higher level of confidence:
     /// 1. Primitive types (int, bool, String, double, null)
     /// 2. Data types with properties of type [Function]: DateTime, DocumentReference
-    /// 3. Lists
-    /// 4. GeoPoint
-    /// 5. Nested arbitrary maps.
+    /// 3. GeoPoint
+    /// 4. Blob
+    /// 5. Field value
+    /// 6. Lists
+    /// 7. Nested arbitrary maps.
     ///
     /// The assumption is that Firestore does not support storing [Function]
     /// values so if a native object contains a known function property
@@ -550,10 +584,12 @@ class DocumentData extends _FirestoreData {
       return getReference(key);
     } else if (_isGeoPoint(value)) {
       return getGeoPoint(key);
-    } else if (value is List) {
-      return getList(key);
+    } else if (_isBlob(value)) {
+      return getBlob(key);
     } else if (_isFieldValue(value)) {
       return _getFieldValue(key);
+    } else if (value is List) {
+      return getList(key);
     } else {
       return getNestedData(key).toMap();
     }
@@ -605,6 +641,13 @@ class GeoPoint {
 
   @override
   int get hashCode => hash2(latitude, longitude);
+}
+
+/// An immutable object representing an array of bytes.
+class Blob {
+  Blob(this.data);
+
+  Uint8List data;
 }
 
 /// A QuerySnapshot contains zero or more DocumentSnapshot objects.
