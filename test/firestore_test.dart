@@ -75,7 +75,7 @@ void main() {
         data.setString('stringVal', 'text');
         data.setDateTime('dateVal', now);
         data.setGeoPoint('geoVal', new GeoPoint(23.03, 19.84));
-        data.setBlob('blob', new Blob(new Uint8List.fromList([1, 2, 3])));
+        data.setBlob('blob', new Blob([1, 2, 3]));
         data.setReference('refVal', app.firestore().document('users/23'));
         data.setList('listVal', [23, 84]);
         var nestedData = new DocumentData();
@@ -123,7 +123,7 @@ void main() {
           'doubleVal': 19.84,
           'dateVal': date,
           'geoVal': new GeoPoint(23.03, 19.84),
-          'blobVal': new Blob(new Uint8List.fromList([1, 2, 3])),
+          'blobVal': new Blob([1, 2, 3]),
           'refVal': app.firestore().document('users/23'),
           'listVal': [23, 84],
           'nestedVal': {'nestedKey': 'much nested'},
@@ -160,7 +160,7 @@ void main() {
           'dateVal': date,
           'geoVal': new GeoPoint(23.03, 19.84),
           'refVal': app.firestore().document('users/23'),
-          'blobVal': new Blob(new Uint8List.fromList([4, 5, 6])),
+          'blobVal': new Blob([4, 5, 6]),
           'listVal': [23, 84]
         });
         var nested = new DocumentData.fromMap({'nestedVal': 'very nested'});

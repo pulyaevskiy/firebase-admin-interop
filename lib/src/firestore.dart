@@ -374,7 +374,7 @@ class _FirestoreData {
     var value = getProperty(nativeInstance, key);
     if (value == null) return null;
     assert(_isBlob(value), 'Invalid value provided to $runtimeType.getBlob().');
-    return new Blob(new Uint8List.fromList(value));
+    return new Blob(value);
   }
 
   void setGeoPoint(String key, GeoPoint value) {
@@ -642,9 +642,9 @@ class GeoPoint {
 
 /// An immutable object representing an array of bytes.
 class Blob {
-  Blob(this.data);
-
-  Uint8List data;
+  final Uint8List _data;
+  Blob(List<int> data) : _data = new Uint8List.fromList(data);
+  List<int> get data => _data;
 }
 
 /// A QuerySnapshot contains zero or more DocumentSnapshot objects.
