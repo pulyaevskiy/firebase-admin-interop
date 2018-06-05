@@ -373,9 +373,6 @@ class _FirestoreData {
   Blob getBlob(String key) {
     var value = getProperty(nativeInstance, key);
     if (value == null) return null;
-    //print('blob ${hasProperty(value, , name)objectKeys(value)}');
-    // value is a JsArray
-
     assert(_isBlob(value), 'Invalid value provided to $runtimeType.getBlob().');
     return new Blob(new Uint8List.fromList(value));
   }
