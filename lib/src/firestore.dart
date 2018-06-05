@@ -643,8 +643,12 @@ class GeoPoint {
 /// An immutable object representing an array of bytes.
 class Blob {
   final Uint8List _data;
+
   Blob(List<int> data) : _data = new Uint8List.fromList(data);
   List<int> get data => _data;
+
+  Blob.fromUint8List(this._data);
+  Uint8List toUint8List() => _data;
 }
 
 /// A QuerySnapshot contains zero or more DocumentSnapshot objects.
