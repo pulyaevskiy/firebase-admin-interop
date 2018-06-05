@@ -648,7 +648,7 @@ class Blob {
   List<int> get data => _data;
 
   Blob.fromUint8List(this._data);
-  Uint8List toUint8List() => _data;
+  Uint8List asUint8List() => _data;
 }
 
 /// A QuerySnapshot contains zero or more DocumentSnapshot objects.
