@@ -162,54 +162,38 @@ abstract class Transaction {
 }
 
 /// A write batch, used to perform multiple writes as a single atomic unit.
-/// A `WriteBatch` object can be acquired by calling `Firestore.batch()`. It
+///
+/// A [WriteBatch] object can be acquired by calling [Firestore.batch]. It
 /// provides methods for adding writes to the write batch. None of the
-/// writes will be committed (or visible locally) until `WriteBatch.commit()`
+/// writes will be committed (or visible locally) until [WriteBatch.commit]
 /// is called.
+///
 /// Unlike transactions, write batches are persisted offline and therefore are
 /// preferable when you don't need to condition your writes on read data.
 @JS()
 @anonymous
 abstract class WriteBatch {
-  /// Create the document referred to by the provided `DocumentReference`. The
+  /// Create the document referred to by the provided [DocumentReference]. The
   /// operation will fail the batch if a document exists at the specified
   /// location.
   external WriteBatch create(DocumentReference documentRef, DocumentData data);
 
-  /// Write to the document referred to by the provided `DocumentReference`.
+  /// Write to the document referred to by the provided [DocumentReference].
   /// If the document does not exist yet, it will be created. If you pass
-  /// `SetOptions`, the provided data can be merged into the existing document.
+  /// [options], the provided data can be merged into the existing document.
   external WriteBatch set(DocumentReference documentRef, DocumentData data,
       [SetOptions options]);
 
-  /// Update fields of the document referred to by the provided
-  /// `DocumentReference`. If the document doesn't yet exist, the update fails
-  /// and the entire batch will be rejected.
-  /// Nested fields can be updated by providing dot-separated field path
-  /// strings.
-  /// update the document.
-  /*external WriteBatch update(DocumentReference documentRef, UpdateData data,
-    [Precondition precondition]);*/
-  /// Updates fields in the document referred to by the provided
-  /// `DocumentReference`. The update will fail if applied to a document that
-  /// does not exist.
-  /// Nested fields can be updated by providing dot-separated field path
-  /// strings or by providing FieldPath objects.
-  /// A `Precondition` restricting this update can be specified as the last
-  /// argument.
-  /// to update, optionally followed a `Precondition` to enforce on this update.
-  /*external WriteBatch update(DocumentReference documentRef, String|FieldPath field, dynamic value, [dynamic fieldsOrPrecondition1, dynamic fieldsOrPrecondition2, dynamic fieldsOrPrecondition3, dynamic fieldsOrPrecondition4, dynamic fieldsOrPrecondition5]);*/
-  external WriteBatch update(
-      DocumentReference documentRef, dynamic /*String|FieldPath*/ data_field,
-      [dynamic /*Precondition|dynamic*/ precondition_value,
-      List<dynamic> fieldsOrPrecondition]);
+  /// Updates fields in the document referred to by this DocumentReference.
+  /// The update will fail if applied to a document that does not exist.
+  ///
+  /// Nested fields can be updated by providing dot-separated field path strings
+  external WriteBatch update(DocumentReference documentRef, UpdateData data);
 
   /// Deletes the document referred to by the provided `DocumentReference`.
-  external WriteBatch delete(DocumentReference documentRef,
-      [Precondition precondition]);
+  external WriteBatch delete(DocumentReference documentRef);
 
   /// Commits all of the writes in this write batch as a single atomic unit.
-  /// successfully written to the backend as an atomic unit.
   external Promise commit();
 }
 

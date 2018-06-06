@@ -68,6 +68,10 @@ class Firestore {
     assert(path != null);
     return new DocumentReference(nativeInstance.doc(path), this);
   }
+
+  /// Creates a write batch, used for performing multiple writes as a single
+  /// atomic operation.
+  WriteBatch batch() => new WriteBatch(nativeInstance.batch());
 }
 
 /// A CollectionReference object can be used for adding documents, getting
@@ -874,4 +878,47 @@ class DocumentQuery {
     return new DocumentQuery(
         callMethod(nativeInstance, "select", fieldPaths), firestore);
   }
+}
+
+/// A write batch, used to perform multiple writes as a single atomic unit.
+///
+/// A [WriteBatch] object can be acquired by calling [Firestore.batch]. It
+/// provides methods for adding writes to the write batch. None of the
+/// writes will be committed (or visible locally) until [WriteBatch.commit]
+/// is called.
+///
+/// Unlike transactions, write batches are persisted offline and therefore are
+/// preferable when you don't need to condition your writes on read data.
+class WriteBatch {
+  final js.WriteBatch nativeInstance;
+
+  WriteBatch(this.nativeInstance);
+
+  /// Write to the document referred to by the provided [documentRef].
+  /// If the document does not exist yet, it will be created. If you pass
+  /// [options], the provided data can be merged into the existing document.
+  void setData(DocumentReference documentRef, DocumentData data,
+      [js.SetOptions options]) {
+    final docData = data.nativeInstance;
+    final nativeRef = documentRef.nativeInstance;
+    if (options != null) {
+      nativeInstance.set(nativeRef, docData, options);
+    } else {
+      nativeInstance.set(nativeRef, docData);
+    }
+  }
+
+  /// Updates fields in the document referred to by this [documentRef].
+  /// The update will fail if applied to a document that does not exist.
+  ///
+  /// Nested fields can be updated by providing dot-separated field path strings.
+  void updateData(DocumentReference documentRef, UpdateData data) =>
+      nativeInstance.update(documentRef.nativeInstance, data.nativeInstance);
+
+  /// Deletes the document referred to by the provided [documentRef].
+  void delete(DocumentReference documentRef) =>
+      nativeInstance.delete(documentRef.nativeInstance);
+
+  /// Commits all of the writes in this write batch as a single atomic unit.
+  Future commit() => promiseToFuture(nativeInstance.commit());
 }

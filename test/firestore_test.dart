@@ -247,6 +247,29 @@ void main() {
         expect(documentData.has("some_key"), isFalse);
         expect(documentData.getString("other_key"), "other_value");
       });
+
+      test('set options', () async {
+        var ref = app.firestore().document('tests/set_options');
+
+        var documentData = new DocumentData();
+        documentData.setInt('value1', 1);
+        documentData.setInt('value2', 2);
+        await ref.setData(documentData);
+
+        documentData = new DocumentData();
+        documentData.setInt('value2', 3);
+
+        // Set with merge, value1 should remain
+        await ref.setData(documentData, new SetOptions(merge: true));
+        var readData = (await ref.get()).data;
+        expect(readData.toMap(), {'value1': 1, 'value2': 3});
+
+        // Set without merge, value1 should be gone
+        documentData.setInt('value2', 4);
+        await ref.setData(documentData);
+        readData = (await ref.get()).data;
+        expect(readData.toMap(), {'value2': 4});
+      });
     });
 
     group('$CollectionReference', () {
@@ -484,6 +507,39 @@ void main() {
         expect(documentChanges.first.type, DocumentChangeType.removed);
 
         await subscription.cancel();
+      });
+    });
+
+    group('$WriteBatch', () {
+      test('batch', () async {
+        var collRef = app.firestore().collection('tests/batch/simple');
+        // this one will be created
+        var doc1Ref = collRef.document('item1');
+        // this one will be updated
+        var doc2Ref = collRef.document('item2');
+        // this one will be set
+        var doc3Ref = collRef.document('item3');
+        // this one will be deleted
+        var doc4Ref = collRef.document('item4');
+
+        await doc1Ref.delete();
+        await doc2Ref.setData(new DocumentData()..setInt('value', 2));
+        await doc4Ref.setData(new DocumentData()..setInt('value', 4));
+
+        var batch = app.firestore().batch();
+        batch.setData(doc1Ref, new DocumentData()..setInt('value', 1));
+        batch.updateData(doc2Ref, new UpdateData()..setInt('other.value', 22));
+        batch.setData(doc3Ref, new DocumentData()..setInt('value', 3));
+        batch.delete(doc4Ref);
+        await batch.commit();
+
+        expect((await doc1Ref.get()).data.toMap(), {'value': 1});
+        expect((await doc2Ref.get()).data.toMap(), {
+          'value': 2,
+          'other': {'value': 22}
+        });
+        expect((await doc3Ref.get()).data.toMap(), {'value': 3});
+        expect((await doc4Ref.get()).exists, isFalse);
       });
     });
   });
