@@ -68,14 +68,18 @@ class Firestore {
     assert(path != null);
     return new DocumentReference(nativeInstance.doc(path), this);
   }
+
+  /// Creates a write batch, used for performing multiple writes as a single
+  /// atomic operation.
+  WriteBatch batch() => new WriteBatch(nativeInstance.batch());
 }
 
 /// A CollectionReference object can be used for adding documents, getting
 /// document references, and querying for documents (using the methods
 /// inherited from [DocumentQuery]).
 class CollectionReference extends DocumentQuery {
-  CollectionReference(
-      js.CollectionReference nativeInstance, Firestore firestore)
+  CollectionReference(js.CollectionReference nativeInstance,
+      Firestore firestore)
       : super(nativeInstance, firestore);
 
   @override
@@ -273,9 +277,10 @@ class DocumentSnapshot {
   /// Returns the ID of the snapshot's document
   String get documentID => nativeInstance.id;
 
-  DateTime get createTime => nativeInstance.createTime != null
-      ? DateTime.parse(nativeInstance.createTime)
-      : null;
+  DateTime get createTime =>
+      nativeInstance.createTime != null
+          ? DateTime.parse(nativeInstance.createTime)
+          : null;
 
   DateTime get updateTime => DateTime.parse(nativeInstance.updateTime);
 }
@@ -351,14 +356,14 @@ class _FirestoreData {
     Date date = getProperty(nativeInstance, key);
     if (date == null) return null;
     assert(
-        _isDate(date), 'Invalid value provided to $runtimeType.getDateTime().');
+    _isDate(date), 'Invalid value provided to $runtimeType.getDateTime().');
     return new DateTime.fromMillisecondsSinceEpoch(date.getTime());
   }
 
   void setDateTime(String key, DateTime value) {
     assert(key != null);
     final data =
-        (value != null) ? new Date(value.millisecondsSinceEpoch) : null;
+    (value != null) ? new Date(value.millisecondsSinceEpoch) : null;
     setProperty(nativeInstance, key, data);
   }
 
@@ -366,7 +371,7 @@ class _FirestoreData {
     js.GeoPoint value = getProperty(nativeInstance, key);
     if (value == null) return null;
     assert(_isGeoPoint(value),
-        'Invalid value provided to $runtimeType.getGeoPoint().');
+    'Invalid value provided to $runtimeType.getGeoPoint().');
     return new GeoPoint(value.latitude.toDouble(), value.longitude.toDouble());
   }
 
@@ -412,17 +417,17 @@ class _FirestoreData {
 
   bool _isPrimitive(value) =>
       value == null ||
-      value is int ||
-      value is double ||
-      value is String ||
-      value is bool;
+          value is int ||
+          value is double ||
+          value is String ||
+          value is bool;
 
   List<T> getList<T>(String key) {
     final Iterable data = getProperty(nativeInstance, key);
     if (data == null) return null;
     assert(
-        data.every(_isPrimitive),
-        'Complex values in lists are not yet supported by the library.'
+    data.every(_isPrimitive),
+    'Complex values in lists are not yet supported by the library.'
         'Only bool, int, double and String can be used at this point.'
         'Please file an issue at https://github.com/pulyaevskiy/firebase-admin-interop/issues'
         'if you need this functionality');
@@ -433,8 +438,8 @@ class _FirestoreData {
   void setList<T>(String key, List<T> value) {
     assert(key != null);
     assert(
-        value.every(_isPrimitive),
-        'Complex values in lists are not yet supported by the library.'
+    value.every(_isPrimitive),
+    'Complex values in lists are not yet supported by the library.'
         'Only bool, int, double and String can be used at this point.'
         'Please file an issue at https://github.com/pulyaevskiy/firebase-admin-interop/issues'
         'if you need this functionality');
@@ -447,7 +452,7 @@ class _FirestoreData {
     js.DocumentReference ref = getProperty(nativeInstance, key);
     if (ref == null) return null;
     assert(_isReference(ref),
-        'Invalid value provided to $runtimeType.getReference().');
+    'Invalid value provided to $runtimeType.getReference().');
 
     js.Firestore firestore = ref.firestore;
     return new DocumentReference(ref, new Firestore(firestore));
@@ -462,15 +467,15 @@ class _FirestoreData {
   // Workarounds for dart2js as `value is Type` doesn't work as expected.
   bool _isDate(value) =>
       hasProperty(value, 'toDateString') &&
-      hasProperty(value, 'getTime') &&
-      getProperty(value, 'getTime') is Function;
+          hasProperty(value, 'getTime') &&
+          getProperty(value, 'getTime') is Function;
 
   bool _isGeoPoint(value) =>
       hasProperty(value, 'latitude') &&
-      hasProperty(value, 'longitude') &&
-      hasProperty(value, 'toString') &&
-      getProperty(value, 'toString') is Function &&
-      value.toString().contains('GeoPoint');
+          hasProperty(value, 'longitude') &&
+          hasProperty(value, 'toString') &&
+          getProperty(value, 'toString') is Function &&
+          value.toString().contains('GeoPoint');
 
   bool _isBlob(value) {
     if (value is Uint8List) {
@@ -487,13 +492,13 @@ class _FirestoreData {
 
   bool _isReference(value) =>
       hasProperty(value, 'firestore') &&
-      hasProperty(value, 'id') &&
-      hasProperty(value, 'onSnapshot') &&
-      getProperty(value, 'onSnapshot') is Function;
+          hasProperty(value, 'id') &&
+          hasProperty(value, 'onSnapshot') &&
+          getProperty(value, 'onSnapshot') is Function;
 
   bool _isFieldValue(value) =>
       value == Firestore.fieldValues.delete() ||
-      value == Firestore.fieldValues.serverTimestamp();
+          value == Firestore.fieldValues.serverTimestamp();
 
   @override
   String toString() => '$runtimeType';
@@ -744,8 +749,7 @@ class DocumentQuery {
   ///
   /// Only documents satisfying provided condition are included in the result
   /// set.
-  DocumentQuery where(
-    String field, {
+  DocumentQuery where(String field, {
     dynamic isEqualTo,
     dynamic isLessThan,
     dynamic isLessThanOrEqualTo,
@@ -768,8 +772,8 @@ class DocumentQuery {
       addCondition(field, '>=', isGreaterThanOrEqualTo);
     if (isNull != null) {
       assert(
-          isNull,
-          'isNull can only be set to true. '
+      isNull,
+      'isNull can only be set to true. '
           'Use isEqualTo to filter on non-null values.');
       addCondition(field, '==', null);
     }
@@ -849,8 +853,8 @@ class DocumentQuery {
   /// Calls js paginating [method] with [DocumentSnapshot] or List of [values].
   /// We need to call this method in all paginating methods to fix that Dart
   /// doesn't support varargs - we need to use [List] to call js function.
-  js.DocumentQuery _wrapPaginatingFunctionCall(
-      String method, DocumentSnapshot snapshot, List<dynamic> values) {
+  js.DocumentQuery _wrapPaginatingFunctionCall(String method,
+      DocumentSnapshot snapshot, List<dynamic> values) {
     if (snapshot == null && values == null) {
       throw new ArgumentError(
           "Please provide either snapshot or values parameter.");
@@ -874,4 +878,48 @@ class DocumentQuery {
     return new DocumentQuery(
         callMethod(nativeInstance, "select", fieldPaths), firestore);
   }
+}
+
+/// A write batch, used to perform multiple writes as a single atomic unit.
+///
+/// A `WriteBatch` object can be acquired by calling `Firestore.batch()`. It
+/// provides methods for adding writes to the write batch. None of the
+/// writes will be committed (or visible locally) until `WriteBatch.commit()`
+/// is called.
+///
+/// Unlike transactions, write batches are persisted offline and therefore are
+/// preferable when you don't need to condition your writes on read data.
+class WriteBatch {
+  final js.WriteBatch nativeInstance;
+
+  WriteBatch(this.nativeInstance);
+
+  /// Write to the document referred to by the provided `DocumentReference`.
+  /// If the document does not exist yet, it will be created. If you pass
+  /// `SetOptions`, the provided data can be merged into the existing document.
+  void setData(DocumentReference documentRef, DocumentData data,
+      [js.SetOptions options]) {
+    final docData = data.nativeInstance;
+    final nativeRef = documentRef.nativeInstance;
+    if (options != null) {
+      nativeInstance.set(nativeRef, docData, options);
+    } else {
+      nativeInstance.set(nativeRef, docData);
+    }
+  }
+
+  /// Updates fields in the document referred to by this DocumentReference.
+  /// The update will fail if applied to a document that does not exist.
+  ///
+  /// Nested fields can be updated by providing dot-separated field path strings.
+  void updateData(DocumentReference documentRef, UpdateData data) =>
+      nativeInstance.update(documentRef.nativeInstance, data.nativeInstance);
+
+  /// Deletes the document referred to by the provided `DocumentReference`.
+  void delete(DocumentReference documentRef) =>
+      nativeInstance.delete(documentRef.nativeInstance);
+
+  /// Commits all of the writes in this write batch as a single atomic unit.
+  /// successfully written to the backend as an atomic unit.
+  Future commit() => promiseToFuture(nativeInstance.commit());
 }

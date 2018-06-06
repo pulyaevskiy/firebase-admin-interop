@@ -182,31 +182,14 @@ abstract class WriteBatch {
   external WriteBatch set(DocumentReference documentRef, DocumentData data,
       [SetOptions options]);
 
-  /// Update fields of the document referred to by the provided
-  /// `DocumentReference`. If the document doesn't yet exist, the update fails
-  /// and the entire batch will be rejected.
-  /// Nested fields can be updated by providing dot-separated field path
-  /// strings.
-  /// update the document.
-  /*external WriteBatch update(DocumentReference documentRef, UpdateData data,
-    [Precondition precondition]);*/
-  /// Updates fields in the document referred to by the provided
-  /// `DocumentReference`. The update will fail if applied to a document that
-  /// does not exist.
-  /// Nested fields can be updated by providing dot-separated field path
-  /// strings or by providing FieldPath objects.
-  /// A `Precondition` restricting this update can be specified as the last
-  /// argument.
-  /// to update, optionally followed a `Precondition` to enforce on this update.
-  /*external WriteBatch update(DocumentReference documentRef, String|FieldPath field, dynamic value, [dynamic fieldsOrPrecondition1, dynamic fieldsOrPrecondition2, dynamic fieldsOrPrecondition3, dynamic fieldsOrPrecondition4, dynamic fieldsOrPrecondition5]);*/
-  external WriteBatch update(
-      DocumentReference documentRef, dynamic /*String|FieldPath*/ data_field,
-      [dynamic /*Precondition|dynamic*/ precondition_value,
-      List<dynamic> fieldsOrPrecondition]);
+  /// Updates fields in the document referred to by this DocumentReference.
+  /// The update will fail if applied to a document that does not exist.
+  ///
+  /// Nested fields can be updated by providing dot-separated field path strings
+  external WriteBatch update(DocumentReference documentRef, UpdateData data);
 
   /// Deletes the document referred to by the provided `DocumentReference`.
-  external WriteBatch delete(DocumentReference documentRef,
-      [Precondition precondition]);
+  external WriteBatch delete(DocumentReference documentRef);
 
   /// Commits all of the writes in this write batch as a single atomic unit.
   /// successfully written to the backend as an atomic unit.
