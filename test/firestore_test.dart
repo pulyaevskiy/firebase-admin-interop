@@ -247,6 +247,29 @@ void main() {
         expect(documentData.has("some_key"), isFalse);
         expect(documentData.getString("other_key"), "other_value");
       });
+
+      test('set options', () async {
+        var ref = app.firestore().document('tests/set_options');
+
+        var documentData = new DocumentData();
+        documentData.setInt('value1', 1);
+        documentData.setInt('value2', 2);
+        await ref.setData(documentData);
+
+        documentData = new DocumentData();
+        documentData.setInt('value2', 3);
+
+        // Set with merge, value1 should remain
+        await ref.setData(documentData, new SetOptions(merge: true));
+        var readData = (await ref.get()).data;
+        expect(readData.toMap(), {'value1': 1, 'value2': 3});
+
+        // Set without merge, value1 should be gone
+        documentData.setInt('value2', 4);
+        await ref.setData(documentData);
+        readData = (await ref.get()).data;
+        expect(readData.toMap(), {'value2': 4});
+      });
     });
 
     group('$CollectionReference', () {
