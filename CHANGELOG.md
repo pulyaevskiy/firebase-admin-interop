@@ -1,3 +1,7 @@
+## 1.0.0-dev.13.0
+
+- Added: Firestore, support for `SetOptions` and `WriteBatch` (#14).
+
 ## 1.0.0-dev.12.0
 
 - Added: Firestore, support for Blob fields (#13).
