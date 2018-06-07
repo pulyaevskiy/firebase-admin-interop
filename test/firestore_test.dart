@@ -282,6 +282,11 @@ void main() {
         expect(parent.documentID, isNull);
       });
 
+      test('get new document', () {
+        final doc = ref.document();
+        expect(doc.documentID, isNotEmpty);
+      });
+
       test('get document from collection', () {
         final doc = ref.document('23');
         expect(doc.documentID, '23');
@@ -332,6 +337,27 @@ void main() {
         expect(change.type, isNull);
       });
 
+      test('query filter with document reference', () async {
+        var collection = app.firestore().collection('tests/query/where-ref');
+        var doc1 = collection.document();
+        var doc2 = collection.document();
+        await doc2.setData(new DocumentData.fromMap({'name': 'doc2'}));
+        var data1 = new DocumentData();
+        data1.setReference('ref', doc2);
+        data1.setString('name', 'doc1');
+        await doc1.setData(data1);
+
+        var query = collection.where('ref', isEqualTo: doc2);
+        var snapshot = await query.get();
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
+        expect(snapshot.documentChanges, hasLength(1));
+        var doc = snapshot.documents.first;
+        expect(doc.data.getString('name'), 'doc1');
+        expect(doc.data.getReference('ref'),
+            new isInstanceOf<DocumentReference>());
+      });
+
       test('get empty query snapshot', () async {
         var ref = app.firestore().collection('tests/query/none');
         var snapshot = await ref.get();
@@ -364,14 +390,14 @@ void main() {
             new DocumentData()..setInt('field1', 1)..setInt('field2', 2));
 
         QuerySnapshot querySnapshot = await collRef.select(['field2']).get();
-        var documentdata = querySnapshot.documents.first.data;
-        expect(documentdata.has('field2'), isTrue);
-        expect(documentdata.has('field1'), isFalse);
+        var documentData = querySnapshot.documents.first.data;
+        expect(documentData.has('field2'), isTrue);
+        expect(documentData.has('field1'), isFalse);
 
         querySnapshot = await collRef.select(['field2']).get();
-        documentdata = querySnapshot.documents.first.data;
-        expect(documentdata.has('field2'), isTrue);
-        expect(documentdata.has('field1'), isFalse);
+        documentData = querySnapshot.documents.first.data;
+        expect(documentData.has('field2'), isTrue);
+        expect(documentData.has('field1'), isFalse);
       });
 
       test('order and limits', () async {

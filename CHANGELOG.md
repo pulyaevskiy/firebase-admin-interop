@@ -1,3 +1,10 @@
+## 1.0.0-dev.14.0
+
+- Fixed: Firestore, fixed error calling `CollectionReference.document()`
+    without arguments.
+- Fixed: Firestore, fixed error calling `DocumentQuery.where()` with
+    `DocumentReference` as value.
+
 ## 1.0.0-dev.13.0
 
 - Added: Firestore, support for `SetOptions` and `WriteBatch` (#14).

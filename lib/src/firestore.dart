@@ -101,8 +101,11 @@ class CollectionReference extends DocumentQuery {
   ///
   /// The unique key generated is prefixed with a client-generated timestamp
   /// so that the resulting list will be chronologically-sorted.
-  DocumentReference document([String path]) =>
-      new DocumentReference(nativeInstance.doc(path), firestore);
+  DocumentReference document([String path]) {
+    final docRef =
+        (path == null) ? nativeInstance.doc() : nativeInstance.doc(path);
+    return new DocumentReference(docRef, firestore);
+  }
 
   /// Returns a `DocumentReference` with an auto-generated ID, after
   /// populating it with provided [data].
@@ -760,6 +763,7 @@ class DocumentQuery {
     js.DocumentQuery query = nativeInstance;
 
     void addCondition(String field, String opStr, dynamic value) {
+      value = (value is DocumentReference) ? value.nativeInstance : value;
       query = query.where(field, opStr, value);
     }
 
