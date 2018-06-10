@@ -539,16 +539,46 @@ void main() {
     group('$Transaction', () {
       test('runTransaction', () async {
         var collRef = app.firestore().collection('tests/transaction/simple');
+        // this one will be created
         var doc1Ref = collRef.document('item1');
-        await doc1Ref.setData(new DocumentData()..setInt('value', 1));
+        // this one will be updated
+        var doc2Ref = collRef.document('item2');
+        // this one will be set
+        var doc3Ref = collRef.document('item3');
+        // this one will be deleted
+        var doc4Ref = collRef.document('item4');
 
-        await app.firestore().runTransaction((Transaction tx) async {
-          var doc1 = await tx.get(doc1Ref);
-          var val = doc1.data.getInt('value');
-          tx.set(doc1Ref, new DocumentData()..setInt('value', val + 1));
+        var doc4Value = 4;
+        await doc1Ref.delete();
+        await doc2Ref.setData(new DocumentData()..setInt('value', 2));
+        await doc4Ref.setData(new DocumentData()..setInt('value', doc4Value));
+
+        var list = await app.firestore().runTransaction((Transaction tx) async {
+          var query = await tx.getQuery(
+              collRef.orderBy('value').where('value', isGreaterThan: 1));
+          var list = query.documents;
+
+          var doc4 = (await tx.get(doc4Ref)).data.getInt('value');
+          tx.create(doc1Ref, new DocumentData()..setInt('value', 1 + doc4));
+          tx.update(
+              doc2Ref, new UpdateData()..setInt('other.value', 22 + doc4));
+          tx.set(doc3Ref, new DocumentData()..setInt('value', 3 + doc4));
+          tx.delete(doc4Ref);
+
+          return list;
         });
 
-        expect((await doc1Ref.get()).data.toMap(), {'value': 2});
+        expect(list.length, 3);
+        expect(list.first.reference.documentID, "item2");
+        expect(list.last.reference.documentID, "item3");
+
+        expect((await doc1Ref.get()).data.toMap(), {'value': 1 + doc4Value});
+        expect((await doc2Ref.get()).data.toMap(), {
+          'value': 2,
+          'other': {'value': 22 + doc4Value}
+        });
+        expect((await doc3Ref.get()).data.toMap(), {'value': 3 + doc4Value});
+        expect((await doc4Ref.get()).exists, isFalse);
       });
     });
 
