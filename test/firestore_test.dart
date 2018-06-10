@@ -581,6 +581,49 @@ void main() {
         expect((await doc4Ref.get()).exists, isFalse);
       });
 
+      test('runTransaction, test $Precondition', () async {
+        var collRef =
+            app.firestore().collection('tests/transaction/precondition');
+        // this one will be updated
+        var doc1Ref = collRef.document('item1');
+        // this one will be deleted
+        var doc2Ref = collRef.document('item2');
+
+        var before = DateTime.now().toUtc().toIso8601String();
+        await doc1Ref.setData(new DocumentData()..setInt('value', 1));
+        var doc1UpdateTime = (await doc1Ref.get()).updateTime.toIso8601String();
+        await doc2Ref.setData(new DocumentData()..setInt('value', 2));
+        var doc2UpdateTime = (await doc2Ref.get()).updateTime.toIso8601String();
+
+        await app.firestore().runTransaction((Transaction tx) async {
+          var doc2 = (await tx.get(doc2Ref)).data.getInt('value');
+          tx.update(doc1Ref, new UpdateData()..setInt('value', doc2),
+              Precondition(lastUpdateTime: before));
+          tx.delete(doc2Ref, Precondition(lastUpdateTime: before));
+        }).catchError((e) {
+          expect(
+              e.toString().startsWith(
+                  'Error: 9 FAILED_PRECONDITION: the stored version'),
+              true);
+        });
+        expect((await doc1Ref.get()).data.toMap(), {'value': 1});
+        expect((await doc2Ref.get()).data.toMap(), {'value': 2});
+
+        await app.firestore().runTransaction((Transaction tx) async {
+          var doc2 = (await tx.get(doc2Ref)).data.getInt('value');
+          tx.update(doc1Ref, new UpdateData()..setInt('value', doc2),
+              Precondition(lastUpdateTime: doc1UpdateTime));
+          tx.delete(doc2Ref, Precondition(lastUpdateTime: doc2UpdateTime));
+        });
+        expect((await doc1Ref.get()).data.toMap(), {'value': 3});
+        expect((await doc2Ref.get()).exists, isFalse);
+      }, skip: '''
+        TODO https://github.com/pulyaevskiy/firebase-admin-interop/issues/19
+        FormatException: Invalid date format 2018-06-10T20:26:58.623519000Z
+        package:firebase_admin_interop/src/firestore.dart 307:39
+        DateTime get updateTime => DateTime.parse(nativeInstance.updateTime);
+      ''');
+
       test('runTransaction, increment counter 10 times in async', () async {
         var collRef = app.firestore().collection('tests/transaction/async');
         var doc1Ref = collRef.document('counter');
