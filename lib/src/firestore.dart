@@ -913,7 +913,7 @@ class Transaction {
 
   Transaction(this.nativeInstance);
 
-  /// Reads the document referenced by the provided `DocumentReference.`
+  /// Reads the document referenced by the provided [documentRef].
   /// Holds a pessimistic lock on the returned document.
   Future<DocumentSnapshot> get(DocumentReference documentRef) {
     final nativeRef = documentRef.nativeInstance;
@@ -929,7 +929,7 @@ class Transaction {
         .then((jsSnapshot) => new QuerySnapshot(jsSnapshot, query.firestore));
   }
 
-  /// Create the document referred to by the provided `DocumentReference`.
+  /// Create the document referred to by the provided [documentRef].
   /// The operation will fail the transaction if a document exists at the
   /// specified location.
   void create(DocumentReference documentRef, DocumentData data) {
@@ -938,9 +938,9 @@ class Transaction {
     nativeInstance.create(nativeRef, docData);
   }
 
-  /// Writes to the document referred to by the provided `DocumentReference`.
+  /// Writes to the document referred to by the provided [documentRef].
   /// If the document does not exist yet, it will be created. If you pass
-  /// `SetOptions`, the provided data can be merged into the existing document.
+  /// [options], the provided data can be merged into the existing document.
   void set(DocumentReference documentRef, DocumentData data,
       [js.SetOptions options]) {
     final docData = data.nativeInstance;
@@ -953,7 +953,7 @@ class Transaction {
   }
 
   /// Updates fields in the document referred to by the provided
-  /// `DocumentReference`. The update will fail if applied to a document that
+  /// [documentRef]. The update will fail if applied to a document that
   /// does not exist.
   /// Nested fields can be updated by providing dot-separated field path
   /// strings.
@@ -969,7 +969,7 @@ class Transaction {
     }
   }
 
-  /// Deletes the document referred to by the provided `DocumentReference`.
+  /// Deletes the document referred to by the provided [documentRef].
   void delete(DocumentReference documentRef, [js.Precondition precondition]) {
     final nativeRef = documentRef.nativeInstance;
     if (precondition != null) {
