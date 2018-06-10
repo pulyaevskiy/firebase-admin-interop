@@ -69,6 +69,16 @@ class Firestore {
     return new DocumentReference(nativeInstance.doc(path), this);
   }
 
+  /// Executes the given [updateFunction] and commits the changes applied within
+  /// the transaction.
+  /// You can use the transaction object passed to [updateFunction] to read and
+  /// modify Firestore documents under lock. Transactions are committed once
+  /// [updateFunction] resolves and attempted up to five times on failure.
+  /// context.
+  /// aborted (by the updateFunction returning a failed Future), the Future
+  /// returned by the updateFunction will be returned here. Else if the
+  /// transaction failed, a rejected Future with the corresponding failure
+  /// error will be returned.
   Future<T> runTransaction<T>(
       Future<T> updateFunction(Transaction transaction)) {
     assert(updateFunction != null);
