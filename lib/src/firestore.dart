@@ -69,12 +69,14 @@ class Firestore {
     return new DocumentReference(nativeInstance.doc(path), this);
   }
 
-  Future<T> runTransaction<T>(Future<T> updateFunction(Transaction transaction)) {
+  Future<T> runTransaction<T>(
+      Future<T> updateFunction(Transaction transaction)) {
     assert(updateFunction != null);
-    var jsUpdateFunction = (js.Transaction transaction) {
+    Function jsUpdateFunction = (js.Transaction transaction) {
       return futureToPromise(updateFunction(new Transaction(transaction)));
     };
-    return promiseToFuture(nativeInstance.runTransaction(jsUpdateFunction));
+    return promiseToFuture(
+        nativeInstance.runTransaction(allowInterop(jsUpdateFunction)));
   }
 
   /// Creates a write batch, used for performing multiple writes as a single
@@ -905,17 +907,16 @@ class Transaction {
   /// Holds a pessimistic lock on the returned document.
   Future<DocumentSnapshot> get(DocumentReference documentRef) {
     final nativeRef = documentRef.nativeInstance;
-    return promiseToFuture(nativeInstance.get(nativeRef).then((jsSnapshot) =>
-        new DocumentSnapshot(jsSnapshot, documentRef.firestore)));
+    return promiseToFuture(nativeInstance.get(nativeRef)).then((jsSnapshot) =>
+        new DocumentSnapshot(jsSnapshot, documentRef.firestore));
   }
 
   /// Retrieves a query result. Holds a pessimistic lock on the returned
   /// documents.
   Future<QuerySnapshot> getQuery(DocumentQuery query) {
     final nativeQuery = query.nativeInstance;
-    return promiseToFuture(nativeInstance
-        .get(nativeQuery)
-        .then((jsSnapshot) => new QuerySnapshot(jsSnapshot, query.firestore)));
+    return promiseToFuture(nativeInstance.get(nativeQuery))
+        .then((jsSnapshot) => new QuerySnapshot(jsSnapshot, query.firestore));
   }
 
   /// Create the document referred to by the provided `DocumentReference`.
