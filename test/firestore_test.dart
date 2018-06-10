@@ -580,6 +580,40 @@ void main() {
         expect((await doc3Ref.get()).data.toMap(), {'value': 3 + doc4Value});
         expect((await doc4Ref.get()).exists, isFalse);
       });
+
+      test('runTransaction, increment counter 10 times in async', () async {
+        var collRef = app.firestore().collection('tests/transaction/async');
+        var doc1Ref = collRef.document('counter');
+        await doc1Ref.setData(new DocumentData()..setInt('value', 1));
+
+        List<Future<Null>> futures = new List();
+        List<dynamic> errors = new List();
+        List<Null> complete = new List();
+
+        var futuresCount = 10;
+        for (int i = 0; i < futuresCount; i++) {
+          var transaction =
+              app.firestore().runTransaction((Transaction tx) async {
+            var doc1 = await tx.get(doc1Ref);
+            var val = doc1.data.getInt('value');
+            tx.set(doc1Ref, new DocumentData()..setInt('value', val + 1));
+          });
+          futures.add(transaction.then((Null val) {
+            complete.add(val);
+          }, onError: (e) {
+            errors.add(e);
+          }));
+        }
+
+        await Future.wait(futures);
+        expect(errors.length + complete.length, futuresCount);
+
+        var value = (await doc1Ref.get()).data.getInt('value');
+        var isSuccess = value == 11;
+        expect(isSuccess, errors.length == 0, reason: errors.toString());
+        expect(isSuccess, complete.length == 11,
+            reason: complete.length.toString());
+      });
     });
 
     group('$WriteBatch', () {
