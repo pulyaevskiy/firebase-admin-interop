@@ -905,9 +905,9 @@ class DocumentQuery {
 }
 
 /// A reference to a transaction.
-/// The `Transaction` object passed to a transaction's updateFunction provides
+/// The [Transaction] object passed to a transaction's updateFunction provides
 /// the methods to read and write data within the transaction context. See
-/// `Firestore.runTransaction()`.
+/// [Firestore.runTransaction].
 class Transaction {
   final js.Transaction nativeInstance;
 
