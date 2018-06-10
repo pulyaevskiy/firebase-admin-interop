@@ -536,6 +536,22 @@ void main() {
       });
     });
 
+    group('$Transaction', () {
+      test('runTransaction', () async {
+        var collRef = app.firestore().collection('tests/transaction/simple');
+        var doc1Ref = collRef.document('item1');
+        await doc1Ref.setData(new DocumentData()..setInt('value', 1));
+
+        await app.firestore().runTransaction((Transaction tx) async {
+          var doc1 = await tx.get(doc1Ref);
+          var val = doc1.data.getInt('value');
+          tx.set(doc1Ref, new DocumentData()..setInt('value', val + 1));
+        });
+
+        expect((await doc1Ref.get()).data.toMap(), {'value': 2});
+      });
+    });
+
     group('$WriteBatch', () {
       test('batch', () async {
         var collRef = app.firestore().collection('tests/batch/simple');

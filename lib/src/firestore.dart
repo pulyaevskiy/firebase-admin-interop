@@ -69,6 +69,14 @@ class Firestore {
     return new DocumentReference(nativeInstance.doc(path), this);
   }
 
+  Future<T> runTransaction<T>(Future<T> updateFunction(Transaction transaction)) {
+    assert(updateFunction != null);
+    var jsUpdateFunction = (js.Transaction transaction) {
+      return futureToPromise(updateFunction(new Transaction(transaction)));
+    };
+    return promiseToFuture(nativeInstance.runTransaction(jsUpdateFunction));
+  }
+
   /// Creates a write batch, used for performing multiple writes as a single
   /// atomic operation.
   WriteBatch batch() => new WriteBatch(nativeInstance.batch());
@@ -881,6 +889,83 @@ class DocumentQuery {
     //  Dart doesn't support varargs
     return new DocumentQuery(
         callMethod(nativeInstance, "select", fieldPaths), firestore);
+  }
+}
+
+/// A reference to a transaction.
+/// The `Transaction` object passed to a transaction's updateFunction provides
+/// the methods to read and write data within the transaction context. See
+/// `Firestore.runTransaction()`.
+class Transaction {
+  final js.Transaction nativeInstance;
+
+  Transaction(this.nativeInstance);
+
+  /// Reads the document referenced by the provided `DocumentReference.`
+  /// Holds a pessimistic lock on the returned document.
+  Future<DocumentSnapshot> get(DocumentReference documentRef) {
+    final nativeRef = documentRef.nativeInstance;
+    return promiseToFuture(nativeInstance.get(nativeRef).then((jsSnapshot) =>
+        new DocumentSnapshot(jsSnapshot, documentRef.firestore)));
+  }
+
+  /// Retrieves a query result. Holds a pessimistic lock on the returned
+  /// documents.
+  Future<QuerySnapshot> getQuery(DocumentQuery query) {
+    final nativeQuery = query.nativeInstance;
+    return promiseToFuture(nativeInstance
+        .get(nativeQuery)
+        .then((jsSnapshot) => new QuerySnapshot(jsSnapshot, query.firestore)));
+  }
+
+  /// Create the document referred to by the provided `DocumentReference`.
+  /// The operation will fail the transaction if a document exists at the
+  /// specified location.
+  void create(DocumentReference documentRef, DocumentData data) {
+    var docData = data.nativeInstance;
+    var nativeRef = documentRef.nativeInstance;
+    nativeInstance.create(nativeRef, docData);
+  }
+
+  /// Writes to the document referred to by the provided `DocumentReference`.
+  /// If the document does not exist yet, it will be created. If you pass
+  /// `SetOptions`, the provided data can be merged into the existing document.
+  void set(DocumentReference documentRef, DocumentData data,
+      [js.SetOptions options]) {
+    final docData = data.nativeInstance;
+    final nativeRef = documentRef.nativeInstance;
+    if (options != null) {
+      nativeInstance.set(nativeRef, docData, options);
+    } else {
+      nativeInstance.set(nativeRef, docData);
+    }
+  }
+
+  /// Updates fields in the document referred to by the provided
+  /// `DocumentReference`. The update will fail if applied to a document that
+  /// does not exist.
+  /// Nested fields can be updated by providing dot-separated field path
+  /// strings.
+  /// update the document.
+  void update(DocumentReference documentRef, UpdateData data,
+      [js.Precondition precondition]) {
+    final docData = data.nativeInstance;
+    final nativeRef = documentRef.nativeInstance;
+    if (precondition != null) {
+      nativeInstance.update(nativeRef, docData, precondition);
+    } else {
+      nativeInstance.update(nativeRef, docData);
+    }
+  }
+
+  /// Deletes the document referred to by the provided `DocumentReference`.
+  void delete(DocumentReference documentRef, [js.Precondition precondition]) {
+    final nativeRef = documentRef.nativeInstance;
+    if (precondition != null) {
+      nativeInstance.delete(nativeRef, precondition);
+    } else {
+      nativeInstance.delete(nativeRef);
+    }
   }
 }
 
