@@ -942,14 +942,10 @@ class Transaction {
   /// If the document does not exist yet, it will be created. If you pass
   /// [options], the provided data can be merged into the existing document.
   void set(DocumentReference documentRef, DocumentData data,
-      [js.SetOptions options]) {
+      {bool merge: false}) {
     final docData = data.nativeInstance;
     final nativeRef = documentRef.nativeInstance;
-    if (options != null) {
-      nativeInstance.set(nativeRef, docData, options);
-    } else {
-      nativeInstance.set(nativeRef, docData);
-    }
+    nativeInstance.set(nativeRef, docData, _getNativeSetOptions(merge));
   }
 
   /// Updates fields in the document referred to by the provided
@@ -959,21 +955,22 @@ class Transaction {
   /// strings.
   /// update the document.
   void update(DocumentReference documentRef, UpdateData data,
-      [js.Precondition precondition]) {
+      {DateTime lastUpdateTime}) {
     final docData = data.nativeInstance;
     final nativeRef = documentRef.nativeInstance;
-    if (precondition != null) {
-      nativeInstance.update(nativeRef, docData, precondition);
+    if (lastUpdateTime != null) {
+      nativeInstance.update(
+          nativeRef, docData, _getNativePrecondition(lastUpdateTime));
     } else {
       nativeInstance.update(nativeRef, docData);
     }
   }
 
   /// Deletes the document referred to by the provided [documentRef].
-  void delete(DocumentReference documentRef, [js.Precondition precondition]) {
+  void delete(DocumentReference documentRef, {DateTime lastUpdateTime}) {
     final nativeRef = documentRef.nativeInstance;
-    if (precondition != null) {
-      nativeInstance.delete(nativeRef, precondition);
+    if (lastUpdateTime != null) {
+      nativeInstance.delete(nativeRef, _getNativePrecondition(lastUpdateTime));
     } else {
       nativeInstance.delete(nativeRef);
     }
@@ -1021,4 +1018,22 @@ class WriteBatch {
 
   /// Commits all of the writes in this write batch as a single atomic unit.
   Future commit() => promiseToFuture(nativeInstance.commit());
+}
+
+/// An options object that configures conditional behavior of [update] and
+/// [delete] calls in [DocumentReference], [WriteBatch], and [Transaction].
+/// Using Preconditions, these calls can be restricted to only apply to
+/// documents that match the specified restrictions.
+js.Precondition _getNativePrecondition(DateTime lastUpdateTime) {
+  assert(lastUpdateTime != null, 'Precontition lastUpdateTime can`t be null');
+  return js.Precondition(lastUpdateTime: lastUpdateTime.toIso8601String());
+}
+
+/// An options object that configures the behavior of [set] calls in
+/// [DocumentReference], [WriteBatch] and [Transaction]. These calls can be
+/// configured to perform granular merges instead of overwriting the target
+/// documents in their entirety by providing a [SetOptions] with [merge]: true.
+js.SetOptions _getNativeSetOptions(bool merge) {
+  assert(merge != null, 'SetOption merge can`t be null');
+  return js.SetOptions(merge: merge);
 }

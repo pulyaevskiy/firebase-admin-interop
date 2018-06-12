@@ -563,6 +563,8 @@ void main() {
           tx.update(
               doc2Ref, new UpdateData()..setInt('other.value', 22 + doc4));
           tx.set(doc3Ref, new DocumentData()..setInt('value', 3 + doc4));
+          tx.set(doc3Ref, new DocumentData()..setInt('other.value', 33 + doc4),
+              merge: true);
           tx.delete(doc4Ref);
 
           return list;
@@ -575,13 +577,18 @@ void main() {
         expect((await doc1Ref.get()).data.toMap(), {'value': 1 + doc4Value});
         expect((await doc2Ref.get()).data.toMap(), {
           'value': 2,
-          'other': {'value': 22 + doc4Value}
+          'other': {
+            'value': 22 + doc4Value,
+          },
         });
-        expect((await doc3Ref.get()).data.toMap(), {'value': 3 + doc4Value});
+        expect((await doc3Ref.get()).data.toMap(), {
+          'value': 3 + doc4Value,
+          'other.value': 33 + doc4Value,
+        });
         expect((await doc4Ref.get()).exists, isFalse);
       });
 
-      test('runTransaction, test $Precondition', () async {
+      test('runTransaction, test Precondition lastUpdateTime', () async {
         var collRef =
             app.firestore().collection('tests/transaction/precondition');
         // this one will be updated
@@ -589,17 +596,17 @@ void main() {
         // this one will be deleted
         var doc2Ref = collRef.document('item2');
 
-        var before = DateTime.now().toUtc().toIso8601String();
+        var before = DateTime.now();
         await doc1Ref.setData(new DocumentData()..setInt('value', 1));
-        var doc1UpdateTime = (await doc1Ref.get()).updateTime.toIso8601String();
+        var doc1UpdateTime = (await doc1Ref.get()).updateTime;
         await doc2Ref.setData(new DocumentData()..setInt('value', 2));
-        var doc2UpdateTime = (await doc2Ref.get()).updateTime.toIso8601String();
+        var doc2UpdateTime = (await doc2Ref.get()).updateTime;
 
         await app.firestore().runTransaction((Transaction tx) async {
           var doc2 = (await tx.get(doc2Ref)).data.getInt('value');
           tx.update(doc1Ref, new UpdateData()..setInt('value', doc2),
-              Precondition(lastUpdateTime: before));
-          tx.delete(doc2Ref, Precondition(lastUpdateTime: before));
+              lastUpdateTime: before);
+          tx.delete(doc2Ref, lastUpdateTime: before);
         }).catchError((e) {
           expect(
               e.toString().startsWith(
@@ -612,8 +619,8 @@ void main() {
         await app.firestore().runTransaction((Transaction tx) async {
           var doc2 = (await tx.get(doc2Ref)).data.getInt('value');
           tx.update(doc1Ref, new UpdateData()..setInt('value', doc2),
-              Precondition(lastUpdateTime: doc1UpdateTime));
-          tx.delete(doc2Ref, Precondition(lastUpdateTime: doc2UpdateTime));
+              lastUpdateTime: doc1UpdateTime);
+          tx.delete(doc2Ref, lastUpdateTime: doc2UpdateTime);
         });
         expect((await doc1Ref.get()).data.toMap(), {'value': 3});
         expect((await doc2Ref.get()).exists, isFalse);
