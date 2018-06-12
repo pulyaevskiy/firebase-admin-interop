@@ -661,7 +661,7 @@ void main() {
         var value = (await doc1Ref.get()).data.getInt('value');
         var isSuccess = value == 11;
         expect(isSuccess, errors.length == 0, reason: errors.toString());
-        expect(isSuccess, complete.length == 11,
+        expect(isSuccess, complete.length == futuresCount,
             reason: complete.length.toString());
       });
     });
