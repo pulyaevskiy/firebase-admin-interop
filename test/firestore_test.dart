@@ -609,7 +609,7 @@ void main() {
         var doc1UpdateTime2 = (await doc1Ref.get()).updateTime;
         var doc2UpdateTime2 = (await doc2Ref.get()).updateTime;
 
-        var result = app.firestore().runTransaction((Transaction tx) async {
+        Future result = app.firestore().runTransaction((Transaction tx) async {
           var doc2 = (await tx.get(doc2Ref)).data;
           tx.update(
               doc1Ref, new UpdateData()..setInt('value', doc2.getInt('value')),
@@ -642,19 +642,20 @@ void main() {
         var doc1Ref = collRef.document('counter');
         await doc1Ref.setData(new DocumentData()..setInt('value', 1));
 
-        List<Future<Null>> futures = new List();
+        List<Future<int>> futures = new List();
         List<dynamic> errors = new List();
-        List<Null> complete = new List();
+        List<int> complete = new List();
 
         var futuresCount = 5;
         for (int i = 0; i < futuresCount; i++) {
           var transaction =
-              app.firestore().runTransaction((Transaction tx) async {
+              app.firestore().runTransaction<int>((Transaction tx) async {
             var doc1 = await tx.get(doc1Ref);
-            var val = doc1.data.getInt('value');
-            tx.set(doc1Ref, new DocumentData()..setInt('value', val + 1));
+            var val = doc1.data.getInt('value') + 1;
+            tx.set(doc1Ref, new DocumentData()..setInt('value', val));
+            return val;
           });
-          futures.add(transaction.then((Null val) {
+          futures.add(transaction.then((int val) {
             complete.add(val);
           }, onError: (e) {
             errors.add(e);
@@ -666,7 +667,8 @@ void main() {
 
         var value = (await doc1Ref.get()).data.getInt('value');
         expect(errors, isEmpty, reason: errors.toString());
-        expect(complete, hasLength(futuresCount), reason: '${complete.length}');
+        expect(complete, hasLength(futuresCount),
+            reason: '${complete} of length ${complete.length}');
         expect(value, 6);
       });
     });

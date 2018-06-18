@@ -86,7 +86,7 @@ class Firestore {
     Function jsUpdateFunction = (js.Transaction transaction) {
       return futureToPromise(updateFunction(new Transaction(transaction)));
     };
-    return promiseToFuture(
+    return promiseToFuture<T>(
         nativeInstance.runTransaction(allowInterop(jsUpdateFunction)));
   }
 
