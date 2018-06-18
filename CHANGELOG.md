@@ -1,3 +1,14 @@
+## 1.0.0-dev.15.0
+
+- Added: `Firestore.runTransaction`
+- Breaking: Firestore `DocumentSnapshot.updateTime` type changed to
+    `String` from `DateTime`. This field contains ISO formatted datetime
+    string with nanosecond precision and can't be converted to Dart's
+    `DateTime` object without loosing information (`DateTime` only
+    stores microseconds). This value should be treated as opaque when
+    passed to any transaction as a precondition.
+- Fixed: dartdevc build by upgrading to latest build_runner.
+
 ## 1.0.0-dev.14.0
 
 - Fixed: Firestore, fixed error calling `CollectionReference.document()`
