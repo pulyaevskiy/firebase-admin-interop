@@ -38,7 +38,7 @@ void main() {
 
     test('getUser which does not exist', () async {
       var result = app.auth().getUser('noSuchUser');
-      expect(result, throwsA(new isInstanceOf<JsError>()));
+      expect(result, throwsA(const TypeMatcher<JsError>()));
     });
 
     test('listUsers', () async {

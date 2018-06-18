@@ -39,7 +39,7 @@ void main() {
       test('get value once', () async {
         var snapshot = await ref.get();
         var data = snapshot.data;
-        expect(data, new isInstanceOf<DocumentData>());
+        expect(data, const TypeMatcher<DocumentData>());
         expect(data, hasLength(3));
         expect(data.keys, hasLength(3));
         expect(data.keys, contains('name'));
@@ -48,7 +48,7 @@ void main() {
         expect(data.getString('name'), 'Firestore');
         expect(data.getString('profile.url'), 'https://pic.com/123');
         var nested = data.getNestedData('nested');
-        expect(nested, new isInstanceOf<DocumentData>());
+        expect(nested, const TypeMatcher<DocumentData>());
         expect(nested, hasLength(1));
         expect(nested.getString('author'), 'Unknown');
       });
@@ -140,7 +140,7 @@ void main() {
         expect(result.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
         expect(result.getBlob('blobVal').data, [1, 2, 3]);
         var docRef = result.getReference('refVal');
-        expect(docRef, new isInstanceOf<DocumentReference>());
+        expect(docRef, const TypeMatcher<DocumentReference>());
         expect(docRef.path, 'users/23');
         expect(result.getList('listVal'), [23, 84]);
         var nested = result.getNestedData('nestedVal');
@@ -185,7 +185,7 @@ void main() {
         expect(result['geoVal'], new GeoPoint(23.03, 19.84));
         expect((result['blobVal'] as Blob).data, [4, 5, 6]);
         var docRef = result['refVal'];
-        expect(docRef, new isInstanceOf<DocumentReference>());
+        expect(docRef, const TypeMatcher<DocumentReference>());
         expect(docRef.path, 'users/23');
         expect(result['listVal'], [23, 84]);
         expect(result['nestedData'], {'nestedVal': 'very nested'});
@@ -212,12 +212,12 @@ void main() {
 
         var data = snapshot.data;
         expect(() => data.getList('geoVal'),
-            throwsA(new isInstanceOf<AssertionError>()));
+            throwsA(const TypeMatcher<AssertionError>()));
 
         var setData = new DocumentData();
         expect(() {
           setData.setList('foo', [new GeoPoint(1.0, 2.2)]);
-        }, throwsA(new isInstanceOf<AssertionError>()));
+        }, throwsA(const TypeMatcher<AssertionError>()));
       });
 
       test('delete field', () async {
@@ -277,7 +277,7 @@ void main() {
 
       test('parent of root collection', () {
         final parent = ref.parent;
-        expect(parent, new isInstanceOf<DocumentReference>());
+        expect(parent, const TypeMatcher<DocumentReference>());
         expect(parent.path, isEmpty);
         expect(parent.documentID, isNull);
       });
@@ -355,7 +355,7 @@ void main() {
         var doc = snapshot.documents.first;
         expect(doc.data.getString('name'), 'doc1');
         expect(doc.data.getReference('ref'),
-            new isInstanceOf<DocumentReference>());
+            const TypeMatcher<DocumentReference>());
       });
 
       test('get empty query snapshot', () async {
