@@ -69,6 +69,26 @@ class Firestore {
     return new DocumentReference(nativeInstance.doc(path), this);
   }
 
+  /// Executes the given [updateFunction] and commits the changes applied within
+  /// the transaction.
+  /// You can use the transaction object passed to [updateFunction] to read and
+  /// modify Firestore documents under lock. Transactions are committed once
+  /// [updateFunction] resolves and attempted up to five times on failure.
+  /// context.
+  /// aborted (by the updateFunction returning a failed Future), the Future
+  /// returned by the updateFunction will be returned here. Else if the
+  /// transaction failed, a rejected Future with the corresponding failure
+  /// error will be returned.
+  Future<T> runTransaction<T>(
+      Future<T> updateFunction(Transaction transaction)) {
+    assert(updateFunction != null);
+    Function jsUpdateFunction = (js.Transaction transaction) {
+      return futureToPromise(updateFunction(new Transaction(transaction)));
+    };
+    return promiseToFuture(
+        nativeInstance.runTransaction(allowInterop(jsUpdateFunction)));
+  }
+
   /// Creates a write batch, used for performing multiple writes as a single
   /// atomic operation.
   WriteBatch batch() => new WriteBatch(nativeInstance.batch());
@@ -884,6 +904,79 @@ class DocumentQuery {
   }
 }
 
+/// A reference to a transaction.
+/// The [Transaction] object passed to a transaction's updateFunction provides
+/// the methods to read and write data within the transaction context. See
+/// [Firestore.runTransaction].
+class Transaction {
+  final js.Transaction nativeInstance;
+
+  Transaction(this.nativeInstance);
+
+  /// Reads the document referenced by the provided [documentRef].
+  /// Holds a pessimistic lock on the returned document.
+  Future<DocumentSnapshot> get(DocumentReference documentRef) {
+    final nativeRef = documentRef.nativeInstance;
+    return promiseToFuture(nativeInstance.get(nativeRef)).then((jsSnapshot) =>
+        new DocumentSnapshot(jsSnapshot, documentRef.firestore));
+  }
+
+  /// Retrieves a query result. Holds a pessimistic lock on the returned
+  /// documents.
+  Future<QuerySnapshot> getQuery(DocumentQuery query) {
+    final nativeQuery = query.nativeInstance;
+    return promiseToFuture(nativeInstance.get(nativeQuery))
+        .then((jsSnapshot) => new QuerySnapshot(jsSnapshot, query.firestore));
+  }
+
+  /// Create the document referred to by the provided [documentRef].
+  /// The operation will fail the transaction if a document exists at the
+  /// specified location.
+  void create(DocumentReference documentRef, DocumentData data) {
+    var docData = data.nativeInstance;
+    var nativeRef = documentRef.nativeInstance;
+    nativeInstance.create(nativeRef, docData);
+  }
+
+  /// Writes to the document referred to by the provided [documentRef].
+  /// If the document does not exist yet, it will be created. If you pass
+  /// [options], the provided data can be merged into the existing document.
+  void set(DocumentReference documentRef, DocumentData data,
+      {bool merge: false}) {
+    final docData = data.nativeInstance;
+    final nativeRef = documentRef.nativeInstance;
+    nativeInstance.set(nativeRef, docData, _getNativeSetOptions(merge));
+  }
+
+  /// Updates fields in the document referred to by the provided
+  /// [documentRef]. The update will fail if applied to a document that
+  /// does not exist.
+  /// Nested fields can be updated by providing dot-separated field path
+  /// strings.
+  /// update the document.
+  void update(DocumentReference documentRef, UpdateData data,
+      {DateTime lastUpdateTime}) {
+    final docData = data.nativeInstance;
+    final nativeRef = documentRef.nativeInstance;
+    if (lastUpdateTime != null) {
+      nativeInstance.update(
+          nativeRef, docData, _getNativePrecondition(lastUpdateTime));
+    } else {
+      nativeInstance.update(nativeRef, docData);
+    }
+  }
+
+  /// Deletes the document referred to by the provided [documentRef].
+  void delete(DocumentReference documentRef, {DateTime lastUpdateTime}) {
+    final nativeRef = documentRef.nativeInstance;
+    if (lastUpdateTime != null) {
+      nativeInstance.delete(nativeRef, _getNativePrecondition(lastUpdateTime));
+    } else {
+      nativeInstance.delete(nativeRef);
+    }
+  }
+}
+
 /// A write batch, used to perform multiple writes as a single atomic unit.
 ///
 /// A [WriteBatch] object can be acquired by calling [Firestore.batch]. It
@@ -925,4 +1018,22 @@ class WriteBatch {
 
   /// Commits all of the writes in this write batch as a single atomic unit.
   Future commit() => promiseToFuture(nativeInstance.commit());
+}
+
+/// An options object that configures conditional behavior of [update] and
+/// [delete] calls in [DocumentReference], [WriteBatch], and [Transaction].
+/// Using Preconditions, these calls can be restricted to only apply to
+/// documents that match the specified restrictions.
+js.Precondition _getNativePrecondition(DateTime lastUpdateTime) {
+  assert(lastUpdateTime != null, 'Precontition lastUpdateTime can`t be null');
+  return js.Precondition(lastUpdateTime: lastUpdateTime.toIso8601String());
+}
+
+/// An options object that configures the behavior of [set] calls in
+/// [DocumentReference], [WriteBatch] and [Transaction]. These calls can be
+/// configured to perform granular merges instead of overwriting the target
+/// documents in their entirety by providing a [SetOptions] with [merge]: true.
+js.SetOptions _getNativeSetOptions(bool merge) {
+  assert(merge != null, 'SetOption merge can`t be null');
+  return js.SetOptions(merge: merge);
 }

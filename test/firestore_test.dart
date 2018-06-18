@@ -536,6 +536,136 @@ void main() {
       });
     });
 
+    group('$Transaction', () {
+      test('runTransaction', () async {
+        var collRef = app.firestore().collection('tests/transaction/simple');
+        // this one will be created
+        var doc1Ref = collRef.document('item1');
+        // this one will be updated
+        var doc2Ref = collRef.document('item2');
+        // this one will be set
+        var doc3Ref = collRef.document('item3');
+        // this one will be deleted
+        var doc4Ref = collRef.document('item4');
+
+        var doc4Value = 4;
+        await doc1Ref.delete();
+        await doc2Ref.setData(new DocumentData()..setInt('value', 2));
+        await doc4Ref.setData(new DocumentData()..setInt('value', doc4Value));
+
+        var list = await app.firestore().runTransaction((Transaction tx) async {
+          var query = await tx.getQuery(
+              collRef.orderBy('value').where('value', isGreaterThan: 1));
+          var list = query.documents;
+
+          var doc4 = (await tx.get(doc4Ref)).data.getInt('value');
+          tx.create(doc1Ref, new DocumentData()..setInt('value', 1 + doc4));
+          tx.update(
+              doc2Ref, new UpdateData()..setInt('other.value', 22 + doc4));
+          tx.set(doc3Ref, new DocumentData()..setInt('value', 3 + doc4));
+          tx.set(doc3Ref, new DocumentData()..setInt('other.value', 33 + doc4),
+              merge: true);
+          tx.delete(doc4Ref);
+
+          return list;
+        });
+
+        expect(list.length, 3);
+        expect(list.first.reference.documentID, "item2");
+        expect(list.last.reference.documentID, "item3");
+
+        expect((await doc1Ref.get()).data.toMap(), {'value': 1 + doc4Value});
+        expect((await doc2Ref.get()).data.toMap(), {
+          'value': 2,
+          'other': {
+            'value': 22 + doc4Value,
+          },
+        });
+        expect((await doc3Ref.get()).data.toMap(), {
+          'value': 3 + doc4Value,
+          'other.value': 33 + doc4Value,
+        });
+        expect((await doc4Ref.get()).exists, isFalse);
+      });
+
+      test('runTransaction, test Precondition lastUpdateTime', () async {
+        var collRef =
+            app.firestore().collection('tests/transaction/precondition');
+        // this one will be updated
+        var doc1Ref = collRef.document('item1');
+        // this one will be deleted
+        var doc2Ref = collRef.document('item2');
+
+        var before = DateTime.now();
+        await doc1Ref.setData(new DocumentData()..setInt('value', 1));
+        var doc1UpdateTime = (await doc1Ref.get()).updateTime;
+        await doc2Ref.setData(new DocumentData()..setInt('value', 2));
+        var doc2UpdateTime = (await doc2Ref.get()).updateTime;
+
+        await app.firestore().runTransaction((Transaction tx) async {
+          var doc2 = (await tx.get(doc2Ref)).data.getInt('value');
+          tx.update(doc1Ref, new UpdateData()..setInt('value', doc2),
+              lastUpdateTime: before);
+          tx.delete(doc2Ref, lastUpdateTime: before);
+        }).catchError((e) {
+          expect(
+              e.toString().startsWith(
+                  'Error: 9 FAILED_PRECONDITION: the stored version'),
+              true);
+        });
+        expect((await doc1Ref.get()).data.toMap(), {'value': 1});
+        expect((await doc2Ref.get()).data.toMap(), {'value': 2});
+
+        await app.firestore().runTransaction((Transaction tx) async {
+          var doc2 = (await tx.get(doc2Ref)).data.getInt('value');
+          tx.update(doc1Ref, new UpdateData()..setInt('value', doc2),
+              lastUpdateTime: doc1UpdateTime);
+          tx.delete(doc2Ref, lastUpdateTime: doc2UpdateTime);
+        });
+        expect((await doc1Ref.get()).data.toMap(), {'value': 3});
+        expect((await doc2Ref.get()).exists, isFalse);
+      }, skip: '''
+        TODO https://github.com/pulyaevskiy/firebase-admin-interop/issues/19
+        FormatException: Invalid date format 2018-06-10T20:26:58.623519000Z
+        package:firebase_admin_interop/src/firestore.dart 307:39
+        DateTime get updateTime => DateTime.parse(nativeInstance.updateTime);
+      ''');
+
+      test('runTransaction, increment counter 10 times in async', () async {
+        var collRef = app.firestore().collection('tests/transaction/async');
+        var doc1Ref = collRef.document('counter');
+        await doc1Ref.setData(new DocumentData()..setInt('value', 1));
+
+        List<Future<Null>> futures = new List();
+        List<dynamic> errors = new List();
+        List<Null> complete = new List();
+
+        var futuresCount = 10;
+        for (int i = 0; i < futuresCount; i++) {
+          var transaction =
+              app.firestore().runTransaction((Transaction tx) async {
+            var doc1 = await tx.get(doc1Ref);
+            var val = doc1.data.getInt('value');
+            tx.set(doc1Ref, new DocumentData()..setInt('value', val + 1));
+          });
+          futures.add(transaction.then((Null val) {
+            complete.add(val);
+          }, onError: (e) {
+            errors.add(e);
+          }));
+        }
+
+        await Future.wait(futures);
+        expect(errors.length + complete.length, futuresCount);
+
+        var value = (await doc1Ref.get()).data.getInt('value');
+        var isSuccess = value == 11;
+        expect(isSuccess, errors.length == 0, reason: errors.toString());
+        expect(isSuccess, complete.length == futuresCount,
+            reason: complete.length.toString());
+      });
+    });
+
     group('$WriteBatch', () {
       test('batch', () async {
         var collRef = app.firestore().collection('tests/batch/simple');
