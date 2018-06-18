@@ -48,27 +48,27 @@ void main() {
       });
 
       test('get parent', () {
-        expect(ref.parent, new isInstanceOf<Reference>());
+        expect(ref.parent, const TypeMatcher<Reference>());
         expect(ref.parent.key, 'users');
         expect(ref.parent, same(ref.parent));
       });
 
       test('get root', () {
-        expect(ref.root, new isInstanceOf<Reference>());
+        expect(ref.root, const TypeMatcher<Reference>());
         expect(ref.root.key, isNull);
         expect(ref.root, same(ref.root));
       });
 
       test('get child()', () {
         var child = ref.child('settings');
-        expect(child, new isInstanceOf<Reference>());
+        expect(child, const TypeMatcher<Reference>());
         expect(child.key, 'settings');
       });
 
       test('push()', () {
         var child = ref.child('notifications');
         var item = child.push();
-        expect(item, new isInstanceOf<FutureReference>());
+        expect(item, const TypeMatcher<FutureReference>());
         expect(item.key, isNotEmpty);
         expect(item.key, isNot(child.key));
         expect(item.done, completes);
@@ -77,7 +77,7 @@ void main() {
       test('push() with value', () {
         var child = ref.child('notifications');
         var item = child.push('You got a message.');
-        expect(item, new isInstanceOf<FutureReference>());
+        expect(item, const TypeMatcher<FutureReference>());
         expect(item.key, isNotEmpty);
         expect(item.key, isNot(child.key));
         expect(item.done, completes);

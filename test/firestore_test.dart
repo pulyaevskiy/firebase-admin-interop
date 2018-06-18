@@ -39,7 +39,7 @@ void main() {
       test('get value once', () async {
         var snapshot = await ref.get();
         var data = snapshot.data;
-        expect(data, new isInstanceOf<DocumentData>());
+        expect(data, const TypeMatcher<DocumentData>());
         expect(data, hasLength(3));
         expect(data.keys, hasLength(3));
         expect(data.keys, contains('name'));
@@ -48,7 +48,7 @@ void main() {
         expect(data.getString('name'), 'Firestore');
         expect(data.getString('profile.url'), 'https://pic.com/123');
         var nested = data.getNestedData('nested');
-        expect(nested, new isInstanceOf<DocumentData>());
+        expect(nested, const TypeMatcher<DocumentData>());
         expect(nested, hasLength(1));
         expect(nested.getString('author'), 'Unknown');
       });
@@ -140,7 +140,7 @@ void main() {
         expect(result.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
         expect(result.getBlob('blobVal').data, [1, 2, 3]);
         var docRef = result.getReference('refVal');
-        expect(docRef, new isInstanceOf<DocumentReference>());
+        expect(docRef, const TypeMatcher<DocumentReference>());
         expect(docRef.path, 'users/23');
         expect(result.getList('listVal'), [23, 84]);
         var nested = result.getNestedData('nestedVal');
@@ -185,7 +185,7 @@ void main() {
         expect(result['geoVal'], new GeoPoint(23.03, 19.84));
         expect((result['blobVal'] as Blob).data, [4, 5, 6]);
         var docRef = result['refVal'];
-        expect(docRef, new isInstanceOf<DocumentReference>());
+        expect(docRef, const TypeMatcher<DocumentReference>());
         expect(docRef.path, 'users/23');
         expect(result['listVal'], [23, 84]);
         expect(result['nestedData'], {'nestedVal': 'very nested'});
@@ -212,12 +212,12 @@ void main() {
 
         var data = snapshot.data;
         expect(() => data.getList('geoVal'),
-            throwsA(new isInstanceOf<AssertionError>()));
+            throwsA(const TypeMatcher<AssertionError>()));
 
         var setData = new DocumentData();
         expect(() {
           setData.setList('foo', [new GeoPoint(1.0, 2.2)]);
-        }, throwsA(new isInstanceOf<AssertionError>()));
+        }, throwsA(const TypeMatcher<AssertionError>()));
       });
 
       test('delete field', () async {
@@ -277,7 +277,7 @@ void main() {
 
       test('parent of root collection', () {
         final parent = ref.parent;
-        expect(parent, new isInstanceOf<DocumentReference>());
+        expect(parent, const TypeMatcher<DocumentReference>());
         expect(parent.path, isEmpty);
         expect(parent.documentID, isNull);
       });
@@ -355,7 +355,7 @@ void main() {
         var doc = snapshot.documents.first;
         expect(doc.data.getString('name'), 'doc1');
         expect(doc.data.getReference('ref'),
-            new isInstanceOf<DocumentReference>());
+            const TypeMatcher<DocumentReference>());
       });
 
       test('get empty query snapshot', () async {
@@ -551,9 +551,11 @@ void main() {
         var doc4Value = 4;
         await doc1Ref.delete();
         await doc2Ref.setData(new DocumentData()..setInt('value', 2));
+        await doc3Ref.setData(new DocumentData()..setInt('value', 3));
         await doc4Ref.setData(new DocumentData()..setInt('value', doc4Value));
 
-        var list = await app.firestore().runTransaction((Transaction tx) async {
+        List<DocumentSnapshot> list =
+            await app.firestore().runTransaction((Transaction tx) async {
           var query = await tx.getQuery(
               collRef.orderBy('value').where('value', isGreaterThan: 1));
           var list = query.documents;
@@ -571,8 +573,9 @@ void main() {
         });
 
         expect(list.length, 3);
-        expect(list.first.reference.documentID, "item2");
-        expect(list.last.reference.documentID, "item3");
+        expect(list[0].documentID, "item2");
+        expect(list[1].documentID, "item3");
+        expect(list[2].documentID, "item4");
 
         expect((await doc1Ref.get()).data.toMap(), {'value': 1 + doc4Value});
         expect((await doc2Ref.get()).data.toMap(), {
@@ -596,59 +599,63 @@ void main() {
         // this one will be deleted
         var doc2Ref = collRef.document('item2');
 
-        var before = DateTime.now();
         await doc1Ref.setData(new DocumentData()..setInt('value', 1));
-        var doc1UpdateTime = (await doc1Ref.get()).updateTime;
         await doc2Ref.setData(new DocumentData()..setInt('value', 2));
-        var doc2UpdateTime = (await doc2Ref.get()).updateTime;
+        var doc1UpdateTime1 = (await doc1Ref.get()).updateTime;
+        var doc2UpdateTime1 = (await doc2Ref.get()).updateTime;
+
+        await doc1Ref.setData(new DocumentData()..setInt('value', 10));
+        await doc2Ref.setData(new DocumentData()..setInt('value', 20));
+        var doc1UpdateTime2 = (await doc1Ref.get()).updateTime;
+        var doc2UpdateTime2 = (await doc2Ref.get()).updateTime;
+
+        Future result = app.firestore().runTransaction((Transaction tx) async {
+          var doc2 = (await tx.get(doc2Ref)).data;
+          tx.update(
+              doc1Ref, new UpdateData()..setInt('value', doc2.getInt('value')),
+              lastUpdateTime: doc1UpdateTime1);
+          tx.delete(doc2Ref, lastUpdateTime: doc2UpdateTime1);
+        });
+
+        var error = await result.catchError((error) => error);
+        expect(error.toString(), contains('FAILED_PRECONDITION'));
+
+        expect((await doc1Ref.get()).data.toMap(), {'value': 10});
+        expect((await doc2Ref.get()).data.toMap(), {'value': 20});
 
         await app.firestore().runTransaction((Transaction tx) async {
           var doc2 = (await tx.get(doc2Ref)).data.getInt('value');
           tx.update(doc1Ref, new UpdateData()..setInt('value', doc2),
-              lastUpdateTime: before);
-          tx.delete(doc2Ref, lastUpdateTime: before);
-        }).catchError((e) {
-          expect(
-              e.toString().startsWith(
-                  'Error: 9 FAILED_PRECONDITION: the stored version'),
-              true);
+              lastUpdateTime: doc1UpdateTime2);
+          tx.delete(doc2Ref, lastUpdateTime: doc2UpdateTime2);
         });
-        expect((await doc1Ref.get()).data.toMap(), {'value': 1});
-        expect((await doc2Ref.get()).data.toMap(), {'value': 2});
-
-        await app.firestore().runTransaction((Transaction tx) async {
-          var doc2 = (await tx.get(doc2Ref)).data.getInt('value');
-          tx.update(doc1Ref, new UpdateData()..setInt('value', doc2),
-              lastUpdateTime: doc1UpdateTime);
-          tx.delete(doc2Ref, lastUpdateTime: doc2UpdateTime);
-        });
-        expect((await doc1Ref.get()).data.toMap(), {'value': 3});
+        expect((await doc1Ref.get()).data.toMap(), {'value': 20});
         expect((await doc2Ref.get()).exists, isFalse);
-      }, skip: '''
-        TODO https://github.com/pulyaevskiy/firebase-admin-interop/issues/19
-        FormatException: Invalid date format 2018-06-10T20:26:58.623519000Z
-        package:firebase_admin_interop/src/firestore.dart 307:39
-        DateTime get updateTime => DateTime.parse(nativeInstance.updateTime);
-      ''');
+      });
 
-      test('runTransaction, increment counter 10 times in async', () async {
+      test('runTransaction, increment counter 5 times in async', () async {
+        /// This test originally had 10 updates which was causing following
+        /// error:
+        ///
+        /// ABORTED: Too much contention on these documents. Please try again.
         var collRef = app.firestore().collection('tests/transaction/async');
         var doc1Ref = collRef.document('counter');
         await doc1Ref.setData(new DocumentData()..setInt('value', 1));
 
-        List<Future<Null>> futures = new List();
+        List<Future<int>> futures = new List();
         List<dynamic> errors = new List();
-        List<Null> complete = new List();
+        List<int> complete = new List();
 
-        var futuresCount = 10;
+        var futuresCount = 5;
         for (int i = 0; i < futuresCount; i++) {
           var transaction =
-              app.firestore().runTransaction((Transaction tx) async {
+              app.firestore().runTransaction<int>((Transaction tx) async {
             var doc1 = await tx.get(doc1Ref);
-            var val = doc1.data.getInt('value');
-            tx.set(doc1Ref, new DocumentData()..setInt('value', val + 1));
+            var val = doc1.data.getInt('value') + 1;
+            tx.set(doc1Ref, new DocumentData()..setInt('value', val));
+            return val;
           });
-          futures.add(transaction.then((Null val) {
+          futures.add(transaction.then((int val) {
             complete.add(val);
           }, onError: (e) {
             errors.add(e);
@@ -659,10 +666,10 @@ void main() {
         expect(errors.length + complete.length, futuresCount);
 
         var value = (await doc1Ref.get()).data.getInt('value');
-        var isSuccess = value == 11;
-        expect(isSuccess, errors.length == 0, reason: errors.toString());
-        expect(isSuccess, complete.length == futuresCount,
-            reason: complete.length.toString());
+        expect(errors, isEmpty, reason: errors.toString());
+        expect(complete, hasLength(futuresCount),
+            reason: '${complete} of length ${complete.length}');
+        expect(value, 6);
       });
     });
 

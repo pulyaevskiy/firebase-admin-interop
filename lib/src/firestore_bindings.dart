@@ -79,14 +79,17 @@ abstract class Firestore {
 
   /// Executes the given updateFunction and commits the changes applied within
   /// the transaction.
-  /// You can use the transaction object passed to 'updateFunction' to read and
+  ///
+  /// You can use the transaction object passed to [updateFunction] to read and
   /// modify Firestore documents under lock. Transactions are committed once
-  /// 'updateFunction' resolves and attempted up to five times on failure.
-  /// context.
-  /// aborted (by the updateFunction returning a failed Promise), the Promise
+  /// [updateFunction] resolves and attempted up to five times on failure.
+  ///
+  ///
+  /// If the transaction completed successfully or was explicitly aborted
+  /// (by the [updateFunction] returning a failed Future), the Future
   /// returned by the updateFunction will be returned here. Else if the
-  /// transaction failed, a rejected Promise with the corresponding failure
-  /// error will be returned.
+  /// transaction failed, a rejected Future with the corresponding failure error
+  /// will be returned.
   external Promise runTransaction(
       Promise updateFunction(Transaction transaction));
 
@@ -206,9 +209,9 @@ abstract class WriteBatch {
 abstract class Precondition {
   /// If set, the last update time to enforce (specified as an ISO 8601
   /// string).
-  external String get lastUpdateTime;
+  external dynamic get lastUpdateTime;
   external set lastUpdateTime(String v);
-  external factory Precondition({String lastUpdateTime});
+  external factory Precondition({dynamic lastUpdateTime});
 }
 
 /// An options object that configures the behavior of `set()` calls in

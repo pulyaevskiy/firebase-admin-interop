@@ -71,21 +71,22 @@ class Firestore {
 
   /// Executes the given [updateFunction] and commits the changes applied within
   /// the transaction.
+  ///
   /// You can use the transaction object passed to [updateFunction] to read and
   /// modify Firestore documents under lock. Transactions are committed once
   /// [updateFunction] resolves and attempted up to five times on failure.
-  /// context.
-  /// aborted (by the updateFunction returning a failed Future), the Future
-  /// returned by the updateFunction will be returned here. Else if the
-  /// transaction failed, a rejected Future with the corresponding failure
-  /// error will be returned.
+  ///
+  /// Returns the same `Future` returned by [updateFunction] if transaction
+  /// completed successfully of was explicitly aborted by returning a Future
+  /// with an error. If [updateFunction] throws then returned Future completes
+  /// with the same error.
   Future<T> runTransaction<T>(
       Future<T> updateFunction(Transaction transaction)) {
     assert(updateFunction != null);
     Function jsUpdateFunction = (js.Transaction transaction) {
       return futureToPromise(updateFunction(new Transaction(transaction)));
     };
-    return promiseToFuture(
+    return promiseToFuture<T>(
         nativeInstance.runTransaction(allowInterop(jsUpdateFunction)));
   }
 
@@ -304,7 +305,14 @@ class DocumentSnapshot {
       ? DateTime.parse(nativeInstance.createTime)
       : null;
 
-  DateTime get updateTime => DateTime.parse(nativeInstance.updateTime);
+  /// The time the document was last updated (at the time the snapshot was
+  /// generated). Not set for documents that don't exist.
+  ///
+  /// Note that this value includes nanoseconds and can not be represented
+  /// by a [DateTime] object with expected accuracy when used in [Transaction].
+  String get updateTime {
+    return nativeInstance.updateTime;
+  }
 }
 
 class _FirestoreData {
@@ -948,14 +956,15 @@ class Transaction {
     nativeInstance.set(nativeRef, docData, _getNativeSetOptions(merge));
   }
 
-  /// Updates fields in the document referred to by the provided
-  /// [documentRef]. The update will fail if applied to a document that
-  /// does not exist.
-  /// Nested fields can be updated by providing dot-separated field path
-  /// strings.
-  /// update the document.
+  /// Updates fields in the document referred to by the provided [documentRef].
+  ///
+  /// The update will fail if applied to a document that does not exist.
+  /// [lastUpdateTime] argument can be used to add a precondition for this
+  /// update. This argument, if specified, must contain value of
+  /// [DocumentSnapshot.updateTime]. The update will be accepted only if
+  /// update time on the server is equal to this value.
   void update(DocumentReference documentRef, UpdateData data,
-      {DateTime lastUpdateTime}) {
+      {String lastUpdateTime}) {
     final docData = data.nativeInstance;
     final nativeRef = documentRef.nativeInstance;
     if (lastUpdateTime != null) {
@@ -967,7 +976,12 @@ class Transaction {
   }
 
   /// Deletes the document referred to by the provided [documentRef].
-  void delete(DocumentReference documentRef, {DateTime lastUpdateTime}) {
+  ///
+  /// [lastUpdateTime] argument can be used to add a precondition for this
+  /// delete. This argument, if specified, must contain value of
+  /// [DocumentSnapshot.updateTime]. The delete will be accepted only if
+  /// update time on the server is equal to this value.
+  void delete(DocumentReference documentRef, {String lastUpdateTime}) {
     final nativeRef = documentRef.nativeInstance;
     if (lastUpdateTime != null) {
       nativeInstance.delete(nativeRef, _getNativePrecondition(lastUpdateTime));
@@ -1024,9 +1038,9 @@ class WriteBatch {
 /// [delete] calls in [DocumentReference], [WriteBatch], and [Transaction].
 /// Using Preconditions, these calls can be restricted to only apply to
 /// documents that match the specified restrictions.
-js.Precondition _getNativePrecondition(DateTime lastUpdateTime) {
+js.Precondition _getNativePrecondition(String lastUpdateTime) {
   assert(lastUpdateTime != null, 'Precontition lastUpdateTime can`t be null');
-  return js.Precondition(lastUpdateTime: lastUpdateTime.toIso8601String());
+  return new js.Precondition(lastUpdateTime: lastUpdateTime);
 }
 
 /// An options object that configures the behavior of [set] calls in
@@ -1035,5 +1049,5 @@ js.Precondition _getNativePrecondition(DateTime lastUpdateTime) {
 /// documents in their entirety by providing a [SetOptions] with [merge]: true.
 js.SetOptions _getNativeSetOptions(bool merge) {
   assert(merge != null, 'SetOption merge can`t be null');
-  return js.SetOptions(merge: merge);
+  return new js.SetOptions(merge: merge);
 }
