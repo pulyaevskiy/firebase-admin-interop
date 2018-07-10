@@ -1,3 +1,7 @@
+## 1.0.0-dev.16.0
+
+- Fixed: strong mode errors with latest Dart 2 SDK (dev.68).
+
 ## 1.0.0-dev.15.0
 
 - Added: `Firestore.runTransaction`
