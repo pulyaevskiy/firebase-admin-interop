@@ -707,7 +707,7 @@ class QuerySnapshot {
   /// Gets a list of all the documents included in this snapshot
   List<DocumentSnapshot> get documents {
     if (isEmpty) return const <DocumentSnapshot>[];
-    _documents ??= nativeInstance.docs
+    _documents ??= new List<js.QueryDocumentSnapshot>.from(nativeInstance.docs)
         .map((jsDoc) => new DocumentSnapshot(jsDoc, firestore))
         .toList(growable: false);
     return _documents;
@@ -722,7 +722,7 @@ class QuerySnapshot {
       if (nativeInstance.docChanges == null) {
         _changes = const <DocumentChange>[];
       } else {
-        _changes = nativeInstance.docChanges
+        _changes = new List<js.DocumentChange>.from(nativeInstance.docChanges)
             .map((jsChange) => new DocumentChange(jsChange, firestore))
             .toList(growable: false);
       }
