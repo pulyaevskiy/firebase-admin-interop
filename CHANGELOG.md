@@ -1,3 +1,11 @@
+## 1.0.0-dev.17.0
+
+- Added: complex types support to Firestore lists
+- Breaking: removed generic type argument from `DocumentData.setList`
+  and `DocumentData.getList` methods. Firestore does not enforce single
+  type to all elements in a list, so having generic type on those
+  methods was limiting.
+
 ## 1.0.0-dev.16.0
 
 - Fixed: strong mode errors with latest Dart 2 SDK (dev.68).
