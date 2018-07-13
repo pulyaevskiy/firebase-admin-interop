@@ -452,29 +452,71 @@ class _FirestoreData {
       value is String ||
       value is bool;
 
-  List<T> getList<T>(String key) {
-    final Iterable data = getProperty(nativeInstance, key);
+  List getList(String key) {
+    final data = getProperty(nativeInstance, key);
     if (data == null) return null;
-    assert(
-        data.every(_isPrimitive),
-        'Complex values in lists are not yet supported by the library.'
-        'Only bool, int, double and String can be used at this point.'
-        'Please file an issue at https://github.com/pulyaevskiy/firebase-admin-interop/issues'
-        'if you need this functionality');
-    // TODO: this would fail if list contains complex types like GeoPoint.
-    return dartify(data) as List<T>;
+    if (data is! List) {
+      throw new StateError('Expected list but got ${data.runtimeType}.');
+    }
+    final result = new List();
+    for (var item in data) {
+      if (!_isPrimitive(item)) {
+        if (_isGeoPoint(item)) {
+          js.GeoPoint point = item;
+          item = new GeoPoint(
+              point.latitude.toDouble(), point.longitude.toDouble());
+        } else if (_isReference(item)) {
+          js.DocumentReference ref = item;
+          js.Firestore firestore = ref.firestore;
+          item = new DocumentReference(ref, new Firestore(firestore));
+        } else if (_isBlob(item)) {
+          item = new Blob(item);
+        } else if (_isDate(item)) {
+          Date date = item;
+          item = new DateTime.fromMillisecondsSinceEpoch(date.getTime());
+        } else if (item is js.FieldValue) {
+          // no-op
+        } else {
+          throw new UnsupportedError(
+              'Value of type ${item.runtimeType} is not supported by Firestore.');
+        }
+      }
+      result.add(item);
+    }
+    return result;
   }
 
-  void setList<T>(String key, List<T> value) {
+  void setList(String key, List value) {
     assert(key != null);
-    assert(
-        value.every(_isPrimitive),
-        'Complex values in lists are not yet supported by the library.'
-        'Only bool, int, double and String can be used at this point.'
-        'Please file an issue at https://github.com/pulyaevskiy/firebase-admin-interop/issues'
-        'if you need this functionality');
-    // TODO: this would fail if list contains complex types like GeoPoint.
-    final data = (value != null) ? jsify(value) : null;
+    if (value == null) {
+      setProperty(nativeInstance, key, value);
+      return;
+    }
+
+    final data = [];
+    for (dynamic item in value) {
+      if (!_isPrimitive(item)) {
+        if (item is GeoPoint) {
+          GeoPoint point = item;
+          item = _createGeoPoint(point.latitude, point.longitude);
+        } else if (item is DocumentReference) {
+          DocumentReference ref = item;
+          item = ref.nativeInstance;
+        } else if (item is Blob) {
+          Blob blob = item;
+          item = blob.data;
+        } else if (item is DateTime) {
+          DateTime date = item;
+          item = new Date(date.millisecondsSinceEpoch);
+        } else if (item is js.FieldValue) {
+          // no-op
+        } else {
+          throw new UnsupportedError(
+              'Value of type ${item.runtimeType} is not supported by Firestore.');
+        }
+      }
+      data.add(item);
+    }
     setProperty(nativeInstance, key, data);
   }
 

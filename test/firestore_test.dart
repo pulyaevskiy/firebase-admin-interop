@@ -199,25 +199,31 @@ void main() {
 
       test('unsupported data types', () async {
         var ref = app.firestore().document('tests/unsupported');
+        await ref.setData(new DocumentData()
+          ..setGeoPoint('geoVal', new GeoPoint(23.03, 19.84)));
         var snapshot = await ref.get();
-
-        // This tests assume existing data
-        // First time, create the item
-        if (!snapshot.exists) {
-          await ref.setData(new DocumentData()
-            ..setGeoPoint('geoVal', new GeoPoint(23.03, 19.84)));
-          // re-do the query
-          snapshot = await ref.get();
-        }
-
         var data = snapshot.data;
-        expect(() => data.getList('geoVal'),
-            throwsA(const TypeMatcher<AssertionError>()));
+        expect(() => data.getList('geoVal'), throwsStateError);
+      });
 
-        var setData = new DocumentData();
-        expect(() {
-          setData.setList('foo', [new GeoPoint(1.0, 2.2)]);
-        }, throwsA(const TypeMatcher<AssertionError>()));
+      test('lists with complex types', () async {
+        var ref = app.firestore().document('tests/complex-lists');
+        var data = new DocumentData();
+        data.setList('data', [
+          new DateTime.now(),
+          new GeoPoint(1.0, 2.0),
+          new Blob([1, 2, 3]),
+          ref,
+        ]);
+        await ref.setData(data);
+
+        var snapshot = await ref.get();
+        var result = snapshot.data.getList('data');
+        expect(result, hasLength(4));
+        expect(result.elementAt(0), const TypeMatcher<DateTime>());
+        expect(result.elementAt(1), const TypeMatcher<GeoPoint>());
+        expect(result.elementAt(2), const TypeMatcher<Blob>());
+        expect(result.elementAt(3), const TypeMatcher<DocumentReference>());
       });
 
       test('delete field', () async {
