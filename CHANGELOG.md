@@ -1,3 +1,7 @@
+## 1.0.0-dev.18.0
+
+- Fixed: analysis warnings with latest Pub and Dart SDK, prepare for Dart 2 stable.
+
 ## 1.0.0-dev.17.0
 
 - Added: complex types support to Firestore lists
