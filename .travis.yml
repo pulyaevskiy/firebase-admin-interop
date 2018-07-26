@@ -9,4 +9,4 @@ before_install:
 
 script:
 - ./tool/travis.sh
-- ./tool/ddc_test.sh
+#- ./tool/ddc_test.sh
