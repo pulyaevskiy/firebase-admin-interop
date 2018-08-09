@@ -152,6 +152,23 @@ class Query {
         .then((snapshot) => new DataSnapshot(snapshot));
   }
 
+  Stream<DataSnapshot<T>> on<T>(String eventType) {
+    StreamController<DataSnapshot<T>> streamController;
+    var callback = allowInterop((snapshot) {
+      streamController.add(new DataSnapshot(snapshot));
+    });
+
+    streamController = new StreamController<DataSnapshot<T>>(
+      onListen: () {
+        nativeInstance.on(eventType, callback);
+      },
+      onCancel: () {
+        nativeInstance.off(eventType, callback);
+        streamController.close();
+      },
+    );
+  }
+
   /// Generates a new [Query] object ordered by the specified child key.
   ///
   /// Queries can only order by one key at a time. Calling [orderByChild]
