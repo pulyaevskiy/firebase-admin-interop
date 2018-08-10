@@ -10,10 +10,10 @@ import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/node.dart';
 import 'package:node_interop/util.dart';
-//import 'package:quiver_hashcode/hashcode.dart';
 
 import 'bindings.dart' as js;
 import 'hashcode.dart';
+//import 'package:quiver_hashcode/hashcode.dart';
 
 
 @Deprecated('This function will be hidden from public API in future versions.')

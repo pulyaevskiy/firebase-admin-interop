@@ -1,3 +1,8 @@
+## 1.0.0-dev.19.0
+
+- Temporarily removed dependency and copied hash functions from quiver_hashcode until it supports
+  Dart 2 stable.
+
 ## 1.0.0-dev.18.0
 
 - Fixed: analysis warnings with latest Pub and Dart SDK, prepare for Dart 2 stable.
