@@ -167,6 +167,8 @@ class Query {
         streamController.close();
       },
     );
+
+    return streamController.stream;
   }
 
   /// Generates a new [Query] object ordered by the specified child key.
