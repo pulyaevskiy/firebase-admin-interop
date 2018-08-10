@@ -15,7 +15,6 @@ import 'bindings.dart' as js;
 import 'hashcode.dart';
 //import 'package:quiver_hashcode/hashcode.dart';
 
-
 @Deprecated('This function will be hidden from public API in future versions.')
 js.GeoPoint createGeoPoint(num latitude, num longitude) =>
     _createGeoPoint(latitude, longitude);
