@@ -11,7 +11,7 @@ dependencies:
   js: ^0.6.1
   node_interop: ^1.0.0-dev.6.0
   meta: ^1.0.5
-  quiver_hashcode: ^1.0.0
+#  quiver_hashcode: ^1.0.0
 
 dev_dependencies:
   test: ^1.0.0
