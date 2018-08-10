@@ -663,6 +663,7 @@ void main() {
           });
           futures.add(transaction.then((int val) {
             complete.add(val);
+            return val;
           }, onError: (e) {
             errors.add(e);
           }));

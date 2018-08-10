@@ -182,6 +182,7 @@ void main() {
         var values = [];
         snapshot.forEach<String>((child) {
           values.add(child.val());
+          return false;
         });
         expect(values, ['You got a message', 'Stuff to do']);
       });
