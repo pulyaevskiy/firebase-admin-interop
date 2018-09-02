@@ -159,6 +159,10 @@ class DocumentReference {
   /// This document's given or generated ID in the collection.
   String get documentID => nativeInstance.id;
 
+  CollectionReference get parent {
+    return new CollectionReference(nativeInstance.parent, firestore);
+  }
+
   /// Writes to the document referred to by this [DocumentReference]. If the
   /// document does not yet exist, it will be created. If you pass [SetOptions],
   /// the provided data will be merged into an existing document.
