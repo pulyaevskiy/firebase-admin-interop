@@ -391,7 +391,10 @@ class _FirestoreData {
     Date date = getProperty(nativeInstance, key);
     if (date == null) return null;
     assert(
-        _isDate(date), 'Invalid value provided to $runtimeType.getDateTime().');
+        _isDate(date) || _isFirebaseDate(date), 'Invalid value provided to $runtimeType.getDateTime().');
+    if (_isFirebaseDate(date)) {
+      return new DateTime.fromMicrosecondsSinceEpoch(getProperty(date, "_seconds") * 1000000 + getProperty(date, "_nanoseconds") / 1000);
+    }
     return new DateTime.fromMillisecondsSinceEpoch(date.getTime());
   }
 
@@ -546,6 +549,10 @@ class _FirestoreData {
       hasProperty(value, 'toDateString') &&
       hasProperty(value, 'getTime') &&
       getProperty(value, 'getTime') is Function;
+
+  bool _isFirebaseDate(value) =>
+      hasProperty(value, '_seconds') &&
+      hasProperty(value, '_nanoseconds');
 
   bool _isGeoPoint(value) =>
       hasProperty(value, 'latitude') &&
