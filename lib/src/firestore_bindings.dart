@@ -339,13 +339,13 @@ abstract class DocumentSnapshot {
 
   /// The time the document was created. Not set for documents that don't
   /// exist.
-  external String get createTime;
-  external set createTime(String v);
+  external Date get createTime;
+  external set createTime(Date v);
 
   /// The time the document was last updated (at the time the snapshot was
   /// generated). Not set for documents that don't exist.
-  external String get updateTime;
-  external set updateTime(String v);
+  external Date get updateTime;
+  external set updateTime(Date v);
 
   /// The time this snapshot was read.
   external String get readTime;
@@ -372,13 +372,13 @@ abstract class DocumentSnapshot {
 @anonymous
 abstract class QueryDocumentSnapshot extends DocumentSnapshot {
   /// The time the document was created.
-  external String get createTime;
-  external set createTime(String v);
+  external Date get createTime;
+  external set createTime(Date v);
 
   /// The time the document was last updated (at the time the snapshot was
   /// generated).
-  external String get updateTime;
-  external set updateTime(String v);
+  external Date get updateTime;
+  external set updateTime(Date v);
 
   /// Retrieves all fields in the document as an Object.
   /// @override

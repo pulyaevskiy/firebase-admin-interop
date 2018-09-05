@@ -24,6 +24,8 @@ js.GeoPoint _createGeoPoint(num latitude, num longitude) {
   return js.admin.firestore.GeoPoint.fromProto(proto);
 }
 
+DateTime _dateTimeFromFirebaseDate(Date date) => new DateTime.fromMicrosecondsSinceEpoch(getProperty(date, "_seconds") * 1000000 + getProperty(date, "_nanoseconds") / 1000);
+
 @Deprecated('This function will be hidden from public API in future versions.')
 js.FieldPath createFieldPath(List<String> fieldNames) {
   return callConstructor(js.admin.firestore.FieldPath, jsify(fieldNames));
@@ -306,18 +308,18 @@ class DocumentSnapshot {
   /// Returns the ID of the snapshot's document
   String get documentID => nativeInstance.id;
 
-  DateTime get createTime => nativeInstance.createTime != null
-      ? DateTime.parse(nativeInstance.createTime)
-      : null;
+  /// Note that these values include nanoseconds and can not be represented
+  /// by a [DateTime] object with expected accuracy when used in [Transaction].
+  ///
+  /// They used to be strings, but not anymore. For the time being, they are
+  /// converted to [DateTime], even though it may not fully reflect nanosecond
+  /// accuracy.
+  DateTime get createTime => _dateTimeFromFirebaseDate(nativeInstance.createTime);
 
   /// The time the document was last updated (at the time the snapshot was
   /// generated). Not set for documents that don't exist.
-  ///
-  /// Note that this value includes nanoseconds and can not be represented
-  /// by a [DateTime] object with expected accuracy when used in [Transaction].
-  String get updateTime {
-    return nativeInstance.updateTime;
-  }
+  DateTime get updateTime => _dateTimeFromFirebaseDate(nativeInstance.updateTime);
+
 }
 
 class _FirestoreData {
@@ -393,7 +395,7 @@ class _FirestoreData {
     assert(
         _isDate(date) || _isFirebaseDate(date), 'Invalid value provided to $runtimeType.getDateTime().');
     if (_isFirebaseDate(date)) {
-      return new DateTime.fromMicrosecondsSinceEpoch(getProperty(date, "_seconds") * 1000000 + getProperty(date, "_nanoseconds") / 1000);
+      return _dateTimeFromFirebaseDate(date);
     }
     return new DateTime.fromMillisecondsSinceEpoch(date.getTime());
   }
