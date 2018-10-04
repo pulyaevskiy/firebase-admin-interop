@@ -11,6 +11,7 @@ import 'setup.dart';
 
 void main() {
   App app = initFirebaseApp();
+  app.firestore().settings(FirestoreSettings(timestampsInSnapshots: true));
 
   group('$Firestore', () {
     tearDownAll(() {
@@ -38,6 +39,9 @@ void main() {
 
       test('get value once', () async {
         var snapshot = await ref.get();
+        expect(snapshot.createTime, const TypeMatcher<Timestamp>());
+        expect(snapshot.updateTime, const TypeMatcher<Timestamp>());
+
         var data = snapshot.data;
         expect(data, const TypeMatcher<DocumentData>());
         expect(data, hasLength(3));
@@ -68,15 +72,16 @@ void main() {
       test('get set', () {
         var data = new DocumentData();
         DateTime now = new DateTime.now();
+        final tsNow = Timestamp.fromDateTime(now);
         data.setInt('intVal', 1);
         data.setDouble('doubleVal', 1.5);
         data.setBool('boolVal', true);
         data.setString('stringVal', 'text');
-        data.setDateTime('dateVal', now);
         data.setGeoPoint('geoVal', new GeoPoint(23.03, 19.84));
         data.setBlob('blob', new Blob([1, 2, 3]));
         data.setReference('refVal', app.firestore().document('users/23'));
         data.setList('listVal', [23, 84]);
+        data.setTimestamp('tsVal', tsNow);
         var nestedData = new DocumentData();
         nestedData.setString('nestedVal', 'very nested');
         data.setNestedData('nestedData', nestedData);
@@ -90,12 +95,12 @@ void main() {
           expect(data.getDouble('doubleVal'), 1.5);
           expect(data.getBool('boolVal'), true);
           expect(data.getString('stringVal'), 'text');
-          expect(data.getDateTime('dateVal'), now);
           expect(data.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
           expect(data.getBlob('blob').data, [1, 2, 3]);
           var documentReference = data.getReference('refVal');
           expect(documentReference.path, 'users/23');
           expect(data.getList('listVal'), [23, 84]);
+          expect(data.getTimestamp('tsVal'), tsNow);
           DocumentData nestedData = data.getNestedData('nestedData');
           expect(nestedData.keys.length, 1);
           expect(nestedData.getString('nestedVal'), 'very nested');
@@ -120,11 +125,11 @@ void main() {
           'stringVal': 'text',
           'intVal': 23,
           'doubleVal': 19.84,
-          'dateVal': date,
-          'geoVal': new GeoPoint(23.03, 19.84),
-          'blobVal': new Blob([1, 2, 3]),
+          'geoVal': GeoPoint(23.03, 19.84),
+          'blobVal': Blob([1, 2, 3]),
           'refVal': app.firestore().document('users/23'),
           'listVal': [23, 84],
+          'tsVal': Timestamp.fromDateTime(date),
           'nestedVal': {'nestedKey': 'much nested'},
           'serverTimestamp': Firestore.fieldValues.serverTimestamp()
         });
@@ -136,31 +141,33 @@ void main() {
         expect(result.getString('stringVal'), 'text');
         expect(result.getInt('intVal'), 23);
         expect(result.getDouble('doubleVal'), 19.84);
-        expect(result.getDateTime('dateVal'), date);
         expect(result.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
         expect(result.getBlob('blobVal').data, [1, 2, 3]);
         var docRef = result.getReference('refVal');
         expect(docRef, const TypeMatcher<DocumentReference>());
         expect(docRef.path, 'users/23');
         expect(result.getList('listVal'), [23, 84]);
+        expect(result.getTimestamp('tsVal'), Timestamp.fromDateTime(date));
         var nested = result.getNestedData('nestedVal');
         expect(nested.getString('nestedKey'), 'much nested');
-        expect(result.getDateTime('serverTimestamp'), isNotNull);
+        expect(
+            result.getTimestamp('serverTimestamp'), TypeMatcher<Timestamp>());
       });
 
       test('$DocumentData.toMap', () async {
         var date = new DateTime.now();
+        var ts = Timestamp.fromDateTime(date);
         var ref = app.firestore().document('tests/data-types-toMap');
         var data = new DocumentData.fromMap({
           'boolVal': true,
           'stringVal': 'text',
           'intVal': 23,
           'doubleVal': 19.84,
-          'dateVal': date,
           'geoVal': new GeoPoint(23.03, 19.84),
           'refVal': app.firestore().document('users/23'),
           'blobVal': new Blob([4, 5, 6]),
-          'listVal': [23, 84]
+          'listVal': [23, 84],
+          'tsVal': ts,
         });
         var nested = new DocumentData.fromMap({'nestedVal': 'very nested'});
         data.setNestedData('nestedData', nested);
@@ -181,13 +188,13 @@ void main() {
         expect(result['stringVal'], 'text');
         expect(result['intVal'], 23);
         expect(result['doubleVal'], 19.84);
-        expect(result['dateVal'], date);
         expect(result['geoVal'], new GeoPoint(23.03, 19.84));
         expect((result['blobVal'] as Blob).data, [4, 5, 6]);
         var docRef = result['refVal'];
         expect(docRef, const TypeMatcher<DocumentReference>());
         expect(docRef.path, 'users/23');
         expect(result['listVal'], [23, 84]);
+        expect(result['tsVal'], ts);
         expect(result['nestedData'], {'nestedVal': 'very nested'});
         expect(result['fakeGeoPoint'],
             {'latitude': 23.03, 'longitude': 84.19, 'toString': 'GeoPoint'});
@@ -210,9 +217,9 @@ void main() {
         var ref = app.firestore().document('tests/complex-lists');
         var data = new DocumentData();
         data.setList('data', [
-          new DateTime.now(),
-          new GeoPoint(1.0, 2.0),
-          new Blob([1, 2, 3]),
+          Timestamp.fromDateTime(DateTime.now()),
+          GeoPoint(1.0, 2.0),
+          Blob([1, 2, 3]),
           ref,
         ]);
         await ref.setData(data);
@@ -220,7 +227,7 @@ void main() {
         var snapshot = await ref.get();
         var result = snapshot.data.getList('data');
         expect(result, hasLength(4));
-        expect(result.elementAt(0), const TypeMatcher<DateTime>());
+        expect(result.elementAt(0), const TypeMatcher<Timestamp>());
         expect(result.elementAt(1), const TypeMatcher<GeoPoint>());
         expect(result.elementAt(2), const TypeMatcher<Blob>());
         expect(result.elementAt(3), const TypeMatcher<DocumentReference>());

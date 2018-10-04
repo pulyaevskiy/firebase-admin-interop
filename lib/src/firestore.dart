@@ -17,11 +17,16 @@ import 'hashcode.dart';
 
 @Deprecated('This function will be hidden from public API in future versions.')
 js.GeoPoint createGeoPoint(num latitude, num longitude) =>
-    _createGeoPoint(latitude, longitude);
+    _createJsGeoPoint(latitude, longitude);
 
-js.GeoPoint _createGeoPoint(num latitude, num longitude) {
+js.GeoPoint _createJsGeoPoint(num latitude, num longitude) {
   final proto = new js.GeoPointProto(latitude: latitude, longitude: longitude);
   return js.admin.firestore.GeoPoint.fromProto(proto);
+}
+
+js.Timestamp _createJsTimestamp(Timestamp ts) {
+  return callConstructor(
+      js.admin.firestore.Timestamp, jsify([ts.seconds, ts.nanoseconds]));
 }
 
 @Deprecated('This function will be hidden from public API in future versions.')
@@ -57,6 +62,14 @@ class Firestore {
 
   /// Creates new Firestore Database client which wraps [nativeInstance].
   Firestore(this.nativeInstance);
+
+  /// Specifies custom settings to be used to configure the `Firestore`
+  /// instance.
+  ///
+  /// Can only be invoked once and before any other [Firestore] method.
+  void settings(js.FirestoreSettings settings) {
+    nativeInstance.settings(settings);
+  }
 
   /// Gets a [CollectionReference] for the specified Firestore path.
   CollectionReference collection(String path) {
@@ -306,17 +319,23 @@ class DocumentSnapshot {
   /// Returns the ID of the snapshot's document
   String get documentID => nativeInstance.id;
 
-  DateTime get createTime => nativeInstance.createTime != null
-      ? DateTime.parse(nativeInstance.createTime)
-      : null;
+  /// The time the document was created. Not set for documents that don't
+  /// exist.
+  Timestamp get createTime {
+    final ts = nativeInstance.createTime;
+    if (ts == null) return null;
+    return new Timestamp(ts.seconds, ts.nanoseconds);
+  }
 
   /// The time the document was last updated (at the time the snapshot was
   /// generated). Not set for documents that don't exist.
   ///
   /// Note that this value includes nanoseconds and can not be represented
   /// by a [DateTime] object with expected accuracy when used in [Transaction].
-  String get updateTime {
-    return nativeInstance.updateTime;
+  Timestamp get updateTime {
+    final ts = nativeInstance.updateTime;
+    if (ts == null) return null;
+    return new Timestamp(ts.seconds, ts.nanoseconds);
   }
 }
 
@@ -334,7 +353,9 @@ class _FirestoreData {
   bool get isNotEmpty => !isEmpty;
 
   void _setField(String key, dynamic value) {
-    if (value is String) {
+    if (value == null) {
+      setProperty(nativeInstance, key, null);
+    } else if (value is String) {
       setString(key, value);
     } else if (value is int) {
       setInt(key, value);
@@ -343,7 +364,7 @@ class _FirestoreData {
     } else if (value is bool) {
       setBool(key, value);
     } else if (value is DateTime) {
-      setDateTime(key, value);
+      setDateTime(key, value); // ignore: deprecated_member_use
     } else if (value is GeoPoint) {
       setGeoPoint(key, value);
     } else if (value is Blob) {
@@ -352,6 +373,8 @@ class _FirestoreData {
       setReference(key, value);
     } else if (value is List) {
       setList(key, value);
+    } else if (value is Timestamp) {
+      setTimestamp(key, value);
     } else if (_isFieldValue(value)) {
       setFieldValue(key, value);
     } else {
@@ -384,25 +407,36 @@ class _FirestoreData {
     setProperty(nativeInstance, key, value);
   }
 
-  /// Returns true if the data contains an entry with the given [key].
+  /// Returns true if this data contains an entry with the given [key].
   bool has(String key) => hasProperty(nativeInstance, key);
 
+  @Deprecated('Migrate to using Firestore Timestamps and "getTimestamp()".')
   DateTime getDateTime(String key) {
-    Date date = getProperty(nativeInstance, key);
-    if (date == null) return null;
-    assert(
-        _isDate(date) || _isFirebaseDate(date), 'Invalid value provided to $runtimeType.getDateTime().');
-    if (_isFirebaseDate(date)) {
-      return new DateTime.fromMicrosecondsSinceEpoch(getProperty(date, "_seconds") * 1000000 + getProperty(date, "_nanoseconds") / 1000);
-    }
-    return new DateTime.fromMillisecondsSinceEpoch(date.getTime());
+    final Date value = getProperty(nativeInstance, key);
+    if (value == null) return null;
+    assert(_isDate(value), 'Tried to get Date and got $value');
+    return new DateTime.fromMillisecondsSinceEpoch(value.getTime());
   }
 
+  Timestamp getTimestamp(String key) {
+    js.Timestamp ts = getProperty(nativeInstance, key);
+    if (ts == null) return null;
+    assert(_isTimestamp(ts), 'Tried to get Timestamp and got $ts.');
+    return new Timestamp(ts.seconds, ts.nanoseconds);
+  }
+
+  @Deprecated('Migrate to using Firestore Timestamps and "setTimestamp()".')
   void setDateTime(String key, DateTime value) {
     assert(key != null);
     final data =
         (value != null) ? new Date(value.millisecondsSinceEpoch) : null;
     setProperty(nativeInstance, key, data);
+  }
+
+  void setTimestamp(String key, Timestamp value) {
+    assert(key != null);
+    final ts = (value != null) ? _createJsTimestamp(value) : null;
+    setProperty(nativeInstance, key, ts);
   }
 
   GeoPoint getGeoPoint(String key) {
@@ -423,7 +457,7 @@ class _FirestoreData {
   void setGeoPoint(String key, GeoPoint value) {
     assert(key != null);
     final data = (value != null)
-        ? _createGeoPoint(value.latitude, value.longitude)
+        ? _createJsGeoPoint(value.latitude, value.longitude)
         : null;
     setProperty(nativeInstance, key, data);
   }
@@ -482,6 +516,9 @@ class _FirestoreData {
         } else if (_isDate(item)) {
           Date date = item;
           item = new DateTime.fromMillisecondsSinceEpoch(date.getTime());
+        } else if (_isTimestamp(item)) {
+          js.Timestamp ts = item;
+          item = new Timestamp(ts.seconds, ts.nanoseconds);
         } else if (item is js.FieldValue) {
           // no-op
         } else {
@@ -506,7 +543,7 @@ class _FirestoreData {
       if (!_isPrimitive(item)) {
         if (item is GeoPoint) {
           GeoPoint point = item;
-          item = _createGeoPoint(point.latitude, point.longitude);
+          item = _createJsGeoPoint(point.latitude, point.longitude);
         } else if (item is DocumentReference) {
           DocumentReference ref = item;
           item = ref.nativeInstance;
@@ -516,6 +553,8 @@ class _FirestoreData {
         } else if (item is DateTime) {
           DateTime date = item;
           item = new Date(date.millisecondsSinceEpoch);
+        } else if (item is Timestamp) {
+          item = _createJsTimestamp(item);
         } else if (item is js.FieldValue) {
           // no-op
         } else {
@@ -544,15 +583,14 @@ class _FirestoreData {
     setProperty(nativeInstance, key, data);
   }
 
+  bool _isTimestamp(value) =>
+      hasProperty(value, '_seconds') && hasProperty(value, '_nanoseconds');
+
   // Workarounds for dart2js as `value is Type` doesn't work as expected.
   bool _isDate(value) =>
       hasProperty(value, 'toDateString') &&
       hasProperty(value, 'getTime') &&
       getProperty(value, 'getTime') is Function;
-
-  bool _isFirebaseDate(value) =>
-      hasProperty(value, '_seconds') &&
-      hasProperty(value, '_nanoseconds');
 
   bool _isGeoPoint(value) =>
       hasProperty(value, 'latitude') &&
@@ -580,6 +618,7 @@ class _FirestoreData {
       hasProperty(value, 'onSnapshot') &&
       getProperty(value, 'onSnapshot') is Function;
 
+  // TODO: figure out how to handle array* field values.
   bool _isFieldValue(value) =>
       value == Firestore.fieldValues.delete() ||
       value == Firestore.fieldValues.serverTimestamp();
@@ -665,7 +704,9 @@ class DocumentData extends _FirestoreData {
     final value = getProperty(nativeInstance, key);
     if (_isPrimitive(value)) return value;
     if (_isDate(value)) {
-      return getDateTime(key);
+      return getDateTime(key); // ignore: deprecated_member_use
+    } else if (_isTimestamp(value)) {
+      return getTimestamp(key);
     } else if (_isReference(value)) {
       return getReference(key);
     } else if (_isGeoPoint(value)) {
@@ -711,6 +752,42 @@ class UpdateData extends _FirestoreData {
   }
 }
 
+/// Represents Firestore timestamp object.
+class Timestamp {
+  final int seconds;
+  final int nanoseconds;
+  Timestamp(this.seconds, this.nanoseconds);
+
+  factory Timestamp.fromDateTime(DateTime dateTime) {
+    final int seconds = dateTime.millisecondsSinceEpoch ~/ 1000;
+    final int nanoseconds = (dateTime.microsecondsSinceEpoch % 1000000) * 1000;
+    return Timestamp(seconds, nanoseconds);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    if (identical(this, other)) return true;
+    if (other is! Timestamp) return false;
+    Timestamp typedOther = other;
+    return seconds == typedOther.seconds &&
+        nanoseconds == typedOther.nanoseconds;
+  }
+
+  @override
+  int get hashCode => hash2(seconds, nanoseconds);
+
+  int get millisecondsSinceEpoch => (microsecondsSinceEpoch / 1000).floor();
+
+  int get microsecondsSinceEpoch {
+    return (seconds * 1000000 + nanoseconds / 1000).floor();
+  }
+
+  DateTime toDateTime() {
+    return new DateTime.fromMicrosecondsSinceEpoch(microsecondsSinceEpoch);
+  }
+}
+
+/// Represents Firestore geo point object.
 class GeoPoint {
   final double latitude;
   final double longitude;
@@ -840,6 +917,7 @@ class DocumentQuery {
     dynamic isLessThanOrEqualTo,
     dynamic isGreaterThan,
     dynamic isGreaterThanOrEqualTo,
+    dynamic arrayContains,
     bool isNull,
   }) {
     js.DocumentQuery query = nativeInstance;
@@ -856,6 +934,9 @@ class DocumentQuery {
     if (isGreaterThan != null) addCondition(field, '>', isGreaterThan);
     if (isGreaterThanOrEqualTo != null)
       addCondition(field, '>=', isGreaterThanOrEqualTo);
+    if (arrayContains != null)
+      addCondition(field, 'array-contains', arrayContains);
+
     if (isNull != null) {
       assert(
           isNull,
@@ -1018,7 +1099,7 @@ class Transaction {
   /// [DocumentSnapshot.updateTime]. The update will be accepted only if
   /// update time on the server is equal to this value.
   void update(DocumentReference documentRef, UpdateData data,
-      {String lastUpdateTime}) {
+      {Timestamp lastUpdateTime}) {
     final docData = data.nativeInstance;
     final nativeRef = documentRef.nativeInstance;
     if (lastUpdateTime != null) {
@@ -1035,7 +1116,7 @@ class Transaction {
   /// delete. This argument, if specified, must contain value of
   /// [DocumentSnapshot.updateTime]. The delete will be accepted only if
   /// update time on the server is equal to this value.
-  void delete(DocumentReference documentRef, {String lastUpdateTime}) {
+  void delete(DocumentReference documentRef, {Timestamp lastUpdateTime}) {
     final nativeRef = documentRef.nativeInstance;
     if (lastUpdateTime != null) {
       nativeInstance.delete(nativeRef, _getNativePrecondition(lastUpdateTime));
@@ -1092,9 +1173,10 @@ class WriteBatch {
 /// [delete] calls in [DocumentReference], [WriteBatch], and [Transaction].
 /// Using Preconditions, these calls can be restricted to only apply to
 /// documents that match the specified restrictions.
-js.Precondition _getNativePrecondition(String lastUpdateTime) {
+js.Precondition _getNativePrecondition(Timestamp lastUpdateTime) {
   assert(lastUpdateTime != null, 'Precontition lastUpdateTime can`t be null');
-  return new js.Precondition(lastUpdateTime: lastUpdateTime);
+  final ts = _createJsTimestamp(lastUpdateTime);
+  return new js.Precondition(lastUpdateTime: ts);
 }
 
 /// An options object that configures the behavior of [set] calls in
