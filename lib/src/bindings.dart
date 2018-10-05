@@ -524,6 +524,7 @@ abstract class FirebaseSignInInfo {
 abstract class FirestoreService {
   external GeoPointUtil get GeoPoint;
   external FieldValues get FieldValue;
+  external dynamic get Timestamp;
   external dynamic get FieldPath;
 }
 

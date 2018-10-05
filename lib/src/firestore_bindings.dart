@@ -22,6 +22,26 @@ abstract class FirestoreModule {
   /// - [documentId] which is a convenience function to create sentinel
   ///   [FieldPath] to refer to the ID of a document.
   external dynamic get FieldPath;
+
+  external TimestampProto get Timestamp;
+}
+
+@JS()
+@anonymous
+abstract class TimestampProto {
+  external Timestamp now();
+  external Timestamp fromDate(Date date);
+  external Timestamp fromMillis(int milliseconds);
+}
+
+@JS()
+@anonymous
+abstract class Timestamp {
+  external int get seconds;
+  external int get nanoseconds;
+
+  external Date toDate();
+  external int toMillis();
 }
 
 @JS()
@@ -96,6 +116,50 @@ abstract class Firestore {
   /// Creates a write batch, used for performing multiple writes as a single
   /// atomic operation.
   external WriteBatch batch();
+
+  /// Specifies custom settings to be used to configure the `Firestore`
+  /// instance.
+  ///
+  /// Can only be invoked once and before any other [Firestore] method.
+  external void settings(FirestoreSettings value);
+}
+
+@JS()
+@anonymous
+abstract class FirestoreSettings {
+  /// The Firestore Project ID.
+  ///
+  /// Can be omitted in environments that support `Application Default Credentials`.
+  external String get projectId;
+
+  /// Local file containing the Service Account credentials.
+  ///
+  /// Can be omitted in environments that support `Application Default Credentials`.
+  external String get keyFilename;
+
+  /// Enables the use of `Timestamp`s for timestamp fields in
+  /// `DocumentSnapshot`s.
+  ///
+  /// Currently, Firestore returns timestamp fields as `Date` but `Date` only
+  /// supports millisecond precision, which leads to truncation and causes
+  /// unexpected behavior when using a timestamp from a snapshot as a part
+  /// of a subsequent query.
+  ///
+  /// Setting `timestampsInSnapshots` to true will cause Firestore to return
+  /// `Timestamp` values instead of `Date` avoiding this kind of problem. To
+  /// make this work you must also change any code that uses `Date` to use
+  /// `Timestamp` instead.
+  ///
+  /// NOTE: in the future `timestampsInSnapshots: true` will become the
+  /// default and this option will be removed so you should change your code to
+  /// use `Timestamp` now and opt-in to this new behavior as soon as you can.
+  external bool get timestampsInSnapshots;
+
+  external factory FirestoreSettings({
+    String projectId,
+    String keyFilename,
+    bool timestampsInSnapshots,
+  });
 }
 
 /// An immutable object representing a geo point in Firestore. The geo point
@@ -209,9 +273,9 @@ abstract class WriteBatch {
 abstract class Precondition {
   /// If set, the last update time to enforce (specified as an ISO 8601
   /// string).
-  external dynamic get lastUpdateTime;
-  external set lastUpdateTime(String v);
-  external factory Precondition({dynamic lastUpdateTime});
+  external Timestamp get lastUpdateTime;
+  external set lastUpdateTime(Timestamp v);
+  external factory Precondition({Timestamp lastUpdateTime});
 }
 
 /// An options object that configures the behavior of `set()` calls in
@@ -236,8 +300,8 @@ abstract class SetOptions {
 abstract class WriteResult {
   /// The write time as set by the Firestore servers. Formatted as an ISO-8601
   /// string.
-  external String get writeTime;
-  external set writeTime(String v);
+  external Timestamp get writeTime;
+  external set writeTime(Timestamp v);
 }
 
 /// A `DocumentReference` refers to a document location in a Firestore database
@@ -339,17 +403,17 @@ abstract class DocumentSnapshot {
 
   /// The time the document was created. Not set for documents that don't
   /// exist.
-  external String get createTime;
-  external set createTime(String v);
+  external Timestamp get createTime;
+  external set createTime(Timestamp v);
 
   /// The time the document was last updated (at the time the snapshot was
   /// generated). Not set for documents that don't exist.
-  external String get updateTime;
-  external set updateTime(String v);
+  external Timestamp get updateTime;
+  external set updateTime(Timestamp v);
 
   /// The time this snapshot was read.
-  external String get readTime;
-  external set readTime(String v);
+  external Timestamp get readTime;
+  external set readTime(Timestamp v);
 
   /// Retrieves all fields in the document as an Object. Returns 'undefined' if
   /// the document doesn't exist.
@@ -372,13 +436,13 @@ abstract class DocumentSnapshot {
 @anonymous
 abstract class QueryDocumentSnapshot extends DocumentSnapshot {
   /// The time the document was created.
-  external String get createTime;
-  external set createTime(String v);
+  external Timestamp get createTime;
+  external set createTime(Timestamp v);
 
   /// The time the document was last updated (at the time the snapshot was
   /// generated).
-  external String get updateTime;
-  external set updateTime(String v);
+  external Timestamp get updateTime;
+  external set updateTime(Timestamp v);
 
   /// Retrieves all fields in the document as an Object.
   /// @override
@@ -559,8 +623,8 @@ abstract class QuerySnapshot {
   external set empty(bool v);
 
   /// The time this query snapshot was obtained.
-  external String get readTime;
-  external set readTime(String v);
+  external Timestamp get readTime;
+  external set readTime(Timestamp v);
 
   /// Enumerates all of the documents in the QuerySnapshot.
   /// each document in the snapshot.
@@ -644,6 +708,27 @@ abstract class FieldValues {
 
   /// Returns a sentinel for use with update() to mark a field for deletion.
   external FieldValue delete();
+
+  /// Returns a special value that tells the server to union the given elements
+  /// with any array value that already exists on the server.
+  ///
+  /// Can be used with set(), create() or update() operations.
+  ///
+  /// Each specified element that doesn't already exist in the array will be
+  /// added to the end. If the field being modified is not already an array it
+  /// will be overwritten with an array containing exactly the specified
+  /// elements.
+  external FieldValue arrayUnion(List elements);
+
+  /// Returns a special value that tells the server to remove the given elements
+  /// from any array value that already exists on the server.
+  ///
+  /// Can be used with set(), create() or update() operations.
+  ///
+  /// All instances of each element specified will be removed from the array.
+  /// If the field being modified is not already an array it will be overwritten
+  /// with an empty array.
+  external FieldValue arrayRemove(List elements);
 }
 
 @JS()

@@ -1,3 +1,20 @@
+## 1.0.0-dev.20.0
+
+This version introduces several fixes and breaking changes related to Firestore Timestamps.
+It also should be compatible with latest build_runner (1.0.0) and build_node_compilers (0.2.0).
+
+Users are encouraged to start migrating to use Firestore Timestamps instead of DateTime objects
+as soon as possible. Read "Firestore Timestamps migration" in README.md for more details.
+
+- Added: Firestore DocumentReference.parent (#30).
+- Added: Firestore `Timestamp` type.
+- Added: `FirestoreSettings` type and `Firestore.settings()` method which allows to control
+    `timestampsInSnapshots` option for migration to new timestamps.
+- Breaking: DocumentSnapshot.createTime and DocumentSnapshot.updateTime now return an instance of new
+    `Timestamp` type.
+- Deprecated: `DocumentData.setDateTime` and `DocumentData.getDateTime` are deprecated in favor of
+    `setTimestamp` and `getTimestamp` accordingly.
+
 ## 1.0.0-dev.19.0
 
 - Temporarily removed dependency and copied hash functions from quiver_hashcode until it supports

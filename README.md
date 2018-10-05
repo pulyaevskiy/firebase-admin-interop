@@ -2,6 +2,22 @@
 
 Write server-side Firebase applications in Dart using Node.js as a runtime.
 
+> ### Firestore Timestamps migration:
+> Firestore deprecated usage of DateTime objects in favor of custom Timestamp type and recommends
+> migrating as soon as possible.
+> By default all timestamps are still returned as DateTime objects and you can access them with
+> `DocumentData.getDateTime` or `DocumentData.setDateTime`.
+> To start using Timestamps you must configure Firestore as follows:
+>
+> ```dart
+> final app = FirebaseAdmin.instance.initializeApp();
+> final firestore = app.firestore();
+> // Call Firestore.settings at the very beginning before any other calls:
+> firestore.settings(FirestoreSettings(timestampsInSnapshots: true));
+> // You can read and write data now, but make sure to use new `setTimestamp` and `getTimestamp`
+> // methods of `DocumentData`.
+> ```
+
 ## Installation
 
 1. Add this package as a dependency to your `pubspec.yaml`:
@@ -18,8 +34,8 @@ Run `pub get`.
 ```json
 {
   "dependencies": {
-    "firebase-admin": "5.11.0",
-    "@google-cloud/firestore": "0.13.1"
+    "firebase-admin": "~6.0.0",
+    "@google-cloud/firestore": "0.16.0"
   }
 }
 ```
@@ -74,8 +90,8 @@ dev dependencies to your `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  build_runner: ^0.7.9
-  build_node_compilers: ^0.1.0
+  build_runner: ^1.0.0
+  build_node_compilers: ^0.2.0
 ```
 
 Next, create `build.yaml` file with following contents:
@@ -85,8 +101,12 @@ targets:
   $default:
     sources:
       - "lib/**"
-      - "node/**" # Assuming your main Dart file is in node/ folder (recommended).
-      - "test/**" # Needed if you want compile and run tests with DDC
+      - "node/**" # Assuming your main Dart files is in node/ folder (recommended).
+      - "test/**"
+    builders:
+      build_node_compilers|entrypoint:
+        options:
+          compiler: dart2js # To compile with dart2js by default
 ```
 
 You can now build your project using `build_runner`:
@@ -98,7 +118,7 @@ pub run build_runner build --output=build
 # To compile with dart2js:
 pub run build_runner build \
   --define="build_node_compilers|entrypoint=compiler=dart2js" \
-  --define="build_node_compilers|entrypoint=dart2js_args=[\"--checked\"]" \ # optional, enables checked mode
+  --define="build_node_compilers|entrypoint=dart2js_args=[\"--minify\"]" \ # optional, minifies resulting code
   --output=build/
 ```
 
