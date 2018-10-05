@@ -9,12 +9,12 @@ environment:
 
 dependencies:
   js: ^0.6.1
-  node_interop: ^1.0.0-dev.6.0
+  node_interop: ^1.0.0-dev.11.0
   meta: ^1.0.5
 #  quiver_hashcode: ^1.0.0
 
 dev_dependencies:
   test: ^1.0.0
-  build_runner: ^0.9.1
-  build_node_compilers: ^0.1.8
+  build_runner: ^1.0.0
+  build_node_compilers: ^0.2.0
   build_test:
