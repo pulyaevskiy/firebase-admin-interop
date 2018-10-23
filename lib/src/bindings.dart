@@ -52,7 +52,15 @@ abstract class FirebaseAdmin {
 
 @JS()
 @anonymous
-abstract class FirebaseError extends JsError {}
+abstract class FirebaseError implements JsError {
+  /// Error codes are strings using the following format:
+  /// "service/string-code". Some examples include "auth/invalid-uid" and
+  /// "messaging/invalid-recipient".
+  ///
+  /// While the message for a given error can change, the code will remain the
+  /// same between backward-compatible versions of the Firebase SDK.
+  external String get code;
+}
 
 @JS()
 @anonymous

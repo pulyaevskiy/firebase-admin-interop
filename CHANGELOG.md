@@ -1,3 +1,7 @@
+## 1.0.0-dev.21.0
+
+- Upgraded to latest node_interop and fixed declaration of `FirebaseError` class.
+
 ## 1.0.0-dev.20.0
 
 This version introduces several fixes and breaking changes related to Firestore Timestamps.
