@@ -4,7 +4,7 @@ dart:
 - dev
 
 before_install:
-- nvm install node
+- nvm install 8.12.0
 - node --version
 
 script:
