@@ -923,7 +923,11 @@ class DocumentQuery {
     js.DocumentQuery query = nativeInstance;
 
     void addCondition(String field, String opStr, dynamic value) {
-      value = (value is DocumentReference) ? value.nativeInstance : value;
+      if (value is DocumentReference) {
+        value = value.nativeInstance;
+      } else if (value is Timestamp) {
+        value = _createJsTimestamp(value);
+      }
       query = query.where(field, opStr, value);
     }
 

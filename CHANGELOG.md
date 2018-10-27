@@ -1,3 +1,7 @@
+## 1.0.0-dev.22.0
+
+- Fixed Firestore queries with `Timestamp`s. (#35)
+
 ## 1.0.0-dev.21.0
 
 - Upgraded to latest node_interop and fixed declaration of `FirebaseError` class.
