@@ -371,6 +371,29 @@ void main() {
             const TypeMatcher<DocumentReference>());
       });
 
+      test('query filter with timestamp', () async {
+        var collection = app.firestore().collection('tests/query/where-ts');
+        var doc1 = collection.document();
+        var doc2 = collection.document();
+        final now = DateTime.now();
+        await doc1.setData(
+          DocumentData.fromMap({'createdAt': Timestamp.fromDateTime(now)}),
+        );
+        await doc2.setData(
+          DocumentData.fromMap({
+            'createdAt': Timestamp.fromDateTime(now.add(Duration(seconds: 10)))
+          }),
+        );
+
+        var query = collection.where('createdAt',
+            isEqualTo: Timestamp.fromDateTime(now));
+        var snapshot = await query.get();
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
+        var doc = snapshot.documents.single;
+        expect(doc.documentID, doc1.documentID);
+      });
+
       test('get empty query snapshot', () async {
         var ref = app.firestore().collection('tests/query/none');
         var snapshot = await ref.get();
