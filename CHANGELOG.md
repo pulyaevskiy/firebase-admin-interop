@@ -1,3 +1,7 @@
+## 1.0.0-dev.23.0
+
+- Fixed Firestore queries with `GeoPoint` and `Blob` arguments.
+
 ## 1.0.0-dev.22.0
 
 - Fixed Firestore queries with `Timestamp`s. (#35)

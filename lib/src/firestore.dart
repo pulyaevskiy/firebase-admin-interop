@@ -804,6 +804,11 @@ class GeoPoint {
 
   @override
   int get hashCode => hash2(latitude, longitude);
+
+  @override
+  String toString() {
+    return 'GeoPoint($latitude, $longitude)';
+  }
 }
 
 /// An immutable object representing an array of bytes.
@@ -927,6 +932,12 @@ class DocumentQuery {
         value = value.nativeInstance;
       } else if (value is Timestamp) {
         value = _createJsTimestamp(value);
+      } else if (value is GeoPoint) {
+        GeoPoint p = value;
+        value = _createJsGeoPoint(p.latitude, p.longitude);
+      } else if (value is Blob) {
+        Blob blob = value;
+        value = blob.data;
       }
       query = query.where(field, opStr, value);
     }

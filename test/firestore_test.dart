@@ -373,8 +373,8 @@ void main() {
 
       test('query filter with timestamp', () async {
         var collection = app.firestore().collection('tests/query/where-ts');
-        var doc1 = collection.document();
-        var doc2 = collection.document();
+        var doc1 = collection.document('doc1');
+        var doc2 = collection.document('doc2');
         final now = DateTime.now();
         await doc1.setData(
           DocumentData.fromMap({'createdAt': Timestamp.fromDateTime(now)}),
@@ -387,6 +387,49 @@ void main() {
 
         var query = collection.where('createdAt',
             isEqualTo: Timestamp.fromDateTime(now));
+        var snapshot = await query.get();
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
+        var doc = snapshot.documents.single;
+        expect(doc.documentID, doc1.documentID);
+      });
+
+      test('query filter with geo point', () async {
+        var collection = app.firestore().collection('tests/query/where-geo');
+        var doc1 = collection.document('doc1');
+        var doc2 = collection.document('doc2');
+        await doc1.setData(
+          DocumentData.fromMap({'location': GeoPoint(12.34, 56.78)}),
+        );
+        await doc2.setData(
+          DocumentData.fromMap({'location': GeoPoint(34.12, 78.56)}),
+        );
+
+        var query =
+            collection.where('location', isEqualTo: GeoPoint(12.34, 56.78));
+        var snapshot = await query.get();
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
+        var doc = snapshot.documents.single;
+        expect(doc.documentID, doc1.documentID);
+      });
+
+      test('query filter with blob', () async {
+        var collection = app.firestore().collection('tests/query/where-blob');
+        var doc1 = collection.document('doc1');
+        var doc2 = collection.document('doc2');
+        await doc1.setData(
+          DocumentData.fromMap({
+            'athing': Blob([1, 2, 3])
+          }),
+        );
+        await doc2.setData(
+          DocumentData.fromMap({
+            'athing': Blob([4, 5, 6])
+          }),
+        );
+
+        var query = collection.where('athing', isEqualTo: Blob([1, 2, 3]));
         var snapshot = await query.get();
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
