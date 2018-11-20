@@ -283,10 +283,37 @@ void main() {
         readData = (await ref.get()).data;
         expect(readData.toMap(), {'value2': 4});
       });
+
+      test('getCollections', () async {
+        var doc = app.firestore().document('tests/get_collections');
+        // Create an element in a sub collection to make sure the collection
+        // exists
+        await doc
+            .collection('sub')
+            .document('item')
+            .setData(DocumentData.fromMap({}));
+        var collections = await doc.getCollections();
+        // Find our collection
+        bool found = false;
+        collections.forEach((CollectionReference col) {
+          if (col.id == 'sub') {
+            found = true;
+          }
+        });
+        expect(found, isTrue);
+      });
     });
 
     group('$CollectionReference', () {
       var ref = app.firestore().collection('users');
+
+      test('id and path', () {
+        expect(ref.id, 'users');
+        expect(ref.path, 'users');
+        var col = ref.document('sub').collection('item');
+        expect(col.id, 'item');
+        expect(col.path, 'users/sub/item');
+      });
 
       test('parent of root collection', () {
         final parent = ref.parent;
@@ -322,6 +349,20 @@ void main() {
         final doc = ref.document('abc');
         expect(doc.documentID, 'abc');
         expect(doc.path, 'users/abc');
+      });
+
+      test('getCollections', () async {
+        // create a document to make sure the collection is created
+        await ref.document('any').setData(DocumentData.fromMap({}));
+        var collections = await app.firestore().getCollections();
+        // Find our collection
+        bool found = false;
+        collections.forEach((CollectionReference col) {
+          if (col.path == ref.path) {
+            found = true;
+          }
+        });
+        expect(found, isTrue);
       });
     });
 
