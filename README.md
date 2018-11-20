@@ -2,7 +2,7 @@
 
 Write server-side Firebase applications in Dart using Node.js as a runtime.
 
-**Looking for latest updates? Make sure to check the most recent 1.0.0-dev.* release!**
+**Looking for latest updates? Make sure to check the most recent 1.0.0-dev release!**
 
 > ### Firestore Timestamps migration:
 > Firestore deprecated usage of DateTime objects in favor of custom Timestamp type and recommends
