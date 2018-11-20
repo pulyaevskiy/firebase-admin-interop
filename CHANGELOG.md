@@ -1,3 +1,17 @@
+## 1.0.0
+
+No functional changes in this version, it is published to replace obsolete 0.0.1 version on
+the Pub's package homepage to improve discoverability.
+
+Ongoing work will continue in 1.0.0-dev.* branch until it's considered stable and feature complete.
+Make sure to checkout recent dev version for latest updates.
+
+Non-breaking changes may be published to the stable track periodically.
+
+Other updates:
+
+- Brought back dependency on `quiver_hashcode` (2.0.0) and removed copy-pasted implementation.
+
 ## 1.0.0-dev.24.0
 
 - Added `Firestore.getCollections`.

@@ -1,6 +1,6 @@
 name: firebase_admin_interop
 description: Interop for Firebase Admin Node.js SDK
-version: 1.0.0-dev.24.0
+version: 1.0.0
 homepage: https://github.com/pulyaevskiy/firebase-admin-interop
 author: Anatoly Pulyaevskiy <anatoly.pulyaevskiy@gmail.com>
 
@@ -11,7 +11,7 @@ dependencies:
   js: ^0.6.1
   node_interop: ^1.0.0-dev.11.0
   meta: ^1.0.5
-#  quiver_hashcode: ^1.0.0
+  quiver_hashcode: ^2.0.0
 
 dev_dependencies:
   test: ^1.0.0
