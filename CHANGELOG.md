@@ -1,3 +1,9 @@
+## 1.0.0-dev.24.0
+
+- Added `Firestore.getCollections`.
+- Added `DocumentReference.getCollections`.
+- Added `CollectionReference.id` and `CollectionReference.path`.
+
 ## 1.0.0-dev.23.0
 
 - Fixed Firestore queries with `GeoPoint` and `Blob` arguments.

@@ -293,14 +293,8 @@ void main() {
             .document('item')
             .setData(DocumentData.fromMap({}));
         var collections = await doc.getCollections();
-        // Find our collection
-        bool found = false;
-        collections.forEach((CollectionReference col) {
-          if (col.id == 'sub') {
-            found = true;
-          }
-        });
-        expect(found, isTrue);
+        expect(collections.any((CollectionReference col) => col.id == 'sub'),
+            isTrue);
       });
     });
 
@@ -356,13 +350,10 @@ void main() {
         await ref.document('any').setData(DocumentData.fromMap({}));
         var collections = await app.firestore().getCollections();
         // Find our collection
-        bool found = false;
-        collections.forEach((CollectionReference col) {
-          if (col.path == ref.path) {
-            found = true;
-          }
-        });
-        expect(found, isTrue);
+        expect(
+          collections.any((CollectionReference col) => col.path == ref.path),
+          isTrue,
+        );
       });
     });
 
