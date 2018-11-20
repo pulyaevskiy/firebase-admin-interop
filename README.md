@@ -36,8 +36,8 @@ Run `pub get`.
 ```json
 {
   "dependencies": {
-    "firebase-admin": "~6.0.0",
-    "@google-cloud/firestore": "0.16.0"
+    "firebase-admin": "~6.2.0",
+    "@google-cloud/firestore": "0.18.0"
   }
 }
 ```
