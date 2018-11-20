@@ -104,6 +104,14 @@ class Firestore {
         nativeInstance.runTransaction(allowInterop(jsUpdateFunction)));
   }
 
+  /// Fetches the root collections that are associated with this Firestore
+  /// database.
+  Future<List<CollectionReference>> getCollections() async =>
+      (await promiseToFuture<List>(nativeInstance.getCollections()))
+          .map((nativeCollectionReference) =>
+              CollectionReference(nativeCollectionReference, this))
+          .toList(growable: false);
+
   /// Creates a write batch, used for performing multiple writes as a single
   /// atomic operation.
   WriteBatch batch() => new WriteBatch(nativeInstance.batch());
@@ -151,6 +159,13 @@ class CollectionReference extends DocumentQuery {
     return promiseToFuture(nativeInstance.add(data.nativeInstance))
         .then((jsRef) => new DocumentReference(jsRef, firestore));
   }
+
+  /// The last path element of the referenced collection.
+  String get id => nativeInstance.id;
+
+  /// A string representing the path of the referenced collection (relative to
+  /// the root of the database).
+  String get path => nativeInstance.path;
 }
 
 /// A [DocumentReference] refers to a document location in a Firestore database
@@ -233,6 +248,13 @@ class DocumentReference {
     );
     return controller.stream;
   }
+
+  /// Fetches the subcollections that are direct children of this document.
+  Future<List<CollectionReference>> getCollections() async =>
+      (await promiseToFuture<List>(nativeInstance.getCollections()))
+          .map((nativeCollectionReference) =>
+              CollectionReference(nativeCollectionReference, firestore))
+          .toList(growable: false);
 }
 
 /// An enumeration of document change types.
