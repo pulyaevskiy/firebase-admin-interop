@@ -126,7 +126,8 @@ pub run build_runner build \
 
 ## Status
 
-This is a early development version and breaking changes are likely to occur.
+This library is considered stable though not feature complete. It is recommended to check
+`1.0.0-dev.*` versions for latest updates and bug fixes.
 
 Make sure to checkout [CHANGELOG.md](https://github.com/pulyaevskiy/firebase-admin-interop/blob/master/CHANGELOG.md)
 after every release, all notable changes and upgrade instructions will
