@@ -117,12 +117,12 @@ class Firestore {
 
   /// Retrieves multiple documents from Firestore.
   Future<List<DocumentSnapshot>> getAll(List<DocumentReference> refs) async {
-    return (await promiseToFuture<List>(callMethod(
-            nativeInstance,
-            'getAll',
-            refs
-                .map((DocumentReference ref) => ref.nativeInstance)
-                .toList(growable: false))))
+    final nativeRefs = refs
+        .map((DocumentReference ref) => ref.nativeInstance)
+        .toList(growable: false);
+    final promise = callMethod(nativeInstance, 'getAll', nativeRefs);
+    final result = await promiseToFuture<List>(promise);
+    return result
         .map((nativeSnapshot) => DocumentSnapshot(nativeSnapshot, this))
         .toList(growable: false);
   }
