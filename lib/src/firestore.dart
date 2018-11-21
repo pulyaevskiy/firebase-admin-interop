@@ -614,11 +614,7 @@ class _FirestoreData {
       getProperty(value, 'getTime') is Function;
 
   bool _isGeoPoint(value) =>
-      hasProperty(value, 'latitude') &&
-      hasProperty(value, 'longitude') &&
-      hasProperty(value, 'toString') &&
-      getProperty(value, 'toString') is Function &&
-      value.toString().contains('GeoPoint');
+      hasProperty(value, '_latitude') && hasProperty(value, '_longitude');
 
   bool _isBlob(value) {
     if (value is Uint8List) {
@@ -879,7 +875,7 @@ class QuerySnapshot {
       if (nativeInstance.docChanges == null) {
         _changes = const <DocumentChange>[];
       } else {
-        _changes = new List<js.DocumentChange>.from(nativeInstance.docChanges)
+        _changes = new List<js.DocumentChange>.from(nativeInstance.docChanges())
             .map((jsChange) => new DocumentChange(jsChange, firestore))
             .toList(growable: false);
       }

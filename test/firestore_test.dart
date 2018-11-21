@@ -379,7 +379,7 @@ void main() {
         var doc = snapshot.documents.first;
         expect(doc.data.getString('name'), 'John Doe');
         var change = snapshot.documentChanges.first;
-        expect(change.type, isNull);
+        expect(change.type, DocumentChangeType.added);
       });
 
       test('query filter with document reference', () async {

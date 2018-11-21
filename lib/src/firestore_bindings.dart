@@ -607,8 +607,7 @@ abstract class QuerySnapshot {
   /// An array of the documents that changed since the last snapshot. If this
   /// is the first snapshot, all documents will be in the list as added
   /// changes.
-  external List<DocumentChange> get docChanges;
-  external set docChanges(List<DocumentChange> v);
+  external List<DocumentChange> docChanges();
 
   /// An array of all the documents in the QuerySnapshot.
   external List<QueryDocumentSnapshot> get docs;

@@ -1,3 +1,26 @@
+## 1.0.0-dev.25.0
+
+Upgraded to support firebase-admin Node.js SDK 6.2.0 and @google-cloud/firestore 0.18.0.
+
+Make sure to update your `package.json` with following version constraints:
+
+```json
+"dependencies": {
+  "firebase-admin": "~6.2.0",
+  "@google-cloud/firestore": "0.18.0"
+}
+```
+
+- Breaking change: `QuerySnapshot.documentChanges` is now a method instead of a field.
+
+Note that 6.2.0 introduced several breaking changes to JS APIs:
+
+- `QuerySnapshot.docChanges` is no more a field but a method with one optional argument
+  `QuerySnapshot.docChanges([options])`.
+- For query snapshots returned from `DocumentQuery.get()` all `DocumentChange`s now return their
+  type as `added` instead of `null`.
+- `GeoPoint` no more exposes `toString` method.
+
 ## 1.0.0
 
 No functional changes in this version, it is published to replace obsolete 0.0.1 version on
