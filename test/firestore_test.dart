@@ -302,6 +302,25 @@ void main() {
         });
         expect(found, isTrue);
       });
+
+      test('getAll', () async {
+        // Create two records and try to read 3 (i.e. one missing)
+        var doc1 = app.firestore().document('tests/get_all_1');
+        var doc2 = app.firestore().document('tests/get_all_2');
+        var docDummy = app.firestore().document('tests/get_all_dummy');
+        await doc1.setData(DocumentData.fromMap({'value': 1}));
+        await doc2.setData(DocumentData.fromMap({'value': 2}));
+        var snapshots = await app.firestore().getAll([doc1, doc2, docDummy]);
+        expect(snapshots, hasLength(3));
+        expect(snapshots[0].reference.path, doc1.path);
+        expect(snapshots[0].exists, isTrue);
+        expect(snapshots[0].data.toMap(), {'value': 1});
+        expect(snapshots[1].reference.path, doc2.path);
+        expect(snapshots[1].exists, isTrue);
+        expect(snapshots[1].data.toMap(), {'value': 2});
+        expect(snapshots[2].reference.path, docDummy.path);
+        expect(snapshots[2].exists, isFalse);
+      });
     });
 
     group('$CollectionReference', () {
