@@ -872,7 +872,7 @@ class QuerySnapshot {
   /// is the first snapshot, all documents will be in the list as Added changes.
   List<DocumentChange> get documentChanges {
     if (_changes == null) {
-      if (nativeInstance.docChanges == null) {
+      if (nativeInstance.docChanges() == null) {
         _changes = const <DocumentChange>[];
       } else {
         _changes = new List<js.DocumentChange>.from(nativeInstance.docChanges())
