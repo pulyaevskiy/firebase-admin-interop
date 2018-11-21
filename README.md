@@ -2,8 +2,6 @@
 
 Write server-side Firebase applications in Dart using Node.js as a runtime.
 
-**Looking for latest updates? Make sure to check the most recent 1.0.0-dev release!**
-
 > ### Firestore Timestamps migration:
 > Firestore deprecated usage of DateTime objects in favor of custom Timestamp type and recommends
 > migrating as soon as possible.
@@ -26,7 +24,7 @@ Write server-side Firebase applications in Dart using Node.js as a runtime.
 
 ```yaml
 dependencies:
-  firebase_admin_interop: ^1.0.0-dev
+  firebase_admin_interop: ^1.1.0
 ```
 
 Run `pub get`.
@@ -36,7 +34,7 @@ Run `pub get`.
 ```json
 {
   "dependencies": {
-    "firebase-admin": "~6.2.0",
+    "firebase-admin": "6.2.0",
     "@google-cloud/firestore": "0.18.0"
   }
 }
@@ -127,7 +125,7 @@ pub run build_runner build \
 ## Status
 
 This library is considered stable though not feature complete. It is recommended to check
-`1.0.0-dev.*` versions for latest updates and bug fixes.
+dev versions for latest updates and bug fixes.
 
 Make sure to checkout [CHANGELOG.md](https://github.com/pulyaevskiy/firebase-admin-interop/blob/master/CHANGELOG.md)
 after every release, all notable changes and upgrade instructions will

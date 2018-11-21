@@ -1,4 +1,4 @@
-## 1.0.0-dev.25.0
+## 1.1.0
 
 Upgraded to support firebase-admin Node.js SDK 6.2.0 and @google-cloud/firestore 0.18.0.
 
