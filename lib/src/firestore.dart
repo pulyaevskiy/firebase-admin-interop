@@ -114,6 +114,18 @@ class Firestore {
   /// Creates a write batch, used for performing multiple writes as a single
   /// atomic operation.
   WriteBatch batch() => new WriteBatch(nativeInstance.batch());
+
+  /// Retrieves multiple documents from Firestore.
+  Future<List<DocumentSnapshot>> getAll(List<DocumentReference> refs) async {
+    return (await promiseToFuture<List>(callMethod(
+            nativeInstance,
+            'getAll',
+            refs
+                .map((DocumentReference ref) => ref.nativeInstance)
+                .toList(growable: false))))
+        .map((nativeSnapshot) => DocumentSnapshot(nativeSnapshot, this))
+        .toList(growable: false);
+  }
 }
 
 /// A CollectionReference object can be used for adding documents, getting
