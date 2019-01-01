@@ -157,12 +157,32 @@ class Query {
   /// This is the primary way to read data from a [Database]. Your callback will
   /// be triggered for the initial data and again whenever the data changes.
   /// Use [off] to stop receiving updates.
-  /// 
+  ///
   /// return function to unsubscribe
-  Function on<T>(String eventType, Function(DataSnapshot<T> snapshot) callback) {
+  Function on<T>(
+      String eventType, Function(DataSnapshot<T> snapshot) callback) {
     var fn = allowInterop((snapshot) => callback(new DataSnapshot(snapshot)));
     nativeInstance.on(eventType, fn);
     return () => nativeInstance.off(eventType, fn);
+  }
+
+  /// allow to use once but only on database changes
+  Future<DataSnapshot<T>> onceChanged<T>(String eventType, [Function callback_ready]) {
+    Function unsub;
+    var completer = Completer<DataSnapshot<T>>();
+    int count = 0;
+    var callback = (snapshot) {
+      count++;
+      if (count == 2) {
+        unsub();
+        completer.complete(snapshot);
+      }
+      else if (count == 1) {
+        callback_ready();
+      }
+    };
+    unsub = this.on(eventType, callback);
+    return completer.future;
   }
 
   /// Generates a new [Query] object ordered by the specified child key.
