@@ -152,9 +152,17 @@ class Query {
         .then((snapshot) => new DataSnapshot(snapshot));
   }
 
-  /// Subscribe to a location on database realtime
-  void on<T>(String eventType, Function callback) {
-    nativeInstance.on(eventType, callback);
+  /// Listens for data changes at a particular location.
+  ///
+  /// This is the primary way to read data from a [Database]. Your callback will
+  /// be triggered for the initial data and again whenever the data changes.
+  /// Use [off] to stop receiving updates.
+  /// 
+  /// return function to unsubscribe
+  Function on<T>(String eventType, Function(DataSnapshot<T> snapshot) callback) {
+    var fn = allowInterop((snapshot) => callback(new DataSnapshot(snapshot)));
+    nativeInstance.on(eventType, fn);
+    return () => nativeInstance.off(eventType, fn);
   }
 
   /// Generates a new [Query] object ordered by the specified child key.
