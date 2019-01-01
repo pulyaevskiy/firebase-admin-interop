@@ -152,6 +152,11 @@ class Query {
         .then((snapshot) => new DataSnapshot(snapshot));
   }
 
+  /// Subscribe to a location on database realtime
+  void on<T>(String eventType, Function callback) {
+    nativeInstance.on(eventType, callback);
+  }
+
   /// Generates a new [Query] object ordered by the specified child key.
   ///
   /// Queries can only order by one key at a time. Calling [orderByChild]
