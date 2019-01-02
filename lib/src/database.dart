@@ -40,6 +40,19 @@ class Database {
       new Reference(nativeInstance.refFromURL(url));
 }
 
+/// QuerySubscription to keep function callback and allowing use to unsubscribe with [cancel]
+/// or [off] later
+class QuerySubscription {
+  final String eventType;
+  final js.Query _nativeInstance;
+  final Function _callback;
+  QuerySubscription(this.eventType, this._nativeInstance, this._callback);
+  void cancel(){
+    this._nativeInstance.off(this.eventType, this._callback);
+  }
+}
+
+
 /// Sorts and filters the data at a [Database] location so only a subset of the
 /// child data is included.
 ///
@@ -152,6 +165,9 @@ class Query {
         .then((snapshot) => new DataSnapshot(snapshot));
   }
 
+  /// for managing subscriptions using [off]
+  // List<QuerySubscription> _subscriptionsList;  
+
   /// Listens for data changes at a particular location.
   ///
   /// This is the primary way to read data from a [Database]. Your callback will
@@ -159,11 +175,13 @@ class Query {
   /// Use [off] to stop receiving updates.
   ///
   /// return function to unsubscribe
-  Function on<T>(
-      String eventType, Function(DataSnapshot<T> snapshot) callback) {
+  QuerySubscription on<T>(
+      String eventType, Function(DataSnapshot<T> snapshot) callback, Function() cancelCallback) {
     var fn = allowInterop((snapshot) => callback(new DataSnapshot(snapshot)));
-    nativeInstance.on(eventType, fn);
-    return () => nativeInstance.off(eventType, fn);
+    nativeInstance.on(eventType, fn, allowInterop(cancelCallback));
+    final subscription = QuerySubscription(eventType, nativeInstance, fn);
+    // this._subscriptionsList.add(subscription);
+    return subscription;
   }
 
 
