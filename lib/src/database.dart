@@ -47,11 +47,10 @@ class QuerySubscription {
   final js.Query _nativeInstance;
   final Function _callback;
   QuerySubscription(this.eventType, this._nativeInstance, this._callback);
-  void cancel(){
+  void cancel() {
     this._nativeInstance.off(this.eventType, this._callback);
   }
 }
-
 
 /// Sorts and filters the data at a [Database] location so only a subset of the
 /// child data is included.
@@ -166,7 +165,7 @@ class Query {
   }
 
   /// for managing subscriptions using [off]
-  // List<QuerySubscription> _subscriptionsList;  
+  // List<QuerySubscription> _subscriptionsList;
 
   /// Listens for data changes at a particular location.
   ///
@@ -176,15 +175,17 @@ class Query {
   ///
   /// return function to unsubscribe
   QuerySubscription on<T>(
-      String eventType, Function(DataSnapshot<T> snapshot) callback, Function() cancelCallback) {
+      String eventType, Function(DataSnapshot<T> snapshot) callback,
+      [Function() cancelCallback]) {
     var fn = allowInterop((snapshot) => callback(new DataSnapshot(snapshot)));
-    nativeInstance.on(eventType, fn, allowInterop(cancelCallback));
+    if (cancelCallback != null)
+      nativeInstance.on(eventType, fn, allowInterop(cancelCallback));
+    else
+      nativeInstance.on(eventType, fn);
     final subscription = QuerySubscription(eventType, nativeInstance, fn);
     // this._subscriptionsList.add(subscription);
     return subscription;
   }
-
-
 
   /// Generates a new [Query] object ordered by the specified child key.
   ///
