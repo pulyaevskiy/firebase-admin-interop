@@ -166,24 +166,7 @@ class Query {
     return () => nativeInstance.off(eventType, fn);
   }
 
-  /// allow to use once but only on database changes
-  Future<DataSnapshot<T>> onceChanged<T>(String eventType, [Function callback_ready]) {
-    Function unsub;
-    var completer = Completer<DataSnapshot<T>>();
-    int count = 0;
-    var callback = (snapshot) {
-      count++;
-      if (count == 2) {
-        unsub();
-        completer.complete(snapshot);
-      }
-      else if (count == 1) {
-        callback_ready();
-      }
-    };
-    unsub = this.on(eventType, callback);
-    return completer.future;
-  }
+
 
   /// Generates a new [Query] object ordered by the specified child key.
   ///
