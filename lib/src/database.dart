@@ -164,8 +164,29 @@ class Query {
         .then((snapshot) => new DataSnapshot(snapshot));
   }
 
-  /// for managing subscriptions using [off]
-  // List<QuerySubscription> _subscriptionsList;
+  /// Detaches a callback previously attached with [on].
+  ///
+  /// Note that if [on] was called multiple times with the same [eventType] and
+  /// [callback], the callback will be called multiple times for each event, and
+  /// [off] must be called multiple times to remove the callback. Calling [off]
+  /// on a parent listener will not automatically remove listeners registered on
+  /// child nodes, [off] must also be called on any child listeners to remove
+  /// the callback.
+  ///
+  /// If a [callback] is not specified, all callbacks for the specified
+  /// [eventType] will be removed. Similarly, if no [eventType] or [callback] is
+  /// specified, all callbacks for the [Reference] will be removed.
+  void off([String eventType, QuerySubscription subscription]){
+    if (eventType != null && subscription != null){
+      nativeInstance.off(eventType, subscription._callback);
+    }
+    else if (eventType != null){
+      nativeInstance.off(eventType);
+    }
+    else {
+      nativeInstance.off();
+    }
+  }
 
   /// Listens for data changes at a particular location.
   ///
@@ -182,9 +203,7 @@ class Query {
       nativeInstance.on(eventType, fn, allowInterop(cancelCallback));
     else
       nativeInstance.on(eventType, fn);
-    final subscription = QuerySubscription(eventType, nativeInstance, fn);
-    // this._subscriptionsList.add(subscription);
-    return subscription;
+    return QuerySubscription(eventType, nativeInstance, fn);
   }
 
   /// Generates a new [Query] object ordered by the specified child key.
