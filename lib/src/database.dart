@@ -173,14 +173,13 @@ class Query {
   /// child nodes, [off] must also be called on any child listeners to remove
   /// the callback.
   ///
-  /// If a [callback] is not specified, all callbacks for the specified
-  /// [eventType] will be removed. Similarly, if no [eventType] or [callback] is
+  /// NOTE different from JS API !
+  /// If [eventType] is specifiede, all callbacks for that specified
+  /// [eventType] will be removed. If no [eventType] is
   /// specified, all callbacks for the [Reference] will be removed.
-  void off([String eventType, QuerySubscription subscription]){
-    if (eventType != null && subscription != null){
-      nativeInstance.off(eventType, subscription._callback);
-    }
-    else if (eventType != null){
+  /// To unsubscribe a specific callback, use [QuerSubscription.cancel] method
+  void off([String eventType]){
+    if (eventType != null){
       nativeInstance.off(eventType);
     }
     else {
