@@ -166,14 +166,10 @@ class Query {
 
   /// Detaches a callback previously attached with [on].
   ///
-  /// Note that if [on] was called multiple times with the same [eventType] and
-  /// [callback], the callback will be called multiple times for each event, and
-  /// [off] must be called multiple times to remove the callback. Calling [off]
-  /// on a parent listener will not automatically remove listeners registered on
-  /// child nodes, [off] must also be called on any child listeners to remove
-  /// the callback.
+  /// Calling [off] on a parent listener will not automatically remove 
+  /// listeners registered on child nodes, [off] must also be called on 
+  /// any child listeners to remove the callback.
   ///
-  /// NOTE different from JS API !
   /// If [eventType] is specifiede, all callbacks for that specified
   /// [eventType] will be removed. If no [eventType] is
   /// specified, all callbacks for the [Reference] will be removed.
@@ -192,16 +188,22 @@ class Query {
   /// This is the primary way to read data from a [Database]. Your callback will
   /// be triggered for the initial data and again whenever the data changes.
   /// Use [off] to stop receiving updates.
+  /// 
+  /// Note that if [on] was called multiple times with the same [eventType] and
+  /// [callback], the callback will be called multiple times for each event, and
+  /// [QuerySubscription.cancel] must be called multiple times to remove the callback. 
   ///
-  /// return function to unsubscribe
+  /// return [QuerySubscription]
   QuerySubscription on<T>(
       String eventType, Function(DataSnapshot<T> snapshot) callback,
       [Function() cancelCallback]) {
     var fn = allowInterop((snapshot) => callback(new DataSnapshot(snapshot)));
-    if (cancelCallback != null)
+    if (cancelCallback != null){
       nativeInstance.on(eventType, fn, allowInterop(cancelCallback));
-    else
+    }
+    else{
       nativeInstance.on(eventType, fn);
+    }
     return QuerySubscription(eventType, nativeInstance, fn);
   }
 
