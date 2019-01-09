@@ -131,6 +131,13 @@ void main() {
           'listVal': [23, 84],
           'tsVal': Timestamp.fromDateTime(date),
           'nestedVal': {'nestedKey': 'much nested'},
+          'complexVal': {
+            'sub': [
+              {
+                'subList': [1]
+              }
+            ]
+          },
           'serverTimestamp': Firestore.fieldValues.serverTimestamp()
         });
         await ref.setData(data);
@@ -152,6 +159,12 @@ void main() {
         expect(nested.getString('nestedKey'), 'much nested');
         expect(
             result.getTimestamp('serverTimestamp'), TypeMatcher<Timestamp>());
+        var complexVal = result.getNestedData('complexVal');
+        expect(complexVal.getList('sub'), [
+          {
+            'subList': [1]
+          }
+        ]);
       });
 
       test('$DocumentData.toMap', () async {
@@ -168,6 +181,12 @@ void main() {
           'blobVal': new Blob([4, 5, 6]),
           'listVal': [23, 84],
           'tsVal': ts,
+          'mapVal': {
+            'nested': [
+              1,
+              {'sub': 3}
+            ]
+          }
         });
         var nested = new DocumentData.fromMap({'nestedVal': 'very nested'});
         data.setNestedData('nestedData', nested);
@@ -195,6 +214,12 @@ void main() {
         expect(docRef.path, 'users/23');
         expect(result['listVal'], [23, 84]);
         expect(result['tsVal'], ts);
+        expect(result['mapVal'], {
+          'nested': [
+            1,
+            {'sub': 3}
+          ]
+        });
         expect(result['nestedData'], {'nestedVal': 'very nested'});
         expect(result['fakeGeoPoint'],
             {'latitude': 23.03, 'longitude': 84.19, 'toString': 'GeoPoint'});
@@ -259,6 +284,69 @@ void main() {
         expect(documentData.getString("some_key"), isNull);
         expect(documentData.has("some_key"), isFalse);
         expect(documentData.getString("other_key"), "other_value");
+      });
+
+      test('array field value', () async {
+        var ref = app.firestore().document('tests/array_field_value');
+
+        // Make sure FieldValue class is exported by using it here
+        FieldValue fieldValueArrayUnion =
+            Firestore.fieldValues.arrayUnion([1, 2]);
+        FieldValue fieldValueArrayUnion2 =
+            Firestore.fieldValues.arrayUnion([10, 11]);
+        FieldValue fieldValueArrayComplex = Firestore.fieldValues.arrayUnion([
+          100,
+          "text",
+          {
+            'sub': [1]
+          },
+          GeoPoint(1.0, 2.0)
+        ]);
+
+        // create document
+        var documentData = new DocumentData();
+        documentData.setFieldValue("array", fieldValueArrayUnion);
+        documentData.setFieldValue("array2", fieldValueArrayUnion2);
+        documentData.setFieldValue("complex", fieldValueArrayComplex);
+
+        await ref.setData(documentData);
+
+        // read it
+        documentData = (await ref.get()).data;
+        expect(documentData.getList("array"), [1, 2]);
+        expect(documentData.getList("array2"), [10, 11]);
+        expect(documentData.getList("complex"), [
+          100,
+          'text',
+          {
+            'sub': [1]
+          },
+          GeoPoint(1.0, 2.0)
+        ]);
+
+        // update and remove some data
+        var updateData = new UpdateData();
+        updateData.setFieldValue(
+            "array", Firestore.fieldValues.arrayUnion([2, 3]));
+        updateData.setFieldValue(
+            "array2", Firestore.fieldValues.arrayRemove([11, 12]));
+        // try to remove a complex object
+        updateData.setFieldValue(
+            "complex",
+            Firestore.fieldValues.arrayRemove([
+              100,
+              "text",
+              {
+                'sub': [1]
+              }
+            ]));
+        await ref.updateData(updateData);
+
+        // read again
+        documentData = (await ref.get()).data;
+        expect(documentData.getList("array"), [1, 2, 3]);
+        expect(documentData.getList("array2"), [10]);
+        expect(documentData.getList("complex"), [GeoPoint(1.0, 2.0)]);
       });
 
       test('set options', () async {

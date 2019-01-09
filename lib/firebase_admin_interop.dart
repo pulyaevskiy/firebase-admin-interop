@@ -47,6 +47,6 @@ export 'src/admin.dart';
 export 'src/app.dart';
 export 'src/auth.dart';
 export 'src/bindings.dart'
-    show AppOptions, FieldValue, SetOptions, FirestoreSettings;
+    show AppOptions, SetOptions, FirestoreSettings;
 export 'src/database.dart';
 export 'src/firestore.dart';

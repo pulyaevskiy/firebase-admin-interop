@@ -46,7 +46,7 @@ js.FieldPath documentId() {
 class Firestore {
   /// Sentinel field values that can be used when writing document fields with
   /// `set` or `update`.
-  static js.FieldValues get fieldValues => js.admin.firestore.FieldValue;
+  static FieldValues get fieldValues => _fieldValues ??= FieldValues._();
 
   /// Returns a special sentinel [FieldPath] to refer to the ID of a document.
   /// It can be used in queries to sort or filter by the document ID.
@@ -126,6 +126,8 @@ class Firestore {
         .map((nativeSnapshot) => DocumentSnapshot(nativeSnapshot, this))
         .toList(growable: false);
   }
+
+  static FieldValues _fieldValues;
 }
 
 /// A CollectionReference object can be used for adding documents, getting
@@ -408,7 +410,7 @@ class _FirestoreData {
       setList(key, value);
     } else if (value is Timestamp) {
       setTimestamp(key, value);
-    } else if (_isFieldValue(value)) {
+    } else if (value is FieldValue) {
       setFieldValue(key, value);
     } else {
       throw new ArgumentError.value(
@@ -501,23 +503,14 @@ class _FirestoreData {
     setProperty(nativeInstance, key, data);
   }
 
-  void setFieldValue(String key, js.FieldValue value) {
+  void setFieldValue(String key, FieldValue value) {
     assert(key != null);
-    setProperty(nativeInstance, key, value);
+    setProperty(nativeInstance, key, _jsifyFieldValue(value));
   }
 
-  // Private only as we should never read such value
-  js.FieldValue _getFieldValue(String key) {
-    var value = getProperty(nativeInstance, key);
-    if (value != null) {
-      if (_isFieldValue(value)) {
-        return value;
-      } else {
-        throw new ArgumentError.value(value, key,
-            'Invalid value provided to $runtimeType.getFieldValue.');
-      }
-    }
-    return null;
+  void setNestedData(String key, DocumentData value) {
+    assert(key != null);
+    setProperty(nativeInstance, key, value.nativeInstance);
   }
 
   bool _isPrimitive(value) =>
@@ -535,30 +528,7 @@ class _FirestoreData {
     }
     final result = new List();
     for (var item in data) {
-      if (!_isPrimitive(item)) {
-        if (_isGeoPoint(item)) {
-          js.GeoPoint point = item;
-          item = new GeoPoint(
-              point.latitude.toDouble(), point.longitude.toDouble());
-        } else if (_isReference(item)) {
-          js.DocumentReference ref = item;
-          js.Firestore firestore = ref.firestore;
-          item = new DocumentReference(ref, new Firestore(firestore));
-        } else if (_isBlob(item)) {
-          item = new Blob(item);
-        } else if (_isDate(item)) {
-          Date date = item;
-          item = new DateTime.fromMillisecondsSinceEpoch(date.getTime());
-        } else if (_isTimestamp(item)) {
-          js.Timestamp ts = item;
-          item = new Timestamp(ts.seconds, ts.nanoseconds);
-        } else if (item is js.FieldValue) {
-          // no-op
-        } else {
-          throw new UnsupportedError(
-              'Value of type ${item.runtimeType} is not supported by Firestore.');
-        }
-      }
+      item = _dartify(item);
       result.add(item);
     }
     return result;
@@ -571,32 +541,9 @@ class _FirestoreData {
       return;
     }
 
-    final data = [];
-    for (dynamic item in value) {
-      if (!_isPrimitive(item)) {
-        if (item is GeoPoint) {
-          GeoPoint point = item;
-          item = _createJsGeoPoint(point.latitude, point.longitude);
-        } else if (item is DocumentReference) {
-          DocumentReference ref = item;
-          item = ref.nativeInstance;
-        } else if (item is Blob) {
-          Blob blob = item;
-          item = blob.data;
-        } else if (item is DateTime) {
-          DateTime date = item;
-          item = new Date(date.millisecondsSinceEpoch);
-        } else if (item is Timestamp) {
-          item = _createJsTimestamp(item);
-        } else if (item is js.FieldValue) {
-          // no-op
-        } else {
-          throw new UnsupportedError(
-              'Value of type ${item.runtimeType} is not supported by Firestore.');
-        }
-      }
-      data.add(item);
-    }
+    // The contents remains is js
+    final data = _jsifyList(value);
+
     setProperty(nativeInstance, key, data);
   }
 
@@ -647,10 +594,153 @@ class _FirestoreData {
       hasProperty(value, 'onSnapshot') &&
       getProperty(value, 'onSnapshot') is Function;
 
-  // TODO: figure out how to handle array* field values.
-  bool _isFieldValue(value) =>
-      value == Firestore.fieldValues.delete() ||
-      value == Firestore.fieldValues.serverTimestamp();
+  // TODO: figure out how to handle array* field values. For now ignored as they
+  // don't need js to dart conversion
+  bool _isFieldValue(value) {
+    if (value == js.admin.firestore.FieldValue.delete() ||
+        value == js.admin.firestore.FieldValue.serverTimestamp()) {
+      return true;
+    }
+    return false;
+  }
+
+  dynamic _jsifyFieldValue(FieldValue value) {
+    if (value == Firestore.fieldValues.delete()) {
+      return js.admin.firestore.FieldValue.delete();
+    } else if (value == Firestore.fieldValues.serverTimestamp()) {
+      return js.admin.firestore.FieldValue.serverTimestamp();
+    } else if (value is _FieldValueArray) {
+      if (value._type == _FieldValueType.arrayUnion) {
+        // vargs so callMethod needed here
+        return callMethod(js.admin.firestore.FieldValue, 'arrayUnion',
+            _jsifyList(value.elements));
+      } else if (value._type == _FieldValueType.arrayRemove) {
+        // vargs so callMethod needed here
+        return callMethod(js.admin.firestore.FieldValue, 'arrayRemove',
+            _jsifyList(value.elements));
+      }
+    }
+    throw ArgumentError('Unsupported FieldValue($value)');
+  }
+
+  FieldValue _dartifyFieldValue(dynamic jsFieldValue) {
+    if (jsFieldValue == js.admin.firestore.FieldValue.delete()) {
+      return Firestore.fieldValues.delete();
+    } else if (jsFieldValue ==
+        js.admin.firestore.FieldValue.serverTimestamp()) {
+      return Firestore.fieldValues.serverTimestamp();
+    } else {
+      throw ArgumentError.value(jsFieldValue, 'fieldValue',
+          'Invalid value provided to $runtimeType We don"t support dartfying object like arrayUnion or arrayRemove since not needed');
+    }
+  }
+
+  /// Supports nested List and maps.
+  dynamic _jsify(item) {
+    if (_isPrimitive(item)) {
+      return item;
+    } else if (item is GeoPoint) {
+      GeoPoint point = item;
+      return _createJsGeoPoint(point.latitude, point.longitude);
+    } else if (item is DocumentReference) {
+      DocumentReference ref = item;
+      return ref.nativeInstance;
+    } else if (item is Blob) {
+      Blob blob = item;
+      return blob.data;
+    } else if (item is DateTime) {
+      DateTime date = item;
+      return new Date(date.millisecondsSinceEpoch);
+    } else if (item is Timestamp) {
+      return _createJsTimestamp(item);
+    } else if (item is FieldValue) {
+      return _jsifyFieldValue(item);
+    } else if (item is List) {
+      return _jsifyList(item);
+    } else if (item is DocumentData) {
+      return item.nativeInstance;
+    } else if (item is Map) {
+      return DocumentData.fromMap(item).nativeInstance;
+    } else {
+      throw UnsupportedError(
+          'Value of type ${item.runtimeType} is not supported by Firestore.');
+    }
+  }
+
+  dynamic _dartify(item) {
+    /// This is a best-effort implementation which attempts to convert
+    /// built-in Firestore data types into Dart objects.
+    ///
+    /// We check types starting with higher level of confidence:
+    /// 1. Primitive types (int, bool, String, double, null)
+    /// 2. Data types with properties of type [Function]: DateTime, DocumentReference
+    /// 3. GeoPoint
+    /// 4. Blob
+    /// 5. Timestamp
+    /// 6. Date
+    /// 7. Field value
+    /// 8. Lists
+    /// 7. Nested arbitrary maps.
+    ///
+    /// The assumption is that Firestore does not support storing [Function]
+    /// values so if a native object contains a known function property
+    /// (`Date.getTime` or `DocumentReference.onSnapshot`) it should be safe to
+    /// treat it as such type.
+    ///
+    /// The only possible mismatch here would be treating an arbitrary nested
+    /// map as a GeoPoint because we can only check presence of `latitude` and
+    /// `longitude`. The [_isGeoPoint] method relies additionally on the output
+    /// of `GeoPoint.toString()` method which must contain "GeoPoint".
+    /// See: https://github.com/googleapis/nodejs-firestore/blob/35c1af0d0afc660b467d411f5de39792f8330be2/src/document.js#L129
+    if (_isPrimitive(item)) {
+      return item;
+    } else if (_isGeoPoint(item)) {
+      js.GeoPoint point = item;
+      return GeoPoint(point.latitude.toDouble(), point.longitude.toDouble());
+    } else if (_isReference(item)) {
+      js.DocumentReference ref = item;
+      js.Firestore firestore = ref.firestore;
+      return DocumentReference(ref, new Firestore(firestore));
+    } else if (_isBlob(item)) {
+      return Blob(item);
+    } else if (_isTimestamp(item)) {
+      js.Timestamp ts = item;
+      return Timestamp(ts.seconds, ts.nanoseconds);
+    } else if (_isDate(item)) {
+      Date date = item;
+      return DateTime.fromMillisecondsSinceEpoch(date.getTime());
+    } else if (_isFieldValue(item)) {
+      return _dartifyFieldValue(item);
+    } else if (item is List) {
+      return _dartifyList(item);
+    } else if (item is Map) {
+      return item.map((key, value) => MapEntry(key, _dartifyFieldValue(value)));
+    } else {
+      // Handle like any object
+      return _dartifyObject(item);
+    }
+  }
+
+  List _jsifyList(List list) {
+    var data = [];
+    for (dynamic item in list) {
+      if (item is List) {
+        // Otherwise this crashes in firestore
+        // we cannot have list of lists such as [[1]]
+        throw ArgumentError('A list item cannot be a List');
+      }
+      data.add(_jsify(item));
+    }
+    return data;
+  }
+
+  List _dartifyList(List list) {
+    return list.map((item) => _dartify(item)).toList();
+  }
+
+  Map<String, dynamic> _dartifyObject(object) {
+    return DocumentData(object).toMap();
+  }
 
   @override
   String toString() => '$runtimeType';
@@ -690,11 +780,6 @@ class DocumentData extends _FirestoreData {
     return new DocumentData(data);
   }
 
-  void setNestedData(String key, DocumentData value) {
-    assert(key != null);
-    setProperty(nativeInstance, key, value.nativeInstance);
-  }
-
   /// List of keys in this document data.
   List<String> get keys => objectKeys(nativeInstance);
 
@@ -702,53 +787,9 @@ class DocumentData extends _FirestoreData {
   Map<String, dynamic> toMap() {
     final Map<String, dynamic> map = {};
     for (var key in keys) {
-      map[key] = _dartifyProperty(key);
+      map[key] = _dartify(getProperty(nativeInstance, key));
     }
     return map;
-  }
-
-  dynamic _dartifyProperty(key) {
-    /// This is a best-effort implementation which attempts to convert
-    /// built-in Firestore data types into Dart objects.
-    ///
-    /// We check types starting with higher level of confidence:
-    /// 1. Primitive types (int, bool, String, double, null)
-    /// 2. Data types with properties of type [Function]: DateTime, DocumentReference
-    /// 3. GeoPoint
-    /// 4. Blob
-    /// 5. Field value
-    /// 6. Lists
-    /// 7. Nested arbitrary maps.
-    ///
-    /// The assumption is that Firestore does not support storing [Function]
-    /// values so if a native object contains a known function property
-    /// (`Date.getTime` or `DocumentReference.onSnapshot`) it should be safe to
-    /// treat it as such type.
-    ///
-    /// The only possible mismatch here would be treating an arbitrary nested
-    /// map as a GeoPoint because we can only check presence of `latitude` and
-    /// `longitude`. The [_isGeoPoint] method relies additionally on the output
-    /// of `GeoPoint.toString()` method which must contain "GeoPoint".
-    /// See: https://github.com/googleapis/nodejs-firestore/blob/35c1af0d0afc660b467d411f5de39792f8330be2/src/document.js#L129
-    final value = getProperty(nativeInstance, key);
-    if (_isPrimitive(value)) return value;
-    if (_isDate(value)) {
-      return getDateTime(key); // ignore: deprecated_member_use
-    } else if (_isTimestamp(value)) {
-      return getTimestamp(key);
-    } else if (_isReference(value)) {
-      return getReference(key);
-    } else if (_isGeoPoint(value)) {
-      return getGeoPoint(key);
-    } else if (_isBlob(value)) {
-      return getBlob(key);
-    } else if (_isFieldValue(value)) {
-      return _getFieldValue(key);
-    } else if (value is List) {
-      return getList(key);
-    } else {
-      return getNestedData(key).toMap();
-    }
   }
 }
 
@@ -1230,4 +1271,73 @@ js.Precondition _getNativePrecondition(Timestamp lastUpdateTime) {
 js.SetOptions _getNativeSetOptions(bool merge) {
   assert(merge != null, 'SetOption merge can`t be null');
   return new js.SetOptions(merge: merge);
+}
+
+/// Type of field value, not used externally
+enum _FieldValueType {
+  delete,
+  serverTimestamp,
+  arrayRemove,
+  arrayUnion,
+}
+
+class _FieldValue implements FieldValue {
+  final _FieldValueType _type;
+
+  _FieldValue(this._type);
+
+  @override
+  String toString() => '$_type';
+}
+
+class _FieldValueArray extends _FieldValue {
+  final List elements;
+
+  _FieldValueArray(_FieldValueType type, this.elements) : super(type);
+  @override
+  String toString() => '${_type}($elements)';
+}
+
+/// Sentinel values that can be used when writing document fields with set()
+/// or update().
+abstract class FieldValue {
+  _FieldValueType get _type;
+}
+
+class FieldValues {
+  /// Returns a sentinel used with set() or update() to include a
+  /// server-generated timestamp in the written data.
+  FieldValue serverTimestamp() => _serverTimestamp;
+
+  /// Returns a sentinel for use with update() to mark a field for deletion.
+  FieldValue delete() => _delete;
+
+  /// Returns a special value that tells the server to union the given elements
+  /// with any array value that already exists on the server.
+  ///
+  /// Can be used with set(), create() or update() operations.
+  ///
+  /// Each specified element that doesn't already exist in the array will be
+  /// added to the end. If the field being modified is not already an array it
+  /// will be overwritten with an array containing exactly the specified
+  /// elements.
+  FieldValue arrayUnion(List elements) =>
+      _FieldValueArray(_FieldValueType.arrayUnion, elements);
+
+  /// Returns a special value that tells the server to remove the given elements
+  /// from any array value that already exists on the server.
+  ///
+  /// Can be used with set(), create() or update() operations.
+  ///
+  /// All instances of each element specified will be removed from the array.
+  /// If the field being modified is not already an array it will be overwritten
+  /// with an empty array.
+  FieldValue arrayRemove(List elements) =>
+      _FieldValueArray(_FieldValueType.arrayRemove, elements);
+
+  FieldValues._();
+
+  final FieldValue _serverTimestamp =
+      _FieldValue(_FieldValueType.serverTimestamp);
+  final FieldValue _delete = _FieldValue(_FieldValueType.delete);
 }
