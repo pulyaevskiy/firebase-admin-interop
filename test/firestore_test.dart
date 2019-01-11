@@ -533,6 +533,26 @@ void main() {
         expect(doc.documentID, doc1.documentID);
       });
 
+      test('query filter with date', () async {
+        var collection = app.firestore().collection('tests/query/where-date');
+        var doc1 = collection.document('doc1');
+        var doc2 = collection.document('doc2');
+        final now = DateTime.now();
+        await doc1.setData(
+          DocumentData.fromMap({'createdAt': now}),
+        );
+        await doc2.setData(
+          DocumentData.fromMap({'createdAt': now.add(Duration(seconds: 10))}),
+        );
+
+        var query = collection.where('createdAt', isEqualTo: now);
+        var snapshot = await query.get();
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
+        var doc = snapshot.documents.single;
+        expect(doc.documentID, doc1.documentID);
+      });
+
       test('query filter with geo point', () async {
         var collection = app.firestore().collection('tests/query/where-geo');
         var doc1 = collection.document('doc1');
@@ -553,8 +573,8 @@ void main() {
         expect(doc.documentID, doc1.documentID);
       });
 
-      test('query filter with map object', () async {
-        var collection = app.firestore().collection('tests/query/where-map');
+      test('query filter with list object', () async {
+        var collection = app.firestore().collection('tests/query/where-list');
         var collRef =
             collection; // testsRef.doc('nested_order_test').collection('many');
         var docRefOne = collRef.document('doc1');
@@ -588,8 +608,8 @@ void main() {
         expect(_querySnapshotDocIds(querySnapshot), ['doc2', 'doc4', 'doc1']);
       });
 
-      test('query filter with list object', () async {
-        var collection = app.firestore().collection('tests/query/where-list');
+      test('query filter with map object', () async {
+        var collection = app.firestore().collection('tests/query/where-map');
         var collRef =
             collection; // testsRef.doc('nested_order_test').collection('many');
         var docRefOne = collRef.document('doc1');
@@ -599,7 +619,7 @@ void main() {
         }));
         var docRefTwo = collRef.document('doc2');
         await docRefTwo.setData(DocumentData.fromMap({
-          'sub': {'value': 'a'}
+          'sub': <Object, Object>{'value': 'a'}
         }));
         var docRefThree = collRef.document('doc3');
         await docRefThree.setData(DocumentData.fromMap({'no_sub': false}));

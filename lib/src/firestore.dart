@@ -625,7 +625,7 @@ class _FirestoreData {
     } else if (item is List) {
       return _jsifyList(item);
     } else if (item is Map) {
-      return DocumentData.fromMap(item).nativeInstance;
+      return DocumentData.fromMap(item?.cast<String, dynamic>()).nativeInstance;
     } else {
       throw UnsupportedError(
           'Value of type ${item.runtimeType} is not supported by Firestore.');
@@ -731,7 +731,8 @@ class DocumentData extends _FirestoreData {
   @override
   void _setField(String key, value) {
     if (value is Map) {
-      setNestedData(key, new DocumentData.fromMap(value));
+      setNestedData(
+          key, new DocumentData.fromMap(value?.cast<String, dynamic>()));
     } else {
       super._setField(key, value);
     }
