@@ -1287,7 +1287,7 @@ abstract class FieldValue {
       return Firestore.fieldValues.serverTimestamp();
     } else {
       throw ArgumentError.value(jsFieldValue, 'jsFieldValue',
-          'Invalid value provided. We don"t support dartfying object like arrayUnion or arrayRemove since not needed');
+          "Invalid value provided. We don't support dartfying object like arrayUnion or arrayRemove since not needed");
     }
   }
 
