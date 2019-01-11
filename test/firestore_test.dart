@@ -553,6 +553,77 @@ void main() {
         expect(doc.documentID, doc1.documentID);
       });
 
+      test('query filter with map object', () async {
+        var collection = app.firestore().collection('tests/query/where-map');
+        var collRef =
+            collection; // testsRef.doc('nested_order_test').collection('many');
+        var docRefOne = collRef.document('doc1');
+
+        await docRefOne.setData(DocumentData.fromMap({
+          'sub': ['b']
+        }));
+        var docRefTwo = collRef.document('doc2');
+        await docRefTwo.setData(DocumentData.fromMap({
+          'sub': ['a']
+        }));
+        var docRefThree = collRef.document('doc3');
+        await docRefThree.setData(DocumentData.fromMap({'no_sub': false}));
+        var docRefFour = collRef.document('doc4');
+        await docRefFour.setData(DocumentData.fromMap({
+          'sub': ['a', 'b']
+        }));
+
+        List<String> _querySnapshotDocIds(QuerySnapshot querySnapshot) {
+          return querySnapshot.documents
+              .map((snapshot) => snapshot.documentID)
+              .toList();
+        }
+
+        // complex object
+        var querySnapshot = await collRef.where('sub', isEqualTo: ['a']).get();
+        expect(_querySnapshotDocIds(querySnapshot), ['doc2']);
+
+        // ordered by sub (complex object)
+        querySnapshot = await collRef.orderBy('sub').get();
+        expect(_querySnapshotDocIds(querySnapshot), ['doc2', 'doc4', 'doc1']);
+      });
+
+      test('query filter with list object', () async {
+        var collection = app.firestore().collection('tests/query/where-list');
+        var collRef =
+            collection; // testsRef.doc('nested_order_test').collection('many');
+        var docRefOne = collRef.document('doc1');
+
+        await docRefOne.setData(DocumentData.fromMap({
+          'sub': {'value': 'b'}
+        }));
+        var docRefTwo = collRef.document('doc2');
+        await docRefTwo.setData(DocumentData.fromMap({
+          'sub': {'value': 'a'}
+        }));
+        var docRefThree = collRef.document('doc3');
+        await docRefThree.setData(DocumentData.fromMap({'no_sub': false}));
+        var docRefFour = collRef.document('doc4');
+        await docRefFour.setData(DocumentData.fromMap({
+          'sub': {'other': 'a', 'value': 'c'}
+        }));
+
+        List<String> _querySnapshotDocIds(QuerySnapshot querySnapshot) {
+          return querySnapshot.documents
+              .map((snapshot) => snapshot.documentID)
+              .toList();
+        }
+
+        // complex object
+        var querySnapshot =
+            await collRef.where('sub', isEqualTo: {'value': 'a'}).get();
+        expect(_querySnapshotDocIds(querySnapshot), ['doc2']);
+
+        // ordered by sub (complex object)
+        querySnapshot = await collRef.orderBy('sub').get();
+        expect(_querySnapshotDocIds(querySnapshot), ['doc4', 'doc2', 'doc1']);
+      });
+
       test('query filter with blob', () async {
         var collection = app.firestore().collection('tests/query/where-blob');
         var doc1 = collection.document('doc1');

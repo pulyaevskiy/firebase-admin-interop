@@ -961,18 +961,7 @@ class DocumentQuery {
     js.DocumentQuery query = nativeInstance;
 
     void addCondition(String field, String opStr, dynamic value) {
-      if (value is DocumentReference) {
-        value = value.nativeInstance;
-      } else if (value is Timestamp) {
-        value = _createJsTimestamp(value);
-      } else if (value is GeoPoint) {
-        GeoPoint p = value;
-        value = _createJsGeoPoint(p.latitude, p.longitude);
-      } else if (value is Blob) {
-        Blob blob = value;
-        value = blob.data;
-      }
-      query = query.where(field, opStr, value);
+      query = query.where(field, opStr, _FirestoreData._jsify(value));
     }
 
     if (isEqualTo != null) addCondition(field, '==', isEqualTo);
