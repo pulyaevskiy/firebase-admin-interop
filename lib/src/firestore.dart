@@ -46,7 +46,7 @@ js.FieldPath documentId() {
 class Firestore {
   /// Sentinel field values that can be used when writing document fields with
   /// `set` or `update`.
-  static FieldValues get fieldValues => _fieldValues ??= FieldValues._();
+  static final FieldValues fieldValues = FieldValues._();
 
   /// Returns a special sentinel [FieldPath] to refer to the ID of a document.
   /// It can be used in queries to sort or filter by the document ID.
@@ -126,8 +126,6 @@ class Firestore {
         .map((nativeSnapshot) => DocumentSnapshot(nativeSnapshot, this))
         .toList(growable: false);
   }
-
-  static FieldValues _fieldValues;
 }
 
 /// A CollectionReference object can be used for adding documents, getting
@@ -505,7 +503,7 @@ class _FirestoreData {
 
   void setFieldValue(String key, FieldValue value) {
     assert(key != null);
-    setProperty(nativeInstance, key, _jsifyFieldValue(value));
+    setProperty(nativeInstance, key, value?._jsify());
   }
 
   void setNestedData(String key, DocumentData value) {
@@ -513,7 +511,7 @@ class _FirestoreData {
     setProperty(nativeInstance, key, value.nativeInstance);
   }
 
-  bool _isPrimitive(value) =>
+  static bool _isPrimitive(value) =>
       value == null ||
       value is int ||
       value is double ||
@@ -604,39 +602,8 @@ class _FirestoreData {
     return false;
   }
 
-  dynamic _jsifyFieldValue(FieldValue value) {
-    if (value == Firestore.fieldValues.delete()) {
-      return js.admin.firestore.FieldValue.delete();
-    } else if (value == Firestore.fieldValues.serverTimestamp()) {
-      return js.admin.firestore.FieldValue.serverTimestamp();
-    } else if (value is _FieldValueArray) {
-      if (value._type == _FieldValueType.arrayUnion) {
-        // vargs so callMethod needed here
-        return callMethod(js.admin.firestore.FieldValue, 'arrayUnion',
-            _jsifyList(value.elements));
-      } else if (value._type == _FieldValueType.arrayRemove) {
-        // vargs so callMethod needed here
-        return callMethod(js.admin.firestore.FieldValue, 'arrayRemove',
-            _jsifyList(value.elements));
-      }
-    }
-    throw ArgumentError('Unsupported FieldValue($value)');
-  }
-
-  FieldValue _dartifyFieldValue(dynamic jsFieldValue) {
-    if (jsFieldValue == js.admin.firestore.FieldValue.delete()) {
-      return Firestore.fieldValues.delete();
-    } else if (jsFieldValue ==
-        js.admin.firestore.FieldValue.serverTimestamp()) {
-      return Firestore.fieldValues.serverTimestamp();
-    } else {
-      throw ArgumentError.value(jsFieldValue, 'fieldValue',
-          'Invalid value provided to $runtimeType We don"t support dartfying object like arrayUnion or arrayRemove since not needed');
-    }
-  }
-
   /// Supports nested List and maps.
-  dynamic _jsify(item) {
+  static dynamic _jsify(item) {
     if (_isPrimitive(item)) {
       return item;
     } else if (item is GeoPoint) {
@@ -654,11 +621,9 @@ class _FirestoreData {
     } else if (item is Timestamp) {
       return _createJsTimestamp(item);
     } else if (item is FieldValue) {
-      return _jsifyFieldValue(item);
+      return item?._jsify;
     } else if (item is List) {
       return _jsifyList(item);
-    } else if (item is DocumentData) {
-      return item.nativeInstance;
     } else if (item is Map) {
       return DocumentData.fromMap(item).nativeInstance;
     } else {
@@ -710,18 +675,16 @@ class _FirestoreData {
       Date date = item;
       return DateTime.fromMillisecondsSinceEpoch(date.getTime());
     } else if (_isFieldValue(item)) {
-      return _dartifyFieldValue(item);
+      return FieldValue._fromJs(item);
     } else if (item is List) {
       return _dartifyList(item);
-    } else if (item is Map) {
-      return item.map((key, value) => MapEntry(key, _dartifyFieldValue(value)));
     } else {
       // Handle like any object
       return _dartifyObject(item);
     }
   }
 
-  List _jsifyList(List list) {
+  static List _jsifyList(List list) {
     var data = [];
     for (dynamic item in list) {
       if (item is List) {
@@ -735,7 +698,7 @@ class _FirestoreData {
   }
 
   List _dartifyList(List list) {
-    return list.map((item) => _dartify(item)).toList();
+    return list.map(_dartify).toList();
   }
 
   Map<String, dynamic> _dartifyObject(object) {
@@ -1273,35 +1236,72 @@ js.SetOptions _getNativeSetOptions(bool merge) {
   return new js.SetOptions(merge: merge);
 }
 
-/// Type of field value, not used externally
-enum _FieldValueType {
-  delete,
-  serverTimestamp,
-  arrayRemove,
-  arrayUnion,
-}
-
-class _FieldValue implements FieldValue {
-  final _FieldValueType _type;
-
-  _FieldValue(this._type);
+class _FieldValueDelete implements FieldValue {
+  @override
+  dynamic _jsify() {
+    return js.admin.firestore.FieldValue.delete();
+  }
 
   @override
-  String toString() => '$_type';
+  String toString() => 'FieldValue.delete()';
 }
 
-class _FieldValueArray extends _FieldValue {
+class _FieldValueServerTimestamp implements FieldValue {
+  @override
+  dynamic _jsify() {
+    return js.admin.firestore.FieldValue.serverTimestamp();
+  }
+
+  @override
+  String toString() => 'FieldValue.serverTimestamp()';
+}
+
+abstract class _FieldValueArray implements FieldValue {
   final List elements;
 
-  _FieldValueArray(_FieldValueType type, this.elements) : super(type);
+  _FieldValueArray(this.elements);
+}
+
+class _FieldValueArrayUnion extends _FieldValueArray {
+  _FieldValueArrayUnion(List elements) : super(elements);
   @override
-  String toString() => '${_type}($elements)';
+  _jsify() {
+    return callMethod(js.admin.firestore.FieldValue, 'arrayUnion',
+        _FirestoreData._jsifyList(elements));
+  }
+
+  @override
+  String toString() => 'FieldValue.arrayUnion($elements)';
+}
+
+class _FieldValueArrayRemove extends _FieldValueArray {
+  _FieldValueArrayRemove(List elements) : super(elements);
+  @override
+  _jsify() {
+    return callMethod(js.admin.firestore.FieldValue, 'arrayRemove',
+        _FirestoreData._jsifyList(elements));
+  }
+
+  @override
+  String toString() => 'FieldValue.arrayRemove($elements)';
 }
 
 /// Sentinel values that can be used when writing document fields with set()
 /// or update().
 abstract class FieldValue {
-  _FieldValueType get _type;
+  factory FieldValue._fromJs(dynamic jsFieldValue) {
+    if (jsFieldValue == js.admin.firestore.FieldValue.delete()) {
+      return Firestore.fieldValues.delete();
+    } else if (jsFieldValue ==
+        js.admin.firestore.FieldValue.serverTimestamp()) {
+      return Firestore.fieldValues.serverTimestamp();
+    } else {
+      throw ArgumentError.value(jsFieldValue, 'jsFieldValue',
+          'Invalid value provided. We don"t support dartfying object like arrayUnion or arrayRemove since not needed');
+    }
+  }
+
+  dynamic _jsify();
 }
 
 class FieldValues {
@@ -1321,8 +1321,7 @@ class FieldValues {
   /// added to the end. If the field being modified is not already an array it
   /// will be overwritten with an array containing exactly the specified
   /// elements.
-  FieldValue arrayUnion(List elements) =>
-      _FieldValueArray(_FieldValueType.arrayUnion, elements);
+  FieldValue arrayUnion(List elements) => _FieldValueArrayUnion(elements);
 
   /// Returns a special value that tells the server to remove the given elements
   /// from any array value that already exists on the server.
@@ -1332,12 +1331,10 @@ class FieldValues {
   /// All instances of each element specified will be removed from the array.
   /// If the field being modified is not already an array it will be overwritten
   /// with an empty array.
-  FieldValue arrayRemove(List elements) =>
-      _FieldValueArray(_FieldValueType.arrayRemove, elements);
+  FieldValue arrayRemove(List elements) => _FieldValueArrayRemove(elements);
 
   FieldValues._();
 
-  final FieldValue _serverTimestamp =
-      _FieldValue(_FieldValueType.serverTimestamp);
-  final FieldValue _delete = _FieldValue(_FieldValueType.delete);
+  final FieldValue _serverTimestamp = _FieldValueServerTimestamp();
+  final FieldValue _delete = _FieldValueDelete();
 }
