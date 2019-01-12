@@ -40,6 +40,18 @@ class Database {
       new Reference(nativeInstance.refFromURL(url));
 }
 
+/// QuerySubscription to keep function callback and allowing use to unsubscribe with [cancel]
+/// or [off] later
+class QuerySubscription {
+  final String eventType;
+  final js.Query _nativeInstance;
+  final Function _callback;
+  QuerySubscription(this.eventType, this._nativeInstance, this._callback);
+  void cancel() {
+    this._nativeInstance.off(this.eventType, this._callback);
+  }
+}
+
 /// Sorts and filters the data at a [Database] location so only a subset of the
 /// child data is included.
 ///
@@ -150,6 +162,49 @@ class Query {
   Future<DataSnapshot<T>> once<T>(String eventType) {
     return promiseToFuture(nativeInstance.once(eventType))
         .then((snapshot) => new DataSnapshot(snapshot));
+  }
+
+  /// Detaches a callback previously attached with [on].
+  ///
+  /// Calling [off] on a parent listener will not automatically remove 
+  /// listeners registered on child nodes, [off] must also be called on 
+  /// any child listeners to remove the callback.
+  ///
+  /// If [eventType] is specifiede, all callbacks for that specified
+  /// [eventType] will be removed. If no [eventType] is
+  /// specified, all callbacks for the [Reference] will be removed.
+  /// To unsubscribe a specific callback, use [QuerSubscription.cancel] method
+  void off([String eventType]){
+    if (eventType != null){
+      nativeInstance.off(eventType);
+    }
+    else {
+      nativeInstance.off();
+    }
+  }
+
+  /// Listens for data changes at a particular location.
+  ///
+  /// This is the primary way to read data from a [Database]. Your callback will
+  /// be triggered for the initial data and again whenever the data changes.
+  /// Use [off] to stop receiving updates.
+  /// 
+  /// Note that if [on] was called multiple times with the same [eventType] and
+  /// [callback], the callback will be called multiple times for each event, and
+  /// [QuerySubscription.cancel] must be called multiple times to remove the callback. 
+  ///
+  /// return [QuerySubscription]
+  QuerySubscription on<T>(
+      String eventType, Function(DataSnapshot<T> snapshot) callback,
+      [Function() cancelCallback]) {
+    var fn = allowInterop((snapshot) => callback(new DataSnapshot(snapshot)));
+    if (cancelCallback != null){
+      nativeInstance.on(eventType, fn, allowInterop(cancelCallback));
+    }
+    else{
+      nativeInstance.on(eventType, fn);
+    }
+    return QuerySubscription(eventType, nativeInstance, fn);
   }
 
   /// Generates a new [Query] object ordered by the specified child key.
