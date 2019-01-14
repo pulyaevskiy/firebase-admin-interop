@@ -621,7 +621,7 @@ class _FirestoreData {
     } else if (item is Timestamp) {
       return _createJsTimestamp(item);
     } else if (item is FieldValue) {
-      return item?._jsify;
+      return item._jsify();
     } else if (item is List) {
       return _jsifyList(item);
     } else if (item is Map) {
@@ -732,7 +732,7 @@ class DocumentData extends _FirestoreData {
   void _setField(String key, value) {
     if (value is Map) {
       setNestedData(
-          key, new DocumentData.fromMap(value?.cast<String, dynamic>()));
+          key, new DocumentData.fromMap(value.cast<String, dynamic>()));
     } else {
       super._setField(key, value);
     }

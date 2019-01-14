@@ -88,9 +88,11 @@ void main() {
         data.setFieldValue('serverTimestampFieldValue',
             Firestore.fieldValues.serverTimestamp());
         data.setFieldValue('deleteFieldValue', Firestore.fieldValues.delete());
+        data.setList(
+            'fieldValueInList', [Firestore.fieldValues.serverTimestamp()]);
 
         _check() {
-          expect(data.keys.length, 12);
+          expect(data.keys.length, 13);
           expect(data.getInt('intVal'), 1);
           expect(data.getDouble('doubleVal'), 1.5);
           expect(data.getBool('boolVal'), true);
@@ -109,6 +111,8 @@ void main() {
           expect(map['serverTimestampFieldValue'],
               Firestore.fieldValues.serverTimestamp());
           expect(map['deleteFieldValue'], Firestore.fieldValues.delete());
+          expect(map['fieldValueInList'],
+              [Firestore.fieldValues.serverTimestamp()]);
         }
 
         _check();
@@ -165,6 +169,8 @@ void main() {
             'subList': [1]
           }
         ]);
+        expect(complexVal.getList('fieldValueInList')[0],
+            TypeMatcher<Timestamp>());
       });
 
       test('$DocumentData.toMap', () async {
@@ -186,7 +192,7 @@ void main() {
               1,
               {'sub': 3}
             ]
-          }
+          },
         });
         var nested = new DocumentData.fromMap({'nestedVal': 'very nested'});
         data.setNestedData('nestedData', nested);
