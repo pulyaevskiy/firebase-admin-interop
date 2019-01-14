@@ -169,8 +169,6 @@ void main() {
             'subList': [1]
           }
         ]);
-        expect(complexVal.getList('fieldValueInList')[0],
-            TypeMatcher<Timestamp>());
       });
 
       test('$DocumentData.toMap', () async {
