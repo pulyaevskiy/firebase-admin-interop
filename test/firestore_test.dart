@@ -88,9 +88,11 @@ void main() {
         data.setFieldValue('serverTimestampFieldValue',
             Firestore.fieldValues.serverTimestamp());
         data.setFieldValue('deleteFieldValue', Firestore.fieldValues.delete());
+        data.setList(
+            'fieldValueInList', [Firestore.fieldValues.serverTimestamp()]);
 
         _check() {
-          expect(data.keys.length, 12);
+          expect(data.keys.length, 13);
           expect(data.getInt('intVal'), 1);
           expect(data.getDouble('doubleVal'), 1.5);
           expect(data.getBool('boolVal'), true);
@@ -109,6 +111,8 @@ void main() {
           expect(map['serverTimestampFieldValue'],
               Firestore.fieldValues.serverTimestamp());
           expect(map['deleteFieldValue'], Firestore.fieldValues.delete());
+          expect(map['fieldValueInList'],
+              [Firestore.fieldValues.serverTimestamp()]);
         }
 
         _check();
@@ -131,6 +135,13 @@ void main() {
           'listVal': [23, 84],
           'tsVal': Timestamp.fromDateTime(date),
           'nestedVal': {'nestedKey': 'much nested'},
+          'complexVal': {
+            'sub': [
+              {
+                'subList': [1]
+              }
+            ]
+          },
           'serverTimestamp': Firestore.fieldValues.serverTimestamp()
         });
         await ref.setData(data);
@@ -152,6 +163,12 @@ void main() {
         expect(nested.getString('nestedKey'), 'much nested');
         expect(
             result.getTimestamp('serverTimestamp'), TypeMatcher<Timestamp>());
+        var complexVal = result.getNestedData('complexVal');
+        expect(complexVal.getList('sub'), [
+          {
+            'subList': [1]
+          }
+        ]);
       });
 
       test('$DocumentData.toMap', () async {
@@ -168,6 +185,12 @@ void main() {
           'blobVal': new Blob([4, 5, 6]),
           'listVal': [23, 84],
           'tsVal': ts,
+          'mapVal': {
+            'nested': [
+              1,
+              {'sub': 3}
+            ]
+          },
         });
         var nested = new DocumentData.fromMap({'nestedVal': 'very nested'});
         data.setNestedData('nestedData', nested);
@@ -195,6 +218,12 @@ void main() {
         expect(docRef.path, 'users/23');
         expect(result['listVal'], [23, 84]);
         expect(result['tsVal'], ts);
+        expect(result['mapVal'], {
+          'nested': [
+            1,
+            {'sub': 3}
+          ]
+        });
         expect(result['nestedData'], {'nestedVal': 'very nested'});
         expect(result['fakeGeoPoint'],
             {'latitude': 23.03, 'longitude': 84.19, 'toString': 'GeoPoint'});
@@ -259,6 +288,69 @@ void main() {
         expect(documentData.getString("some_key"), isNull);
         expect(documentData.has("some_key"), isFalse);
         expect(documentData.getString("other_key"), "other_value");
+      });
+
+      test('array field value', () async {
+        var ref = app.firestore().document('tests/array_field_value');
+
+        // Make sure FieldValue class is exported by using it here
+        FieldValue fieldValueArrayUnion =
+            Firestore.fieldValues.arrayUnion([1, 2]);
+        FieldValue fieldValueArrayUnion2 =
+            Firestore.fieldValues.arrayUnion([10, 11]);
+        FieldValue fieldValueArrayComplex = Firestore.fieldValues.arrayUnion([
+          100,
+          "text",
+          {
+            'sub': [1]
+          },
+          GeoPoint(1.0, 2.0)
+        ]);
+
+        // create document
+        var documentData = new DocumentData();
+        documentData.setFieldValue("array", fieldValueArrayUnion);
+        documentData.setFieldValue("array2", fieldValueArrayUnion2);
+        documentData.setFieldValue("complex", fieldValueArrayComplex);
+
+        await ref.setData(documentData);
+
+        // read it
+        documentData = (await ref.get()).data;
+        expect(documentData.getList("array"), [1, 2]);
+        expect(documentData.getList("array2"), [10, 11]);
+        expect(documentData.getList("complex"), [
+          100,
+          'text',
+          {
+            'sub': [1]
+          },
+          GeoPoint(1.0, 2.0)
+        ]);
+
+        // update and remove some data
+        var updateData = new UpdateData();
+        updateData.setFieldValue(
+            "array", Firestore.fieldValues.arrayUnion([2, 3]));
+        updateData.setFieldValue(
+            "array2", Firestore.fieldValues.arrayRemove([11, 12]));
+        // try to remove a complex object
+        updateData.setFieldValue(
+            "complex",
+            Firestore.fieldValues.arrayRemove([
+              100,
+              "text",
+              {
+                'sub': [1]
+              }
+            ]));
+        await ref.updateData(updateData);
+
+        // read again
+        documentData = (await ref.get()).data;
+        expect(documentData.getList("array"), [1, 2, 3]);
+        expect(documentData.getList("array2"), [10]);
+        expect(documentData.getList("complex"), [GeoPoint(1.0, 2.0)]);
       });
 
       test('set options', () async {
@@ -445,6 +537,26 @@ void main() {
         expect(doc.documentID, doc1.documentID);
       });
 
+      test('query filter with date', () async {
+        var collection = app.firestore().collection('tests/query/where-date');
+        var doc1 = collection.document('doc1');
+        var doc2 = collection.document('doc2');
+        final now = DateTime.now();
+        await doc1.setData(
+          DocumentData.fromMap({'createdAt': now}),
+        );
+        await doc2.setData(
+          DocumentData.fromMap({'createdAt': now.add(Duration(seconds: 10))}),
+        );
+
+        var query = collection.where('createdAt', isEqualTo: now);
+        var snapshot = await query.get();
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
+        var doc = snapshot.documents.single;
+        expect(doc.documentID, doc1.documentID);
+      });
+
       test('query filter with geo point', () async {
         var collection = app.firestore().collection('tests/query/where-geo');
         var doc1 = collection.document('doc1');
@@ -463,6 +575,77 @@ void main() {
         expect(snapshot.documents, hasLength(1));
         var doc = snapshot.documents.single;
         expect(doc.documentID, doc1.documentID);
+      });
+
+      test('query filter with list object', () async {
+        var collection = app.firestore().collection('tests/query/where-list');
+        var collRef =
+            collection; // testsRef.doc('nested_order_test').collection('many');
+        var docRefOne = collRef.document('doc1');
+
+        await docRefOne.setData(DocumentData.fromMap({
+          'sub': ['b']
+        }));
+        var docRefTwo = collRef.document('doc2');
+        await docRefTwo.setData(DocumentData.fromMap({
+          'sub': ['a']
+        }));
+        var docRefThree = collRef.document('doc3');
+        await docRefThree.setData(DocumentData.fromMap({'no_sub': false}));
+        var docRefFour = collRef.document('doc4');
+        await docRefFour.setData(DocumentData.fromMap({
+          'sub': ['a', 'b']
+        }));
+
+        List<String> _querySnapshotDocIds(QuerySnapshot querySnapshot) {
+          return querySnapshot.documents
+              .map((snapshot) => snapshot.documentID)
+              .toList();
+        }
+
+        // complex object
+        var querySnapshot = await collRef.where('sub', isEqualTo: ['a']).get();
+        expect(_querySnapshotDocIds(querySnapshot), ['doc2']);
+
+        // ordered by sub (complex object)
+        querySnapshot = await collRef.orderBy('sub').get();
+        expect(_querySnapshotDocIds(querySnapshot), ['doc2', 'doc4', 'doc1']);
+      });
+
+      test('query filter with map object', () async {
+        var collection = app.firestore().collection('tests/query/where-map');
+        var collRef =
+            collection; // testsRef.doc('nested_order_test').collection('many');
+        var docRefOne = collRef.document('doc1');
+
+        await docRefOne.setData(DocumentData.fromMap({
+          'sub': {'value': 'b'}
+        }));
+        var docRefTwo = collRef.document('doc2');
+        await docRefTwo.setData(DocumentData.fromMap({
+          'sub': <Object, Object>{'value': 'a'}
+        }));
+        var docRefThree = collRef.document('doc3');
+        await docRefThree.setData(DocumentData.fromMap({'no_sub': false}));
+        var docRefFour = collRef.document('doc4');
+        await docRefFour.setData(DocumentData.fromMap({
+          'sub': {'other': 'a', 'value': 'c'}
+        }));
+
+        List<String> _querySnapshotDocIds(QuerySnapshot querySnapshot) {
+          return querySnapshot.documents
+              .map((snapshot) => snapshot.documentID)
+              .toList();
+        }
+
+        // complex object
+        var querySnapshot =
+            await collRef.where('sub', isEqualTo: {'value': 'a'}).get();
+        expect(_querySnapshotDocIds(querySnapshot), ['doc2']);
+
+        // ordered by sub (complex object)
+        querySnapshot = await collRef.orderBy('sub').get();
+        expect(_querySnapshotDocIds(querySnapshot), ['doc4', 'doc2', 'doc1']);
       });
 
       test('query filter with blob', () async {
