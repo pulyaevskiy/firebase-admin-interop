@@ -79,8 +79,8 @@ abstract class EventType {
   static const String childMoved = 'child_moved';
 }
 
-/// QuerySubscription to keep function callback and allowing use to unsubscribe with [cancel]
-/// or [off] later
+/// QuerySubscription to keep function callback and allowing use to unsubscribe
+/// with [cancel] later.
 class QuerySubscription {
   /// Type of events handled by this subscription.
   ///
@@ -95,7 +95,7 @@ class QuerySubscription {
   ///
   /// Detaches the callback previously registered with [Query.on].
   ///
-  /// See also [Query.off] for other methods ways of canceling subscriptions.
+  /// See also [Query.off] for other ways of canceling subscriptions.
   void cancel() {
     _nativeInstance.off(this.eventType, this._callback);
   }
