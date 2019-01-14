@@ -1,6 +1,8 @@
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 @TestOn('node')
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 import 'package:test/test.dart';
@@ -32,6 +34,25 @@ void main() {
         var value = await ref.once('value');
         var records = new Map<String, dynamic>.from(value.val());
         expect(records, hasLength(2));
+      });
+
+      test('on and off', () async {
+        var controller = StreamController<String>();
+        final sub = ref.on(EventType.value, (DataSnapshot snapshot) {
+          controller.add(snapshot.val() as String);
+        });
+        final result = controller.stream.take(3).toList();
+
+        // This sleep is needed for the initial value to trigger the first
+        // event.
+        await Future.delayed(Duration(seconds: 1));
+
+        await ref.setValue('Second');
+        await ref.setValue('Last');
+        final values = await result;
+        expect(values, ['Firebase', 'Second', 'Last']);
+        sub.cancel();
+        controller.close();
       });
     });
 

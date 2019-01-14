@@ -1,3 +1,8 @@
+## 1.2.0
+
+- Added `Query.on` and `Query.off` methods (#39).
+- Added [EventType] namespace for list of all event types supported by `Query.on`.
+
 ## 1.1.0
 
 Upgraded to support firebase-admin Node.js SDK 6.2.0 and @google-cloud/firestore 0.18.0.
