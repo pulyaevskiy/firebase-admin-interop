@@ -24,7 +24,7 @@ Write server-side Firebase applications in Dart using Node.js as a runtime.
 
 ```yaml
 dependencies:
-  firebase_admin_interop: ^1.1.0
+  firebase_admin_interop: [latest_version]
 ```
 
 Run `pub get`.
