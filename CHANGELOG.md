@@ -1,7 +1,8 @@
 ## 1.2.0
 
 - Added `Query.on` and `Query.off` methods (#39).
-- Added [EventType] namespace for list of all event types supported by `Query.on`.
+- Added `EventType` namespace for list of all event types supported by `Query.on`.
+- Added support for `FieldValue.arrayUnion` and `FieldValue.arrayRemove` in Firestore (#42).
 
 ## 1.1.0
 

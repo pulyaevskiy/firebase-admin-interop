@@ -221,7 +221,8 @@ class Query {
   ///
   /// If [eventType] is specified, all subscriptions for that specified
   /// [eventType] will be removed. If no [eventType] is
-  /// specified, all callbacks for the [Reference] will be removed.
+  /// specified, all callbacks for the [Reference] will be removed. If
+  /// specified, [eventType] must be one of [EventType] constants.
   ///
   /// To unsubscribe a specific callback, use [QuerySubscription.cancel].
   void off([String eventType]) {
@@ -233,6 +234,8 @@ class Query {
   }
 
   /// Listens for data changes at a particular location.
+  ///
+  /// [eventType] must be one of [EventType] constants.
   ///
   /// This is the primary way to read data from a [Database]. Your callback will
   /// be triggered for the initial data and again whenever the data changes.
