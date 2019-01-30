@@ -376,6 +376,26 @@ void main() {
         expect(readData.toMap(), {'value2': 4});
       });
 
+      test('update sub fields', () async {
+        var ref = app.firestore().document('tests/set_options');
+        await ref.setData(DocumentData.fromMap({'created': 1, 'modified': 2}));
+        await ref.updateData(UpdateData.fromMap({
+          'modified': 22,
+          'added': 3,
+          // update allow specifying sub field using dot
+          'sub.field': 4,
+          // but also supports regular map
+          'other_sub': {'field': 5}
+        }));
+        expect((await ref.get()).data.toMap(), {
+          'created': 1,
+          'modified': 22,
+          'added': 3,
+          'sub': {'field': 4},
+          'other_sub': {'field': 5}
+        });
+      });
+
       test('getCollections', () async {
         var doc = app.firestore().document('tests/get_collections');
         // Create an element in a sub collection to make sure the collection
