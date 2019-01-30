@@ -410,6 +410,9 @@ class _FirestoreData {
       setTimestamp(key, value);
     } else if (value is FieldValue) {
       setFieldValue(key, value);
+    } else if (value is Map) {
+      setNestedData(
+          key, new DocumentData.fromMap(value.cast<String, dynamic>()));
     } else {
       throw new ArgumentError.value(
           value, key, 'Unsupported value type for Firestore.');
@@ -728,16 +731,6 @@ class DocumentData extends _FirestoreData {
     return doc;
   }
 
-  @override
-  void _setField(String key, value) {
-    if (value is Map) {
-      setNestedData(
-          key, new DocumentData.fromMap(value.cast<String, dynamic>()));
-    } else {
-      super._setField(key, value);
-    }
-  }
-
   DocumentData getNestedData(String key) {
     final data = getProperty(nativeInstance, key);
     if (data == null) return null;
@@ -790,6 +783,7 @@ class UpdateData extends _FirestoreData {
 class Timestamp {
   final int seconds;
   final int nanoseconds;
+
   Timestamp(this.seconds, this.nanoseconds);
 
   factory Timestamp.fromDateTime(DateTime dateTime) {
@@ -1254,6 +1248,7 @@ abstract class _FieldValueArray implements FieldValue {
 
 class _FieldValueArrayUnion extends _FieldValueArray {
   _FieldValueArrayUnion(List elements) : super(elements);
+
   @override
   _jsify() {
     return callMethod(js.admin.firestore.FieldValue, 'arrayUnion',
@@ -1266,6 +1261,7 @@ class _FieldValueArrayUnion extends _FieldValueArray {
 
 class _FieldValueArrayRemove extends _FieldValueArray {
   _FieldValueArrayRemove(List elements) : super(elements);
+
   @override
   _jsify() {
     return callMethod(js.admin.firestore.FieldValue, 'arrayRemove',
