@@ -1,7 +1,7 @@
 language: dart
 
 dart:
-- dev
+- stable
 
 before_install:
 - nvm install 8.12.0
