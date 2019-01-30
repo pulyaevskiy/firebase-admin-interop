@@ -1,3 +1,7 @@
+## 1.2.1
+
+- Added support for updating nested fields in Firestore (#44)
+
 ## 1.2.0
 
 - Added `Query.on` and `Query.off` methods (#39).
