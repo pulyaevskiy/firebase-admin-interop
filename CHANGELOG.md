@@ -1,3 +1,7 @@
+## 1.2.2
+
+- Fixed issue with converting to JS types in startAt/startAfter/endAt/endAfter (#45).
+
 ## 1.2.1
 
 - Added support for updating nested fields in Firestore (#44)
