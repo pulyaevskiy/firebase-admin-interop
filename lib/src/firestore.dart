@@ -397,7 +397,8 @@ class _FirestoreData {
     } else if (value is bool) {
       setBool(key, value);
     } else if (value is DateTime) {
-      setDateTime(key, value); // ignore: deprecated_member_use, deprecated_member_use_from_same_package
+      // ignore: deprecated_member_use, deprecated_member_use_from_same_package
+      setDateTime(key, value);
     } else if (value is GeoPoint) {
       setGeoPoint(key, value);
     } else if (value is Blob) {
