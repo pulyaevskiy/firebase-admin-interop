@@ -555,6 +555,14 @@ void main() {
         expect(snapshot.documents, hasLength(1));
         var doc = snapshot.documents.single;
         expect(doc.documentID, doc1.documentID);
+
+        // Test with startAfter
+        query = collection.orderBy('createdAt').startAfter(values: [now]);
+        snapshot = await query.get();
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
+        doc = snapshot.documents.single;
+        expect(doc.documentID, doc2.documentID);
       });
 
       test('query filter with date', () async {
@@ -575,6 +583,14 @@ void main() {
         expect(snapshot.documents, hasLength(1));
         var doc = snapshot.documents.single;
         expect(doc.documentID, doc1.documentID);
+
+        // Test with startAfter
+        query = collection.orderBy('createdAt').startAfter(values: [now]);
+        snapshot = await query.get();
+        expect(snapshot, isNotEmpty);
+        expect(snapshot.documents, hasLength(1));
+        doc = snapshot.documents.single;
+        expect(doc.documentID, doc2.documentID);
       });
 
       test('query filter with geo point', () async {

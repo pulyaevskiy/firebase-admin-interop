@@ -1063,7 +1063,7 @@ class DocumentQuery {
     }
     List<dynamic> args = (snapshot != null)
         ? [snapshot.nativeInstance]
-        : values.map(jsify).toList();
+        : values.map(_FirestoreData._jsify).toList();
     return callMethod(nativeInstance, method, args);
   }
 
