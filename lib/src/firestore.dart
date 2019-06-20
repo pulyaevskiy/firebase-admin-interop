@@ -76,6 +76,12 @@ class Firestore {
     return new CollectionReference(nativeInstance.collection(path), this);
   }
 
+  /// Gets a [CollectionReference] for the specified Firestore path.
+  DocumentQuery collectionGroup(String name) {
+    assert(name != null);
+    return new DocumentQuery(nativeInstance.collectionGroup(name), this);
+  }
+
   /// Gets a [DocumentReference] for the specified Firestore path.
   DocumentReference document(String path) {
     assert(path != null);
