@@ -79,6 +79,9 @@ abstract class Firestore {
   /// Gets a `CollectionReference` instance that refers to the collection at
   /// the specified path.
   external CollectionReference collection(String collectionPath);
+
+  /// Gets a 'DocumentQuery` instance that refers to a query across all
+  /// collections with the given name.
   external DocumentQuery collectionGroup(String collection);
 
   /// Gets a `DocumentReference` instance that refers to the document at the
