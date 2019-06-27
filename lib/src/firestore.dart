@@ -76,7 +76,8 @@ class Firestore {
     return new CollectionReference(nativeInstance.collection(path), this);
   }
 
-  /// Gets a [DocumentQuery] for the specified Firestore path.
+  /// Gets a [DocumentQuery] instance that refers to a query across all
+  /// collections with the given name.
   DocumentQuery collectionGroup(String name) {
     assert(name != null);
     return new DocumentQuery(nativeInstance.collectionGroup(name), this);
