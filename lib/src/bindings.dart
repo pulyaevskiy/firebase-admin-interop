@@ -156,6 +156,9 @@ abstract class App {
 
   /// Gets the [Firestore] client for this app.
   external Firestore firestore();
+
+  /// Gets the [Messaging] service for this app.
+  external Messaging messaging();
 }
 
 /// Available options to pass to [initializeApp].
@@ -1117,4 +1120,168 @@ abstract class DataSnapshot {
   /// also return `null`, indicating that the DataSnapshot is empty (contains
   /// no data).
   external dynamic val();
+}
+
+// admin.messaging ==================================================================
+
+/// The Firebase Messaging service interface.
+@JS()
+@anonymous
+abstract class Messaging {
+  /// Sends a [Message]
+  ///
+  /// Returns a promise fulfilled with the `messageId` corresponding to the newly
+  /// created message.
+  external Promise send(Message message);
+
+  /// Sends multiple messages [Message]
+  ///
+  /// Returns a promise fulfilled with the [BatchMessageResponse] corresponding sent
+  /// messages
+  external Promise sendAll(List<Message> message);
+
+  /// Sends a [MulticastMessage]
+  ///
+  /// Returns a promise fulfilled with the [BatchMessageResponse] corresponding sent
+  /// messages
+  external Promise sendMulticast(MulticastMessage message);
+}
+
+@JS()
+@anonymous
+abstract class Message {
+  external Map<String, String> get data;
+  external Notification get notification;
+  external String get token;
+  external String get topic;
+  external String get condition;
+
+  external factory Message({
+    Notification notification,
+    Map<String, String> data,
+    String token,
+    String topic,
+    String condition,
+    AndroidNotification android,
+    FCMOptions fcm_options,
+    APNSConfig apns,
+  });
+}
+
+@JS()
+@anonymous
+abstract class MulticastMessage {
+  external factory MulticastMessage({
+    Notification notification,
+    Map<String, String> data,
+    List<String> tokens,
+    AndroidMessageConfig android,
+    APNSConfig apns,
+  });
+
+  external Notification get notification;
+  external Map<String, String> get data;
+  external List<String> get tokens;
+}
+
+@JS()
+@anonymous
+abstract class Notification {
+  external factory Notification({
+    String title,
+    String body,
+  });
+
+  external String get title;
+  external String get body;
+}
+
+@JS()
+@anonymous
+abstract class AndroidMessageConfig {
+  external factory AndroidMessageConfig({
+    String collapse_key,
+    String priority,
+    String ttl,
+    AndroidNotification notification,
+    FCMOptions fcm_options,
+    String restricted_package_name,
+  });
+
+  external String get collapse_key;
+  external String get priority;
+  external String get ttl;
+  external AndroidNotification get notification;
+  external FCMOptions get fcm_options;
+  external String get restricted_package_name;
+}
+
+@JS()
+@anonymous
+abstract class AndroidNotification {
+  external factory AndroidNotification({
+    String title,
+    String body,
+    String icon,
+    String color,
+    String sound,
+    String tag,
+    String click_action,
+    String body_loc_key,
+    String body_loc_args,
+    String title_loc_key,
+    List<String> title_loc_args,
+    String channel_id,
+  });
+
+  external String get title;
+  external String get body;
+  external String get icon;
+  external String get color;
+  external String get sound;
+  external String get tag;
+  external String get click_action;
+  external String get body_loc_key;
+  external String get body_loc_args;
+  external String get title_loc_key;
+  external List<String> get title_loc_args;
+  external String get channel_id;
+}
+
+@JS()
+@anonymous
+abstract class FCMOptions {
+  external factory FCMOptions({String analytics_label});
+
+  external String get analytics_label;
+}
+
+@JS()
+@anonymous
+abstract class APNSConfig {
+  external factory APNSConfig({
+    Map<String, String> headers,
+    APNSPayload payload,
+    FCMOptions fcm_options,
+  });
+
+  external Map<String, String> get headers;
+  external APNSPayload get payload;
+  external FCMOptions get fcm_options;
+}
+
+@JS()
+@anonymous
+abstract class APNSPayload {
+  external factory APNSPayload({int badge, String category});
+  external int get badge;
+  external String get category;
+}
+
+@JS()
+@anonymous
+abstract class BatchMessageResponse {
+  external int get successCount;
+  external int get failureCount;
+  external String get multicastId;
 }

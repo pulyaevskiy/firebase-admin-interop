@@ -11,6 +11,7 @@ import 'auth.dart';
 import 'bindings.dart' as js;
 import 'database.dart';
 import 'firestore.dart';
+import 'messaging.dart';
 
 /// Represents initialized Firebase application and provides access to the
 /// app's services.
@@ -44,4 +45,8 @@ class App {
   /// Renders this app unusable and frees the resources of all associated
   /// services.
   Future<void> delete() => promiseToFuture<void>(nativeInstance.delete());
+
+  Messaging messaging() =>
+      _messaging ??= new Messaging(nativeInstance.messaging());
+  Messaging _messaging;
 }
