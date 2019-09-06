@@ -1055,5 +1055,17 @@ void main() {
         expect((await doc4Ref.get()).exists, isFalse);
       });
     });
+
+    group('Collection Groups', () {
+      test('fetch documents in a collection group', () async {
+        var doc1 = app.firestore().document('tests/group_a/doc1');
+        var doc2 = app.firestore().document('tests/nested/group_a/doc2');
+        await doc1.setData(DocumentData.fromMap({'value': 1}));
+        await doc2.setData(DocumentData.fromMap({'value': 2}));
+
+        var snapshot = await app.firestore().collectionGroup('group_a').get();
+        expect(snapshot.documents, hasLength(2));
+      });
+    });
   });
 }

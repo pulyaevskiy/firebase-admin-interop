@@ -80,6 +80,15 @@ abstract class Firestore {
   /// the specified path.
   external CollectionReference collection(String collectionPath);
 
+  /// Creates and returns a new Query that includes all documents in the
+  /// database that are contained in a collection or subcollection with the
+  /// given [collectionId].
+  ///
+  /// [collectionId] identifies the collections to query over. Every collection
+  /// or subcollection with this ID as the last segment of its path will be
+  /// included. Cannot contain a slash.
+  external DocumentQuery collectionGroup(String collectionId);
+
   /// Gets a `DocumentReference` instance that refers to the document at the
   /// specified path.
   external DocumentReference doc(String documentPath);
