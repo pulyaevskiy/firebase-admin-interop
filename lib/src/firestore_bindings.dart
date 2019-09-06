@@ -104,7 +104,7 @@ abstract class Firestore {
 
   /// Fetches the root collections that are associated with this Firestore
   /// database.
-  external Promise getCollections();
+  external Promise listCollections();
 
   /// Executes the given updateFunction and commits the changes applied within
   /// the transaction.
@@ -343,7 +343,7 @@ abstract class DocumentReference {
   external CollectionReference collection(String collectionPath);
 
   /// Fetches the subcollections that are direct children of this document.
-  external Promise getCollections();
+  external Promise listCollections();
 
   /// Creates a document referred to by this `DocumentReference` with the
   /// provided object values. The write fails if the document already exists

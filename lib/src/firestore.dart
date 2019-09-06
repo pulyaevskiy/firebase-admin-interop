@@ -118,8 +118,8 @@ class Firestore {
 
   /// Fetches the root collections that are associated with this Firestore
   /// database.
-  Future<List<CollectionReference>> getCollections() async =>
-      (await promiseToFuture<List>(nativeInstance.getCollections()))
+  Future<List<CollectionReference>> listCollections() async =>
+      (await promiseToFuture<List>(nativeInstance.listCollections()))
           .map((nativeCollectionReference) =>
               CollectionReference(nativeCollectionReference, this))
           .toList(growable: false);
@@ -274,8 +274,8 @@ class DocumentReference {
   }
 
   /// Fetches the subcollections that are direct children of this document.
-  Future<List<CollectionReference>> getCollections() async =>
-      (await promiseToFuture<List>(nativeInstance.getCollections()))
+  Future<List<CollectionReference>> listCollections() async =>
+      (await promiseToFuture<List>(nativeInstance.listCollections()))
           .map((nativeCollectionReference) =>
               CollectionReference(nativeCollectionReference, firestore))
           .toList(growable: false);
