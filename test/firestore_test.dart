@@ -396,15 +396,15 @@ void main() {
         });
       });
 
-      test('getCollections', () async {
-        var doc = app.firestore().document('tests/get_collections');
+      test('listCollections', () async {
+        var doc = app.firestore().document('tests/list_collections');
         // Create an element in a sub collection to make sure the collection
         // exists
         await doc
             .collection('sub')
             .document('item')
             .setData(DocumentData.fromMap({}));
-        var collections = await doc.getCollections();
+        var collections = await doc.listCollections();
         expect(collections.any((CollectionReference col) => col.id == 'sub'),
             isTrue);
       });
@@ -476,10 +476,10 @@ void main() {
         expect(doc.path, 'users/abc');
       });
 
-      test('getCollections', () async {
+      test('listCollections', () async {
         // create a document to make sure the collection is created
         await ref.document('any').setData(DocumentData.fromMap({}));
-        var collections = await app.firestore().getCollections();
+        var collections = await app.firestore().listCollections();
         // Find our collection
         expect(
           collections.any((CollectionReference col) => col.path == ref.path),
@@ -903,6 +903,8 @@ void main() {
         await doc3Ref.setData(new DocumentData()..setInt('value', 3));
         await doc4Ref.setData(new DocumentData()..setInt('value', doc4Value));
 
+        await Future.delayed(Duration(seconds: 1)); // to avoid too much contention errors
+
         List<DocumentSnapshot> list =
             await app.firestore().runTransaction((Transaction tx) async {
           var query = await tx.getQuery(
@@ -953,10 +955,14 @@ void main() {
         var doc1UpdateTime1 = (await doc1Ref.get()).updateTime;
         var doc2UpdateTime1 = (await doc2Ref.get()).updateTime;
 
+        await Future.delayed(Duration(seconds: 1)); // to avoid too much contention errors
+
         await doc1Ref.setData(new DocumentData()..setInt('value', 10));
         await doc2Ref.setData(new DocumentData()..setInt('value', 20));
         var doc1UpdateTime2 = (await doc1Ref.get()).updateTime;
         var doc2UpdateTime2 = (await doc2Ref.get()).updateTime;
+
+        await Future.delayed(Duration(seconds: 1)); // to avoid too much contention errors
 
         Future result = app.firestore().runTransaction((Transaction tx) async {
           var doc2 = (await tx.get(doc2Ref)).data;
@@ -967,7 +973,7 @@ void main() {
         });
 
         var error = await result.catchError((error) => error);
-        expect(error.toString(), contains('FAILED_PRECONDITION'));
+        expect(error.toString(), contains('does not match the required base version'));
 
         expect((await doc1Ref.get()).data.toMap(), {'value': 10});
         expect((await doc2Ref.get()).data.toMap(), {'value': 20});
@@ -1053,6 +1059,18 @@ void main() {
         });
         expect((await doc3Ref.get()).data.toMap(), {'value': 3});
         expect((await doc4Ref.get()).exists, isFalse);
+      });
+    });
+
+    group('Collection Groups', () {
+      test('fetch documents in a collection group', () async {
+        var doc1 = app.firestore().document('tests/one/group_a/doc1');
+        var doc2 = app.firestore().document('tests/two/group_a/doc2');
+        await doc1.setData(DocumentData.fromMap({'value': 1}));
+        await doc2.setData(DocumentData.fromMap({'value': 2}));
+
+        var snapshot = await app.firestore().collectionGroup('group_a').get();
+        expect(snapshot.documents, hasLength(2));
       });
     });
   });

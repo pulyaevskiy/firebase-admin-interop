@@ -1,3 +1,24 @@
+## 2.0.0
+
+Upgraded to support firebase-admin Node.js SDK 8.0.0 or greater and `@google-cloud/firestore` 2.0.0.
+
+Make sure to update your `package.json` with following version constraints:
+
+```json
+{
+  "dependencies": {
+    "firebase-admin": "8.5.0",
+    "@google-cloud/firestore": "2.0.0"
+  }
+}
+```
+
+- Breaking change: library now requires Node.js >= 8.13.0
+- Breaking change: DocumentReference `getCollections` method renamed to `listCollections`.
+- Breaking change: Firestore `getCollections` method renamed to `listCollections`.
+- Added support for Collection Groups in Firestore
+
+
 ## 1.2.2
 
 - Fixed issue with converting to JS types in startAt/startAfter/endAt/endAfter (#45).
@@ -19,9 +40,11 @@ Upgraded to support firebase-admin Node.js SDK 6.2.0 and @google-cloud/firestore
 Make sure to update your `package.json` with following version constraints:
 
 ```json
-"dependencies": {
-  "firebase-admin": "~6.2.0",
-  "@google-cloud/firestore": "0.18.0"
+{
+  "dependencies": {
+    "firebase-admin": "~6.2.0",
+    "@google-cloud/firestore": "0.18.0"
+  }
 }
 ```
 
