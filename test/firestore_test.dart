@@ -903,6 +903,8 @@ void main() {
         await doc3Ref.setData(new DocumentData()..setInt('value', 3));
         await doc4Ref.setData(new DocumentData()..setInt('value', doc4Value));
 
+        await Future.delayed(Duration(seconds: 1)); // to avoid too much contention errors
+
         List<DocumentSnapshot> list =
             await app.firestore().runTransaction((Transaction tx) async {
           var query = await tx.getQuery(
@@ -953,10 +955,14 @@ void main() {
         var doc1UpdateTime1 = (await doc1Ref.get()).updateTime;
         var doc2UpdateTime1 = (await doc2Ref.get()).updateTime;
 
+        await Future.delayed(Duration(seconds: 1)); // to avoid too much contention errors
+
         await doc1Ref.setData(new DocumentData()..setInt('value', 10));
         await doc2Ref.setData(new DocumentData()..setInt('value', 20));
         var doc1UpdateTime2 = (await doc1Ref.get()).updateTime;
         var doc2UpdateTime2 = (await doc2Ref.get()).updateTime;
+
+        await Future.delayed(Duration(seconds: 1)); // to avoid too much contention errors
 
         Future result = app.firestore().runTransaction((Transaction tx) async {
           var doc2 = (await tx.get(doc2Ref)).data;
