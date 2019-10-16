@@ -49,3 +49,4 @@ export 'src/auth.dart';
 export 'src/bindings.dart' show AppOptions, SetOptions, FirestoreSettings;
 export 'src/database.dart';
 export 'src/firestore.dart';
+export 'src/messaging.dart';
