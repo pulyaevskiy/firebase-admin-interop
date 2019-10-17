@@ -139,7 +139,7 @@ Current implementation coverage report:
 - [x] admin.credential
 - [x] admin.database
 - [x] admin.firestore
-- [ ] admin.messaging
+- [x] admin.messaging
 - [ ] admin.storage
 
 ## Features and bugs
