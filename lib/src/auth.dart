@@ -106,7 +106,7 @@ class Auth {
   /// is transmitted on every authenticated request. For profile non-access
   /// related user attributes, use database or other separate storage systems.
   Future<void> setCustomUserClaims(
-          String uid, Map<String, String> customUserClaims) =>
+          String uid, Map<String, dynamic> customUserClaims) =>
       promiseToFuture(
           nativeInstance.setCustomUserClaims(uid, jsify(customUserClaims)));
 
