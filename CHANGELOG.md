@@ -5,10 +5,9 @@ Upgraded to support firebase-admin Messaging features to send cloud message payl
   NotificationMessagePayload notification = NotificationMessagePayload(
     title: title,
     body: body,
-    clickAction: "event-" + event.documentID,
-
+    clickAction: "FLUTTER_NOTIFICATION_CLICK",
   );
-  MessagingPayload payload = new MessagingPayload(notification: notification);
+  MessagingPayload payload = new MessagingPayload(notification: notification, data: DataMessagePayload(data: {"doc" : event.reference.path}));
   MessagingDevicesResponse result = await firestoreApp.messaging().sendToDevice(token, payload);
   // or firestoreApp.messaging().sendToTopic(topic, payload);
 ```
