@@ -11,7 +11,7 @@ Upgraded to support firebase-admin Messaging features to send cloud message payl
   MessagingDevicesResponse result = await firestoreApp.messaging().sendToDevice(token, payload);
   // or firestoreApp.messaging().sendToTopic(topic, payload);
 ```
-- Breaking change: Updated versions of many dependancies in pubspec
+- Breaking change: Updated versions of many dependencies in pubspec
 
 ## 2.0.0
 
