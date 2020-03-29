@@ -41,7 +41,7 @@ class App {
   Firestore firestore() =>
       _firestore ??= new Firestore(nativeInstance.firestore());
   Firestore _firestore;
-  
+
   /// Gets [Messaging] client for this application.
   Messaging messaging() =>
       _messaging ??= new Messaging(nativeInstance.messaging());
