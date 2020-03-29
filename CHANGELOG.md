@@ -1,3 +1,18 @@
+## 2.1.0
+
+Upgraded to support firebase-admin Messaging features to send cloud message payloads to device, topic, all, multicast, and subscribe/unsubscribe from topic.
+```dart
+  NotificationMessagePayload notification = NotificationMessagePayload(
+    title: title,
+    body: body,
+    clickAction: "FLUTTER_NOTIFICATION_CLICK",
+  );
+  MessagingPayload payload = new MessagingPayload(notification: notification, data: DataMessagePayload(data: {"doc" : event.reference.path}));
+  MessagingDevicesResponse result = await firestoreApp.messaging().sendToDevice(token, payload);
+  // or firestoreApp.messaging().sendToTopic(topic, payload);
+```
+- Breaking change: Updated versions of many dependancies in pubspec
+
 ## 2.0.0
 
 Upgraded to support firebase-admin Node.js SDK 8.0.0 or greater and `@google-cloud/firestore` 2.0.0.
