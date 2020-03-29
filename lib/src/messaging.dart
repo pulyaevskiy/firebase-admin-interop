@@ -62,7 +62,7 @@ class Messaging {
 
   /// Sends the given [message] via FCM.
   /// 
-  /// Returns Promise<string> fulfilled with a unique message ID string after the 
+  /// Returns Future<String> fulfilled with a unique message ID string after the 
   /// message has been successfully handed off to the FCM service for delivery
   Future<String> send(FcmMessage message, [bool dryRun]) {
     if (dryRun != null)
@@ -73,7 +73,7 @@ class Messaging {
 
   /// Sends all the [messages] in the given array via Firebase Cloud Messaging.
   /// 
-  /// Returns Promise<BatchResponse> fulfilled with an object representing the result of the send operation.
+  /// Returns Future<BatchResponse> fulfilled with an object representing the result of the send operation.
   Future<BatchResponse> sendAll(List<FcmMessage> messages, [bool dryRun]) {
     if (dryRun != null)
       return promiseToFuture(nativeInstance.sendAll(messages, dryRun));
@@ -83,7 +83,7 @@ class Messaging {
 
   /// Sends the given multicast [message] to all the FCM registration tokens specified in it.
   /// 
-  /// Returns Promise<BatchResponse> fulfilled with an object representing the result of the send operation.
+  /// Returns Future<BatchResponse> fulfilled with an object representing the result of the send operation.
   Future<BatchResponse> sendMulticast(MulticastMessage message, [bool dryRun]) {
     if (dryRun != null)
       return promiseToFuture(nativeInstance.sendMulticast(message, dryRun));
@@ -93,7 +93,7 @@ class Messaging {
 
   /// Sends an FCM message to a [condition].
   /// 
-  /// Returns Promise<MessagingConditionResponse> fulfilled with the server's response after the message has been sent.
+  /// Returns Future<MessagingConditionResponse> fulfilled with the server's response after the message has been sent.
   Future<MessagingConditionResponse> sendToCondition(String condition, MessagingPayload payload, [MessagingOptions options]) {
     if (options != null)
       return promiseToFuture(nativeInstance.sendToCondition(condition, payload, options));
@@ -103,7 +103,7 @@ class Messaging {
 
   /// Sends an FCM message to a single device corresponding to the provided [registrationToken].
   /// 
-  /// Returns Promise<MessagingDevicesResponse> fulfilled with the server's response after the message has been sent.
+  /// Returns Future<MessagingDevicesResponse> fulfilled with the server's response after the message has been sent.
   Future<MessagingDevicesResponse> sendToDevice(String registrationToken, MessagingPayload payload, [MessagingOptions options]) {
     if (options != null)
       return promiseToFuture(nativeInstance.sendToDevice(registrationToken, payload, options));
@@ -113,7 +113,7 @@ class Messaging {
 
   /// Sends an FCM message to a device group corresponding to the provided [notificationKey].
   /// 
-  /// Returns Promise<MessagingDevicesResponse> fulfilled with the server's response after the message has been sent.
+  /// Returns Future<MessagingDevicesResponse> fulfilled with the server's response after the message has been sent.
   Future<MessagingDeviceGroupResponse> sendToDeviceGroup(String notificationKey, MessagingPayload payload, [MessagingOptions options]) {
     if (options != null)
       return promiseToFuture(nativeInstance.sendToDeviceGroup(notificationKey, payload, options));
@@ -123,7 +123,7 @@ class Messaging {
 
   /// Sends an FCM message to a [topic].
   /// 
-  /// Returns Promise<MessagingTopicResponse> fulfilled with the server's response after the message has been sent.
+  /// Returns Future<MessagingTopicResponse> fulfilled with the server's response after the message has been sent.
   Future<MessagingTopicResponse> sendToTopic(String topic, MessagingPayload payload, [MessagingOptions options]) {
     if (options != null)
       return promiseToFuture(nativeInstance.sendToTopic(topic, payload, options));
@@ -133,13 +133,13 @@ class Messaging {
 
   /// Subscribes a device to an FCM [topic].
   /// 
-  /// Returns Promise<MessagingTopicManagementResponse> fulfilled with the server's response after the device has been subscribed to the topic.
+  /// Returns Future<MessagingTopicManagementResponse> fulfilled with the server's response after the device has been subscribed to the topic.
   Future<MessagingTopicManagementResponse> subscribeToTopic(String registrationTokens, String topic) =>
       promiseToFuture(nativeInstance.subscribeToTopic(registrationTokens, topic));
 
   /// Unsubscribes a device from an FCM [topic].
   /// 
-  /// Returns Promise<MessagingTopicManagementResponse> fulfilled with the server's response after the device has been subscribed to the topic.
+  /// Returns Future<MessagingTopicManagementResponse> fulfilled with the server's response after the device has been subscribed to the topic.
   Future<MessagingTopicManagementResponse> unsubscribeFromTopic(String registrationTokens, String topic) =>
       promiseToFuture(nativeInstance.unsubscribeFromTopic(registrationTokens, topic));
 }
