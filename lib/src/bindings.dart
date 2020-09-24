@@ -290,6 +290,15 @@ abstract class Auth {
   /// [DecodedIdToken]; otherwise, the promise is rejected. An optional flag can
   /// be passed to additionally check whether the ID token was revoked.
   external Promise verifyIdToken(String idToken, [bool checkRevoked]);
+
+  /// Generates the out of band email action link to sign in or sign up the owner
+  /// of the specified email. The
+  /// [ActionCodeSettings] object provided
+  /// as an argument to this method defines whether the link is to be handled by a
+  /// mobile app or browser along with additional state information to be passed in
+  /// the deep link, etc.
+  external Promise generateSignInWithEmailLink(
+      String email, ActionCodeSettings actionCodeSettings);
 }
 
 @JS()
@@ -335,6 +344,54 @@ abstract class UpdateUserRequest {
     String password,
     String phoneNumber,
     String photoURL,
+  });
+}
+
+@JS()
+@anonymous
+abstract class ActionCodeSettings {
+  external String get url;
+
+  external bool get handleCodeInApp;
+
+  external ActionCodeSettingsiOS get iOS;
+
+  external ActionCodeSettingsAndroid get android;
+
+  external String get dynamicLinkDomain;
+
+  external factory ActionCodeSettings({
+    String url,
+    bool handleCodeInApp,
+    ActionCodeSettingsiOS iOS,
+    ActionCodeSettingsAndroid android,
+    String dynamicLinkDomain,
+  });
+}
+
+@JS()
+@anonymous
+abstract class ActionCodeSettingsiOS {
+  external String get bundleId;
+
+  external factory ActionCodeSettingsiOS({
+    String bundleId,
+  });
+}
+
+@JS()
+@anonymous
+abstract class ActionCodeSettingsAndroid {
+  external String get packageName;
+
+  external bool get installApp;
+
+  external String get minimumVersion;
+
+  external factory ActionCodeSettingsAndroid({
+    String packageName,
+    bool installApp,
+    String minimumVersion,
   });
 }
 

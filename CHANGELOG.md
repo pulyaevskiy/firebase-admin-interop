@@ -1,3 +1,29 @@
+## 2.2.0
+
+Upgraded to support generating email action links.
+Generates the out of band email action link to sign in or sign up the owner of the specified email.
+
+```dart
+final app = FirebaseAdmin.instance.initializeApp();
+
+final emailLink = app.auth().generateSignInWithEmailLink(
+      'example@example.com',
+      ActionCodeSettings(
+        url: 'https://example.com',
+        handleCodeInApp: true,
+        iOS: ActionCodeSettingsiOS(
+          bundleId: 'com.example',
+        ),
+        android: ActionCodeSettingsAndroid(
+          packageName: 'com.example',
+          installApp: true,
+          minimumVersion: '42',
+        ),
+        dynamicLinkDomain: 'example.page.link',
+      ),
+    );
+```
+
 ## 2.1.0
 
 Upgraded to support firebase-admin Messaging features to send cloud message payloads to device, topic, all, multicast, and subscribe/unsubscribe from topic.

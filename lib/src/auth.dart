@@ -13,7 +13,10 @@ import 'bindings.dart'
         CreateUserRequest,
         UpdateUserRequest,
         ListUsersResult,
-        DecodedIdToken;
+        DecodedIdToken,
+        ActionCodeSettings,
+        ActionCodeSettingsiOS,
+        ActionCodeSettingsAndroid;
 
 export 'bindings.dart'
     show
@@ -24,7 +27,10 @@ export 'bindings.dart'
         UpdateUserRequest,
         ListUsersResult,
         DecodedIdToken,
-        FirebaseSignInInfo;
+        FirebaseSignInInfo,
+        ActionCodeSettings,
+        ActionCodeSettingsiOS,
+        ActionCodeSettingsAndroid;
 
 class Auth {
   Auth(this.nativeInstance);
@@ -128,4 +134,15 @@ class Auth {
       return promiseToFuture(nativeInstance.verifyIdToken(idToken));
     }
   }
+
+  /// Generates the out of band email action link to sign in or sign up the owner
+  /// of the specified email. The
+  /// [ActionCodeSettings] object provided
+  /// as an argument to this method defines whether the link is to be handled by a
+  /// mobile app or browser along with additional state information to be passed in
+  /// the deep link, etc.
+  Future<String> generateSignInWithEmailLink(
+          String email, ActionCodeSettings actionCodeSettings) =>
+      promiseToFuture(nativeInstance.generateSignInWithEmailLink(
+          email, actionCodeSettings));
 }
