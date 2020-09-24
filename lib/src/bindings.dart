@@ -374,7 +374,9 @@ abstract class ActionCodeSettings {
 abstract class ActionCodeSettingsiOS {
   external String get bundleId;
 
-  external factory ActionCodeSettingsiOS({String bundleId});
+  external factory ActionCodeSettingsiOS({
+    String bundleId,
+  });
 }
 
 @JS()
