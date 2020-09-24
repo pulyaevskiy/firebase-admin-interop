@@ -14,7 +14,9 @@ import 'bindings.dart'
         UpdateUserRequest,
         ListUsersResult,
         DecodedIdToken,
-        ActionCodeSettings;
+        ActionCodeSettings,
+        ActionCodeSettingsiOS,
+        ActionCodeSettingsAndroid;
 
 export 'bindings.dart'
     show
@@ -26,7 +28,9 @@ export 'bindings.dart'
         ListUsersResult,
         DecodedIdToken,
         FirebaseSignInInfo,
-        ActionCodeSettings;
+        ActionCodeSettings,
+        ActionCodeSettingsiOS,
+        ActionCodeSettingsAndroid;
 
 class Auth {
   Auth(this.nativeInstance);
