@@ -141,7 +141,7 @@ class Auth {
   /// as an argument to this method defines whether the link is to be handled by a
   /// mobile app or browser along with additional state information to be passed in
   /// the deep link, etc.
-  Future<dynamic> generateSignInWithEmailLink(
+  Future<String> generateSignInWithEmailLink(
           String email, ActionCodeSettings actionCodeSettings) =>
       promiseToFuture(nativeInstance.generateSignInWithEmailLink(
           email, actionCodeSettings));
