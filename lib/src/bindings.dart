@@ -116,7 +116,9 @@ abstract class ServiceAccountConfig {
 abstract class Credential {
   /// Returns a Google OAuth2 [AccessToken] object used to authenticate with
   /// Firebase services.
-  external AccessToken getAccessToken();
+  ///
+  /// Returns Promise<AccessToken>.
+  external Promise getAccessToken();
 }
 
 /// Google OAuth2 access token object used to authenticate with Firebase
