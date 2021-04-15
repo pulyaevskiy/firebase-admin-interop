@@ -10,7 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
 import 'package:node_interop/node.dart';
 import 'package:node_interop/util.dart';
-import 'package:quiver_hashcode/hashcode.dart';
+import 'package:quiver/core.dart';
 
 import 'bindings.dart' as js;
 
@@ -541,7 +541,7 @@ class _FirestoreData {
     if (data is! List) {
       throw new StateError('Expected list but got ${data.runtimeType}.');
     }
-    final result = new List();
+    final result = [];
     for (var item in data) {
       item = _dartify(item);
       result.add(item);

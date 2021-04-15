@@ -1001,9 +1001,9 @@ void main() {
         var doc1Ref = collRef.document('counter');
         await doc1Ref.setData(new DocumentData()..setInt('value', 1));
 
-        List<Future<int>> futures = new List();
-        List<dynamic> errors = new List();
-        List<int> complete = new List();
+        List<Future<int>> futures = [];
+        List<dynamic> errors = [];
+        List<int> complete = [];
 
         var futuresCount = 5;
         for (int i = 0; i < futuresCount; i++) {
