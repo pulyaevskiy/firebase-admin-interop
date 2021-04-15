@@ -20,7 +20,7 @@ abstract class Storage {
   ///
   /// [name] of the bucket to be retrieved is optional. If [name] is not
   /// specified, retrieves a reference to the default bucket.
-  external Bucket bucket([String name]);
+  external Bucket bucket([String? name]);
 }
 
 @JS()
@@ -40,18 +40,18 @@ abstract class Bucket {
   /// Create a bucket.
   ///
   /// Returns promise containing CreateBucketResponse.
-  external Promise create([CreateBucketRequest metadata, callback]);
+  external Promise create([CreateBucketRequest? metadata, callback]);
 
   /// Checks if the bucket exists.
   ///
   /// Returns promise containing list with following values:
   /// [0] [boolean] - Whether this bucket exists.
-  external Promise exists([BucketExistsOptions options, callback]);
+  external Promise exists([BucketExistsOptions? options, callback]);
 
   /// Creates a [StorageFile] object.
   ///
   /// See [StorageFile] to see for more details.
-  external StorageFile file(String name, [StorageFileOptions options]);
+  external StorageFile file(String name, [StorageFileOptions? options]);
 
   /// Upload a file to the bucket. This is a convenience method that wraps
   /// [StorageFile.createWriteStream].
@@ -81,7 +81,7 @@ abstract class CombineOptions {
   /// The ID of the project which will be billed for the request.
   external String get userProject;
 
-  external factory CombineOptions({String kmsKeyName, String userProject});
+  external factory CombineOptions({String? kmsKeyName, String? userProject});
 }
 
 @JS()
@@ -96,7 +96,7 @@ abstract class BucketExistsOptions {
   /// The ID of the project which will be billed for the request.
   external String get userProject;
 
-  external factory BucketExistsOptions({String userProject});
+  external factory BucketExistsOptions({String? userProject});
 }
 
 @JS()
@@ -115,7 +115,7 @@ abstract class StorageFileOptions {
   external String get kmsKeyName;
 
   external factory StorageFileOptions(
-      {String generation, String encryptionKey, String kmsKeyName});
+      {String? generation, String? encryptionKey, String? kmsKeyName});
 }
 
 @JS()

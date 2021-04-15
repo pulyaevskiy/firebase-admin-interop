@@ -10,15 +10,15 @@ import 'package:test/test.dart';
 import 'setup.dart';
 
 void main() {
-  App app = initFirebaseApp();
+  App? app = initFirebaseApp();
 
   group('Database', () {
     tearDownAll(() {
-      return app.delete();
+      return app!.delete();
     });
 
     group('Query', () {
-      var ref = app.database().ref('/app/users/23');
+      var ref = app!.database().ref('/app/users/23');
 
       setUp(() async {
         await ref.setValue('Firebase');
@@ -37,9 +37,9 @@ void main() {
       });
 
       test('on and off', () async {
-        var controller = StreamController<String>();
+        var controller = StreamController<String?>();
         final sub = ref.on(EventType.value, (DataSnapshot snapshot) {
-          controller.add(snapshot.val() as String);
+          controller.add(snapshot.val() as String?);
         });
         final result = controller.stream.take(3).toList();
 
@@ -57,7 +57,7 @@ void main() {
     });
 
     group('Reference', () {
-      var ref = app.database().ref('/app/users/23');
+      var ref = app!.database().ref('/app/users/23');
       var refUpdate = app.database().ref('/tests/refUpdate');
 
       setUp(() async {
@@ -122,7 +122,7 @@ void main() {
       });
 
       test('transaction abort', () async {
-        var result = await refUpdate.transaction((currentData) {
+        var result = await refUpdate.transaction((dynamic currentData) {
           return TransactionResult.abort;
         });
         expect(result.committed, isFalse);
@@ -131,7 +131,7 @@ void main() {
       test('transaction commit', () async {
         await refUpdate.update({'num': 23, 'nested/thing': '1984'});
 
-        var tx = await refUpdate.transaction((currentData) {
+        var tx = await refUpdate.transaction((dynamic currentData) {
           // Not sure I fully understand why Firebase sends initial `null` value
           // here, but this should not have anything to do with our Dart code.
           if (currentData == null)
@@ -147,8 +147,8 @@ void main() {
     });
 
     group('DataSnapshot', () {
-      var ref = app.database().ref('/app/users/3/notifications');
-      var childKey;
+      var ref = app!.database().ref('/app/users/3/notifications');
+      late var childKey;
 
       setUp(() async {
         await ref.remove();
@@ -210,7 +210,7 @@ void main() {
 
       test('val()', () async {
         var snapshot = await ref.once<Map>('value');
-        var val = snapshot.val();
+        var val = snapshot.val()!;
         expect(val, isMap);
         expect(val.length, 2);
       });

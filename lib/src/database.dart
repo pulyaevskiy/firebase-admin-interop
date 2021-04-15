@@ -32,7 +32,7 @@ class Database {
   /// Returns a [Reference] representing the location in the Database
   /// corresponding to the provided [path]. If no path is provided, the
   /// Reference will point to the root of the Database.
-  Reference ref([String path]) => new Reference(nativeInstance.ref(path));
+  Reference ref([String? path]) => new Reference(nativeInstance.ref(path));
 
   /// Returns a [Reference] representing the location in the Database
   /// corresponding to the provided Firebase URL.
@@ -124,7 +124,7 @@ class Query {
 
   /// Returns a [Reference] to the [Query]'s location.
   Reference get ref => _ref ??= new Reference(nativeInstance.ref);
-  Reference _ref;
+  Reference? _ref;
 
   /// Creates a [Query] with the specified ending point.
   ///
@@ -143,7 +143,7 @@ class Query {
   /// Optional [key] is only allowed if ordering by priority and defines the
   /// child key to end at, among the children with the previously specified
   /// priority.
-  Query endAt(value, [String key]) {
+  Query endAt(value, [String? key]) {
     if (key == null) {
       return new Query(nativeInstance.endAt(value));
     }
@@ -163,7 +163,7 @@ class Query {
   /// query. If it is specified, then children that have exactly the specified
   /// value must also have exactly the specified key as their key name. This can
   /// be used to filter result sets with many matches for the same value.
-  Query equalTo(value, [String key]) {
+  Query equalTo(value, [String? key]) {
     if (key == null) {
       return new Query(nativeInstance.equalTo(value));
     }
@@ -225,7 +225,7 @@ class Query {
   /// specified, [eventType] must be one of [EventType] constants.
   ///
   /// To unsubscribe a specific callback, use [QuerySubscription.cancel].
-  void off([String eventType]) {
+  void off([String? eventType]) {
     if (eventType != null) {
       nativeInstance.off(eventType);
     } else {
@@ -244,7 +244,7 @@ class Query {
   /// Returns [QuerySubscription] which can be used to cancel the subscription.
   QuerySubscription on<T>(
       String eventType, Function(DataSnapshot<T> snapshot) callback,
-      [Function() cancelCallback]) {
+      [Function()? cancelCallback]) {
     var fn = allowInterop((snapshot) => callback(new DataSnapshot(snapshot)));
     if (cancelCallback != null) {
       nativeInstance.on(eventType, fn, allowInterop(cancelCallback));
@@ -299,7 +299,7 @@ class Query {
   ///
   /// See also:
   /// - [Filtering data](https://firebase.google.com/docs/database/web/lists-of-data#filtering_data)
-  Query startAt(value, [String key]) {
+  Query startAt(value, [String? key]) {
     if (key == null) {
       return new Query(nativeInstance.startAt(value));
     }
@@ -330,7 +330,7 @@ class Reference extends Query {
 
   @override
   @protected
-  js.Reference get nativeInstance => super.nativeInstance;
+  js.Reference get nativeInstance => super.nativeInstance as js.Reference;
 
   /// The last part of this Reference's path.
   ///
@@ -342,11 +342,11 @@ class Reference extends Query {
   ///
   /// The parent of a root Reference is `null`.
   Reference get parent => _parent ??= new Reference(nativeInstance.parent);
-  Reference _parent;
+  Reference? _parent;
 
   /// The root [Reference] of the [Database].
   Reference get root => _root ??= new Reference(nativeInstance.root);
-  Reference _root;
+  Reference? _root;
 
   /// Gets a [Reference] for the location at the specified relative [path].
   ///
@@ -376,7 +376,7 @@ class Reference extends Query {
   /// so the resulting list of items will be chronologically sorted. The keys
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
-  FutureReference push<T>([T value]) {
+  FutureReference push<T>([T? value]) {
     if (value != null) {
       var futureRef = nativeInstance.push(jsify(value));
       return new FutureReference(futureRef, promiseToFuture(futureRef));
@@ -421,7 +421,7 @@ class Reference extends Query {
   /// A single [setValue] will generate a single "value" event at the location
   /// where the `setValue()` was performed.
   Future<void> setValue<T>(T value) {
-    return promiseToFuture(nativeInstance.set(jsify(value)));
+    return promiseToFuture(nativeInstance.set(jsify(value!)));
   }
 
   /// Sets a priority for the data at this Database location.
@@ -444,7 +444,7 @@ class Reference extends Query {
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
   Future<void> setWithPriority<T>(T value, priority) {
     return promiseToFuture(
-        nativeInstance.setWithPriority(jsify(value), priority));
+        nativeInstance.setWithPriority(jsify(value!), priority));
   }
 
   /// Atomically modifies the data at this location.
@@ -489,7 +489,8 @@ class Reference extends Query {
       DatabaseTransactionHandler<T> handler,
       [bool applyLocally = true]) {
     var promise = nativeInstance.transaction(
-      allowInterop(_createTransactionHandler(handler)),
+      allowInterop(
+          _createTransactionHandler(handler) as dynamic Function(dynamic)),
       allowInterop(_onComplete),
       applyLocally,
     );
@@ -510,12 +511,8 @@ class Reference extends Query {
     return (currentData) {
       final data = dartify(currentData);
       final result = handler(data);
-      assert(
-          result != null,
-          'Transaction handler returned null and this is not allowed. '
-          'Make sure to always return an instance of TransactionResult.');
       if (result.aborted) return undefined;
-      return jsify(result.data);
+      return jsify(result.data!);
     };
   }
 
@@ -646,12 +643,12 @@ class DataSnapshot<T> {
 
   bool hasChild(String path) => nativeInstance.hasChild(path);
   bool hasChildren() => nativeInstance.hasChildren();
-  int numChildren() => nativeInstance.numChildren();
+  int numChildren() => nativeInstance.numChildren() as int;
 
-  T _value;
+  T? _value;
 
   /// Returns value stored in this data snapshot.
-  T val() {
+  T? val() {
     if (_value != null) return _value;
     if (!exists()) return null; // Don't attempt to dartify empty snapshot.
 

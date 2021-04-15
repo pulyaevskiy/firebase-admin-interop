@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'setup.dart';
 
 void main() {
-  App app = initFirebaseApp();
+  App app = initFirebaseApp()!;
   app.firestore().settings(FirestoreSettings(timestampsInSnapshots: true));
 
   group('$Firestore', () {
@@ -51,7 +51,7 @@ void main() {
         expect(data.keys, contains('nested'));
         expect(data.getString('name'), 'Firestore');
         expect(data.getString('profile.url'), 'https://pic.com/123');
-        var nested = data.getNestedData('nested');
+        var nested = data.getNestedData('nested')!;
         expect(nested, const TypeMatcher<DocumentData>());
         expect(nested, hasLength(1));
         expect(nested.getString('author'), 'Unknown');
@@ -63,7 +63,7 @@ void main() {
         }));
         var snapshot = await ref.get();
         var data = snapshot.data;
-        var nested = data.getNestedData('nested');
+        var nested = data.getNestedData('nested')!;
         expect(nested.getString('author'), 'Isaac Asimov');
       });
 
@@ -98,12 +98,12 @@ void main() {
           expect(data.getBool('boolVal'), true);
           expect(data.getString('stringVal'), 'text');
           expect(data.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
-          expect(data.getBlob('blob').data, [1, 2, 3]);
-          var documentReference = data.getReference('refVal');
+          expect(data.getBlob('blob')!.data, [1, 2, 3]);
+          var documentReference = data.getReference('refVal')!;
           expect(documentReference.path, 'users/23');
           expect(data.getList('listVal'), [23, 84]);
           expect(data.getTimestamp('tsVal'), tsNow);
-          DocumentData nestedData = data.getNestedData('nestedData');
+          DocumentData nestedData = data.getNestedData('nestedData')!;
           expect(nestedData.keys.length, 1);
           expect(nestedData.getString('nestedVal'), 'very nested');
           // Check the field value (no getter here)
@@ -153,17 +153,17 @@ void main() {
         expect(result.getInt('intVal'), 23);
         expect(result.getDouble('doubleVal'), 19.84);
         expect(result.getGeoPoint('geoVal'), new GeoPoint(23.03, 19.84));
-        expect(result.getBlob('blobVal').data, [1, 2, 3]);
-        var docRef = result.getReference('refVal');
+        expect(result.getBlob('blobVal')!.data, [1, 2, 3]);
+        var docRef = result.getReference('refVal')!;
         expect(docRef, const TypeMatcher<DocumentReference>());
         expect(docRef.path, 'users/23');
         expect(result.getList('listVal'), [23, 84]);
         expect(result.getTimestamp('tsVal'), Timestamp.fromDateTime(date));
-        var nested = result.getNestedData('nestedVal');
+        var nested = result.getNestedData('nestedVal')!;
         expect(nested.getString('nestedKey'), 'much nested');
         expect(
             result.getTimestamp('serverTimestamp'), TypeMatcher<Timestamp>());
-        var complexVal = result.getNestedData('complexVal');
+        var complexVal = result.getNestedData('complexVal')!;
         expect(complexVal.getList('sub'), [
           {
             'subList': [1]
@@ -254,7 +254,7 @@ void main() {
         await ref.setData(data);
 
         var snapshot = await ref.get();
-        var result = snapshot.data.getList('data');
+        var result = snapshot.data.getList('data')!;
         expect(result, hasLength(4));
         expect(result.elementAt(0), const TypeMatcher<Timestamp>());
         expect(result.elementAt(1), const TypeMatcher<GeoPoint>());
@@ -441,7 +441,7 @@ void main() {
       });
 
       test('parent of root collection', () {
-        final parent = ref.parent;
+        final parent = ref.parent!;
         expect(parent, const TypeMatcher<DocumentReference>());
         expect(parent.path, isEmpty);
         expect(parent.documentID, isNull);
@@ -507,9 +507,9 @@ void main() {
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
         expect(snapshot.documentChanges, hasLength(1));
-        var doc = snapshot.documents.first;
+        var doc = snapshot.documents!.first;
         expect(doc.data.getString('name'), 'John Doe');
-        var change = snapshot.documentChanges.first;
+        var change = snapshot.documentChanges!.first;
         expect(change.type, DocumentChangeType.added);
       });
 
@@ -528,7 +528,7 @@ void main() {
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
         expect(snapshot.documentChanges, hasLength(1));
-        var doc = snapshot.documents.first;
+        var doc = snapshot.documents!.first;
         expect(doc.data.getString('name'), 'doc1');
         expect(doc.data.getReference('ref'),
             const TypeMatcher<DocumentReference>());
@@ -553,7 +553,7 @@ void main() {
         var snapshot = await query.get();
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
-        var doc = snapshot.documents.single;
+        var doc = snapshot.documents!.single;
         expect(doc.documentID, doc1.documentID);
 
         // Test with startAfter
@@ -561,7 +561,7 @@ void main() {
         snapshot = await query.get();
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
-        doc = snapshot.documents.single;
+        doc = snapshot.documents!.single;
         expect(doc.documentID, doc2.documentID);
       });
 
@@ -581,7 +581,7 @@ void main() {
         var snapshot = await query.get();
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
-        var doc = snapshot.documents.single;
+        var doc = snapshot.documents!.single;
         expect(doc.documentID, doc1.documentID);
 
         // Test with startAfter
@@ -589,7 +589,7 @@ void main() {
         snapshot = await query.get();
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
-        doc = snapshot.documents.single;
+        doc = snapshot.documents!.single;
         expect(doc.documentID, doc2.documentID);
       });
 
@@ -609,7 +609,7 @@ void main() {
         var snapshot = await query.get();
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
-        var doc = snapshot.documents.single;
+        var doc = snapshot.documents!.single;
         expect(doc.documentID, doc1.documentID);
       });
 
@@ -634,7 +634,7 @@ void main() {
         }));
 
         List<String> _querySnapshotDocIds(QuerySnapshot querySnapshot) {
-          return querySnapshot.documents
+          return querySnapshot.documents!
               .map((snapshot) => snapshot.documentID)
               .toList();
         }
@@ -669,7 +669,7 @@ void main() {
         }));
 
         List<String> _querySnapshotDocIds(QuerySnapshot querySnapshot) {
-          return querySnapshot.documents
+          return querySnapshot.documents!
               .map((snapshot) => snapshot.documentID)
               .toList();
         }
@@ -703,7 +703,7 @@ void main() {
         var snapshot = await query.get();
         expect(snapshot, isNotEmpty);
         expect(snapshot.documents, hasLength(1));
-        var doc = snapshot.documents.single;
+        var doc = snapshot.documents!.single;
         expect(doc.documentID, doc1.documentID);
       });
 
@@ -739,12 +739,12 @@ void main() {
             new DocumentData()..setInt('field1', 1)..setInt('field2', 2));
 
         QuerySnapshot querySnapshot = await collRef.select(['field2']).get();
-        var documentData = querySnapshot.documents.first.data;
+        var documentData = querySnapshot.documents!.first.data;
         expect(documentData.has('field2'), isTrue);
         expect(documentData.has('field1'), isFalse);
 
         querySnapshot = await collRef.select(['field2']).get();
-        documentData = querySnapshot.documents.first.data;
+        documentData = querySnapshot.documents!.first.data;
         expect(documentData.has('field2'), isTrue);
         expect(documentData.has('field1'), isFalse);
       });
@@ -759,55 +759,55 @@ void main() {
         var docRefTwo = collRef.document('two');
         await docRefTwo.setData(new DocumentData()..setInt('value', 2));
 
-        List<DocumentSnapshot> list;
+        List<DocumentSnapshot>? list;
 
         // limit
         QuerySnapshot querySnapshot = await collRef.limit(1).get();
         list = querySnapshot.documents;
-        expect(list.length, 1);
+        expect(list!.length, 1);
 
         // offset
         querySnapshot = await collRef.orderBy('value').offset(1).get();
         list = querySnapshot.documents;
-        expect(list.length, 1);
+        expect(list!.length, 1);
 
         // order by
         querySnapshot = await collRef.orderBy('value').get();
         list = querySnapshot.documents;
-        expect(list.length, 2);
+        expect(list!.length, 2);
         expect(list.first.reference.documentID, "one");
 
         // desc
         querySnapshot = await collRef.orderBy('value', descending: true).get();
         list = querySnapshot.documents;
-        expect(list.length, 2);
+        expect(list!.length, 2);
         expect(list.first.reference.documentID, "two");
 
         // start at
         querySnapshot =
             await collRef.orderBy('value').startAt(values: [2]).get();
         list = querySnapshot.documents;
-        expect(list.length, 1);
+        expect(list!.length, 1);
         expect(list.first.reference.documentID, "two");
 
         // start after
         querySnapshot =
             await collRef.orderBy('value').startAfter(values: [1]).get();
         list = querySnapshot.documents;
-        expect(list.length, 1);
+        expect(list!.length, 1);
         expect(list.first.reference.documentID, "two");
 
         // end at
         querySnapshot = await collRef.orderBy('value').endAt(values: [1]).get();
         list = querySnapshot.documents;
-        expect(list.length, 1);
+        expect(list!.length, 1);
         expect(list.first.reference.documentID, "one");
 
         // end before
         querySnapshot =
             await collRef.orderBy('value').endBefore(values: [2]).get();
         list = querySnapshot.documents;
-        expect(list.length, 1);
+        expect(list!.length, 1);
         expect(list.first.reference.documentID, "one");
 
         // start after using snapshot
@@ -816,13 +816,13 @@ void main() {
             .startAfter(snapshot: list.first)
             .get();
         list = querySnapshot.documents;
-        expect(list.length, 1);
+        expect(list!.length, 1);
         expect(list.first.reference.documentID, "two");
 
         // where
         querySnapshot = await collRef.where('value', isGreaterThan: 1).get();
         list = querySnapshot.documents;
-        expect(list.length, 1);
+        expect(list!.length, 1);
         expect(list.first.reference.documentID, "two");
       });
 
@@ -912,7 +912,7 @@ void main() {
               collRef.orderBy('value').where('value', isGreaterThan: 1));
           var list = query.documents;
 
-          var doc4 = (await tx.get(doc4Ref)).data.getInt('value');
+          var doc4 = (await tx.get(doc4Ref)).data.getInt('value')!;
           tx.create(doc1Ref, new DocumentData()..setInt('value', 1 + doc4));
           tx.update(
               doc2Ref, new UpdateData()..setInt('other.value', 22 + doc4));
@@ -921,7 +921,7 @@ void main() {
               merge: true);
           tx.delete(doc4Ref);
 
-          return list;
+          return list!;
         });
 
         expect(list.length, 3);
@@ -1010,7 +1010,7 @@ void main() {
           var transaction =
               app.firestore().runTransaction<int>((Transaction tx) async {
             var doc1 = await tx.get(doc1Ref);
-            var val = doc1.data.getInt('value') + 1;
+            var val = doc1.data.getInt('value')! + 1;
             tx.set(doc1Ref, new DocumentData()..setInt('value', val));
             return val;
           });

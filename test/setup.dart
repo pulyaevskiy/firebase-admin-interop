@@ -9,7 +9,7 @@ import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 
 final Map env = dartify(process.env);
 
-App initFirebaseApp() {
+App? initFirebaseApp() {
   if (!env.containsKey('FIREBASE_CONFIG') ||
       !env.containsKey('FIREBASE_SERVICE_ACCOUNT_JSON'))
     throw new StateError('Environment variables are not set.');

@@ -11,23 +11,23 @@ import 'setup.dart';
 
 void main() {
   group('FirebaseAdmin', () {
-    App app;
+    App? app;
 
     setUpAll(() {
       app = initFirebaseApp();
     });
 
     tearDownAll(() {
-      return app.delete();
+      return app!.delete();
     });
 
     test('app name', () {
-      expect(app.name, '[DEFAULT]');
+      expect(app!.name, '[DEFAULT]');
     });
 
     test('accessToken', () async {
       var accessToken = await promiseToFuture(
-              js.admin.credential.applicationDefault().getAccessToken())
+              js.admin!.credential.applicationDefault().getAccessToken())
           as js.AccessToken;
       expect(accessToken.access_token, isNotEmpty);
     });
