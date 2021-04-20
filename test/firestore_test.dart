@@ -290,6 +290,56 @@ void main() {
         expect(documentData.getString("other_key"), "other_value");
       });
 
+      test('increment field', () async {
+        const incrementValue = 1;
+        const integerFieldKey = "integer_field";
+        const doubleFieldKey = "double_key";
+        const stringFieldKey = "string_key";
+        const initialIntegerFieldValue = 1;
+        const initialDoubleFieldValue = 1.3;
+
+        final expectedIntegerFieldValue =
+            initialIntegerFieldValue + incrementValue;
+        final expectedDoubleFieldValue =
+            initialDoubleFieldValue + incrementValue;
+        final expectedStringFieldValue = incrementValue;
+
+        var ref = app.firestore().document('tests/increment_field');
+
+        final fieldValueIncrement =
+            Firestore.fieldValues.increment(incrementValue);
+
+        // create document
+        final documentData = new DocumentData();
+        documentData.setInt(integerFieldKey, initialIntegerFieldValue);
+        documentData.setDouble(doubleFieldKey, initialDoubleFieldValue);
+        documentData.setString(stringFieldKey, 'string');
+        await ref.setData(documentData);
+
+        // increment field values
+        final updateData = new UpdateData();
+        updateData.setFieldValue(integerFieldKey, fieldValueIncrement);
+        updateData.setFieldValue(doubleFieldKey, fieldValueIncrement);
+        updateData.setFieldValue(stringFieldKey, fieldValueIncrement);
+        await ref.updateData(updateData);
+
+        // read again
+        final updatedDocument = await ref.get();
+        final updatedDocumentData = updatedDocument.data;
+        expect(
+          updatedDocumentData.getInt(integerFieldKey),
+          equals(expectedIntegerFieldValue),
+        );
+        expect(
+          updatedDocumentData.getDouble(doubleFieldKey),
+          equals(expectedDoubleFieldValue),
+        );
+        expect(
+          updatedDocumentData.getInt(stringFieldKey),
+          equals(expectedStringFieldValue),
+        );
+      });
+
       test('array field value', () async {
         var ref = app.firestore().document('tests/array_field_value');
 
@@ -997,9 +1047,9 @@ void main() {
         var doc1Ref = collRef.document('counter');
         await doc1Ref.setData(new DocumentData()..setInt('value', 1));
 
-        List<Future<int>> futures = new List();
-        List<dynamic> errors = new List();
-        List<int> complete = new List();
+        List<Future<int>> futures = [];
+        List<dynamic> errors = [];
+        List<int> complete = [];
 
         var futuresCount = 5;
         for (int i = 0; i < futuresCount; i++) {
