@@ -541,7 +541,7 @@ class _FirestoreData {
     if (data is! List) {
       throw new StateError('Expected list but got ${data.runtimeType}.');
     }
-    final result = new List();
+    final result = [];
     for (var item in data) {
       item = _dartify(item);
       result.add(item);
@@ -1286,6 +1286,20 @@ class _FieldValueArrayRemove extends _FieldValueArray {
   String toString() => 'FieldValue.arrayRemove($elements)';
 }
 
+class _FieldValueIncrement implements FieldValue {
+  _FieldValueIncrement(this.value);
+
+  final int value;
+
+  @override
+  _jsify() {
+    return js.admin.firestore.FieldValue.increment(value);
+  }
+
+  @override
+  String toString() => 'FieldValue.increment($value)';
+}
+
 /// Sentinel values that can be used when writing document fields with set()
 /// or update().
 abstract class FieldValue {
@@ -1332,6 +1346,22 @@ class FieldValues {
   /// If the field being modified is not already an array it will be overwritten
   /// with an empty array.
   FieldValue arrayRemove(List elements) => _FieldValueArrayRemove(elements);
+
+  /// Returns a special value that tells the server to increment the field's
+  /// current value by the given [value].
+  ///
+  /// Can be used with set() or update().
+  ///
+  /// If either the operand or the current field value uses floating point precision,
+  /// all arithmetic follows IEEE 754 semantics. If both values are integers,
+  /// values outside of JavaScript's safe number range (Number.MIN_SAFE_INTEGER
+  /// to Number.MAX_SAFE_INTEGER) are also subject to precision loss.
+  /// Furthermore, once processed by the Firestore backend, all integer
+  /// operations are capped between -2^63 and 2^63-1.
+  ///
+  /// If the current field value is not of type `number`, or if the field does
+  /// not yet exist, sets the field to the given [value].
+  FieldValue increment(int value) => _FieldValueIncrement(value);
 
   FieldValues._();
 
