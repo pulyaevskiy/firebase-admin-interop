@@ -12,7 +12,7 @@ final Map env = dartify(process.env);
 App initFirebaseApp() {
   if (!env.containsKey('FIREBASE_CONFIG') ||
       !env.containsKey('FIREBASE_SERVICE_ACCOUNT_JSON'))
-    throw new StateError('Environment variables are not set.');
+    throw StateError('Environment variables are not set.');
 
   Map certConfig = jsonDecode(env['FIREBASE_SERVICE_ACCOUNT_JSON']);
   final cert = FirebaseAdmin.instance.cert(
@@ -23,5 +23,6 @@ App initFirebaseApp() {
   final Map config = jsonDecode(env['FIREBASE_CONFIG']);
   final databaseUrl = config['databaseURL'];
   return FirebaseAdmin.instance.initializeApp(
-      new AppOptions(credential: cert, databaseURL: databaseUrl));
+    AppOptions(credential: cert, databaseURL: databaseUrl),
+  );
 }

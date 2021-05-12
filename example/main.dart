@@ -4,7 +4,7 @@ main() async {
   final serviceAccountKeyFilename = '/absolute/path/to/service-account.json';
   final admin = FirebaseAdmin.instance;
   final cert = admin.certFromPath(serviceAccountKeyFilename);
-  final app = admin.initializeApp(new AppOptions(
+  final app = admin.initializeApp(AppOptions(
     credential: cert,
     databaseURL: "YOUR_DB_URL",
   ));

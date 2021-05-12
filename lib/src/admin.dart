@@ -1,8 +1,6 @@
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 import 'app.dart';
 import 'bindings.dart' as js;
 
@@ -12,10 +10,10 @@ import 'bindings.dart' as js;
 /// with [initializeApp] method.
 class FirebaseAdmin {
   final js.FirebaseAdmin _admin;
-  final Map<String, App> _apps = new Map();
+  final Map<String, App> _apps = <String, App>{};
 
-  static FirebaseAdmin get instance => _instance ??= new FirebaseAdmin._();
-  static FirebaseAdmin _instance;
+  static FirebaseAdmin get instance => _instance ??= FirebaseAdmin._();
+  static FirebaseAdmin? _instance;
 
   FirebaseAdmin._() : _admin = js.admin;
 
@@ -38,7 +36,7 @@ class FirebaseAdmin {
   ///       privateKey: 'your-private-key',
   ///     );
   ///     var app = FirebaseAdmin.instance.initializeApp(
-  ///       new AppOptions(
+  ///       AppOptions(
   ///         credential: certificate,
   ///         databaseURL: 'https://your-database.firebase.io')
   ///     );
@@ -47,30 +45,30 @@ class FirebaseAdmin {
   ///   * [App]
   ///   * [cert]
   ///   * [certFromPath]
-  App initializeApp([js.AppOptions options, String name]) {
+  App initializeApp([js.AppOptions? options, String? name]) {
     if (options == null && name == null) {
       // Special case for default app with Application Default Credentials.
       name = js.defaultAppName;
       if (!_apps.containsKey(name)) {
-        _apps[name] = new App(_admin.initializeApp());
+        _apps[name] = App(_admin.initializeApp());
       }
-      return _apps[name];
+      return _apps[name]!;
     }
 
     name ??= js.defaultAppName;
     if (!_apps.containsKey(name)) {
-      _apps[name] = new App(_admin.initializeApp(options, name));
+      _apps[name] = App(_admin.initializeApp(options, name));
     }
-    return _apps[name];
+    return _apps[name]!;
   }
 
   /// Creates [App] certificate.
   js.Credential cert({
-    @required String projectId,
-    @required String clientEmail,
-    @required String privateKey,
+    required String projectId,
+    required String clientEmail,
+    required String privateKey,
   }) {
-    return _admin.credential.cert(new js.ServiceAccountConfig(
+    return _admin.credential.cert(js.ServiceAccountConfig(
       project_id: projectId,
       client_email: clientEmail,
       private_key: privateKey,

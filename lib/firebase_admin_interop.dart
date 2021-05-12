@@ -23,7 +23,7 @@
 ///     Future main() async {
 ///       var admin = FirebaseAdmin.instance;
 ///       var cert = admin.certFromPath(serviceAccountKeyFilename);
-///       var app = admin.initializeApp(new AppOptions(
+///       var app = admin.initializeApp(AppOptions(
 ///         credential: cert,
 ///         databaseUrl: "YOUR_DB_URL",
 ///       ));

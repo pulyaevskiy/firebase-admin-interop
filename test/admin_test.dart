@@ -9,7 +9,7 @@ import 'setup.dart';
 
 void main() {
   group('FirebaseAdmin', () {
-    App app;
+    late App app;
 
     setUpAll(() {
       app = initFirebaseApp();
