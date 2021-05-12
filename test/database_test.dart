@@ -32,14 +32,14 @@ void main() {
       test('querying works', () async {
         var ref = app.database().ref('/app/users').endAt('Firebase');
         var value = await ref.once('value');
-        var records = new Map<String, dynamic>.from(value.val());
+        var records = Map<String, dynamic>.from(value.val());
         expect(records, hasLength(2));
       });
 
       test('on and off', () async {
-        var controller = StreamController<String>();
+        var controller = StreamController<String?>();
         final sub = ref.on(EventType.value, (DataSnapshot snapshot) {
-          controller.add(snapshot.val() as String);
+          controller.add(snapshot.val() as String?);
         });
         final result = controller.stream.take(3).toList();
 
@@ -122,7 +122,7 @@ void main() {
       });
 
       test('transaction abort', () async {
-        var result = await refUpdate.transaction((currentData) {
+        var result = await refUpdate.transaction((dynamic currentData) {
           return TransactionResult.abort;
         });
         expect(result.committed, isFalse);
@@ -131,12 +131,12 @@ void main() {
       test('transaction commit', () async {
         await refUpdate.update({'num': 23, 'nested/thing': '1984'});
 
-        var tx = await refUpdate.transaction((currentData) {
+        var tx = await refUpdate.transaction((dynamic currentData) {
           // Not sure I fully understand why Firebase sends initial `null` value
           // here, but this should not have anything to do with our Dart code.
           if (currentData == null)
             return TransactionResult.success(currentData);
-          final data = new Map<String, dynamic>.from(currentData);
+          final data = Map<String, dynamic>.from(currentData);
           data['tx'] = true;
           return TransactionResult.success(data);
         });
@@ -148,7 +148,7 @@ void main() {
 
     group('DataSnapshot', () {
       var ref = app.database().ref('/app/users/3/notifications');
-      var childKey;
+      late var childKey;
 
       setUp(() async {
         await ref.remove();
@@ -210,7 +210,7 @@ void main() {
 
       test('val()', () async {
         var snapshot = await ref.once<Map>('value');
-        var val = snapshot.val();
+        var val = snapshot.val()!;
         expect(val, isMap);
         expect(val.length, 2);
       });

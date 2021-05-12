@@ -1,3 +1,9 @@
+
+## 3.0.0
+
+Non Nullable By Default (NNBD)
+Bump sdk to 2.12.0
+
 ## 2.1.0
 
 Upgraded to support firebase-admin Messaging features to send cloud message payloads to device, topic, all, multicast, and subscribe/unsubscribe from topic.

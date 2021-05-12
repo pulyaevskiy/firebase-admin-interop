@@ -90,8 +90,8 @@ dev dependencies to your `pubspec.yaml`:
 
 ```yaml
 dev_dependencies:
-  build_runner: ^1.0.0
-  build_node_compilers: ^0.2.0
+  build_runner: ^2.0.0
+  build_node_compilers: ^1.0.0
 ```
 
 Next, create `build.yaml` file with following contents:

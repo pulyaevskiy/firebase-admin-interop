@@ -32,12 +32,11 @@ class Database {
   /// Returns a [Reference] representing the location in the Database
   /// corresponding to the provided [path]. If no path is provided, the
   /// Reference will point to the root of the Database.
-  Reference ref([String path]) => new Reference(nativeInstance.ref(path));
+  Reference ref([String? path]) => Reference(nativeInstance.ref(path));
 
   /// Returns a [Reference] representing the location in the Database
   /// corresponding to the provided Firebase URL.
-  Reference refFromUrl(String url) =>
-      new Reference(nativeInstance.refFromURL(url));
+  Reference refFromUrl(String url) => Reference(nativeInstance.refFromURL(url));
 }
 
 /// List of event types supported in [Query.on] and [Query.off].
@@ -123,8 +122,8 @@ class Query {
   Query(this.nativeInstance);
 
   /// Returns a [Reference] to the [Query]'s location.
-  Reference get ref => _ref ??= new Reference(nativeInstance.ref);
-  Reference _ref;
+  Reference get ref => _ref ??= Reference(nativeInstance.ref);
+  Reference? _ref;
 
   /// Creates a [Query] with the specified ending point.
   ///
@@ -143,11 +142,11 @@ class Query {
   /// Optional [key] is only allowed if ordering by priority and defines the
   /// child key to end at, among the children with the previously specified
   /// priority.
-  Query endAt(value, [String key]) {
+  Query endAt(value, [String? key]) {
     if (key == null) {
-      return new Query(nativeInstance.endAt(value));
+      return Query(nativeInstance.endAt(value));
     }
-    return new Query(nativeInstance.endAt(value, key));
+    return Query(nativeInstance.endAt(value, key));
   }
 
   /// Creates a [Query] that includes children that match the specified value.
@@ -163,11 +162,11 @@ class Query {
   /// query. If it is specified, then children that have exactly the specified
   /// value must also have exactly the specified key as their key name. This can
   /// be used to filter result sets with many matches for the same value.
-  Query equalTo(value, [String key]) {
+  Query equalTo(value, [String? key]) {
     if (key == null) {
-      return new Query(nativeInstance.equalTo(value));
+      return Query(nativeInstance.equalTo(value));
     }
-    return new Query(nativeInstance.equalTo(value, key));
+    return Query(nativeInstance.equalTo(value, key));
   }
 
   /// Returns `true` if this and [other] query are equal.
@@ -191,8 +190,7 @@ class Query {
   /// the first 100 ordered messages. As items change, we will receive
   /// child_removed events for each item that drops out of the active list so
   /// that the total number stays at 100.
-  Query limitToFirst(int limit) =>
-      new Query(nativeInstance.limitToFirst(limit));
+  Query limitToFirst(int limit) => Query(nativeInstance.limitToFirst(limit));
 
   /// Generates a new [Query] limited to the last specific number of children.
   ///
@@ -204,13 +202,13 @@ class Query {
   /// the last 100 ordered messages. As items change, we will receive
   /// child_removed events for each item that drops out of the active list so
   /// that the total number stays at 100.
-  Query limitToLast(int limit) => new Query(nativeInstance.limitToLast(limit));
+  Query limitToLast(int limit) => Query(nativeInstance.limitToLast(limit));
 
   /// Listens for exactly one event of the specified [eventType], and then stops
   /// listening.
   Future<DataSnapshot<T>> once<T>(String eventType) {
     return promiseToFuture(nativeInstance.once(eventType))
-        .then((snapshot) => new DataSnapshot(snapshot));
+        .then((snapshot) => DataSnapshot(snapshot));
   }
 
   /// Cancels previously created subscription with [on].
@@ -225,7 +223,7 @@ class Query {
   /// specified, [eventType] must be one of [EventType] constants.
   ///
   /// To unsubscribe a specific callback, use [QuerySubscription.cancel].
-  void off([String eventType]) {
+  void off([String? eventType]) {
     if (eventType != null) {
       nativeInstance.off(eventType);
     } else {
@@ -244,8 +242,8 @@ class Query {
   /// Returns [QuerySubscription] which can be used to cancel the subscription.
   QuerySubscription on<T>(
       String eventType, Function(DataSnapshot<T> snapshot) callback,
-      [Function() cancelCallback]) {
-    var fn = allowInterop((snapshot) => callback(new DataSnapshot(snapshot)));
+      [Function()? cancelCallback]) {
+    var fn = allowInterop((snapshot) => callback(DataSnapshot(snapshot)));
     if (cancelCallback != null) {
       nativeInstance.on(eventType, fn, allowInterop(cancelCallback));
     } else {
@@ -258,8 +256,7 @@ class Query {
   ///
   /// Queries can only order by one key at a time. Calling [orderByChild]
   /// multiple times on the same query is an error.
-  Query orderByChild(String path) =>
-      new Query(nativeInstance.orderByChild(path));
+  Query orderByChild(String path) => Query(nativeInstance.orderByChild(path));
 
   /// Generates a new [Query] object ordered by key.
   ///
@@ -267,7 +264,7 @@ class Query {
   ///
   /// See also:
   /// - [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data)
-  Query orderByKey() => new Query(nativeInstance.orderByKey());
+  Query orderByKey() => Query(nativeInstance.orderByKey());
 
   /// Generates a new [Query] object ordered by priority.
   ///
@@ -276,7 +273,7 @@ class Query {
   ///
   /// See also:
   /// - [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data)
-  Query orderByPriority() => new Query(nativeInstance.orderByPriority());
+  Query orderByPriority() => Query(nativeInstance.orderByPriority());
 
   /// Generates a new [Query] object ordered by value.
   ///
@@ -285,7 +282,7 @@ class Query {
   ///
   /// See also:
   /// - [Sort data](https://firebase.google.com/docs/database/web/lists-of-data#sort_data)
-  Query orderByValue() => new Query(nativeInstance.orderByValue());
+  Query orderByValue() => Query(nativeInstance.orderByValue());
 
   /// Creates a [Query] with the specified starting point.
   ///
@@ -299,11 +296,11 @@ class Query {
   ///
   /// See also:
   /// - [Filtering data](https://firebase.google.com/docs/database/web/lists-of-data#filtering_data)
-  Query startAt(value, [String key]) {
+  Query startAt(value, [String? key]) {
     if (key == null) {
-      return new Query(nativeInstance.startAt(value));
+      return Query(nativeInstance.startAt(value));
     }
-    return new Query(nativeInstance.startAt(value, key));
+    return Query(nativeInstance.startAt(value, key));
   }
 
   // Note: intentionally not following JS convention and using Dart convention instead.
@@ -330,7 +327,7 @@ class Reference extends Query {
 
   @override
   @protected
-  js.Reference get nativeInstance => super.nativeInstance;
+  js.Reference get nativeInstance => super.nativeInstance as js.Reference;
 
   /// The last part of this Reference's path.
   ///
@@ -341,25 +338,25 @@ class Reference extends Query {
   /// The parent location of this Reference.
   ///
   /// The parent of a root Reference is `null`.
-  Reference get parent => _parent ??= new Reference(nativeInstance.parent);
-  Reference _parent;
+  Reference get parent => _parent ??= Reference(nativeInstance.parent);
+  Reference? _parent;
 
   /// The root [Reference] of the [Database].
-  Reference get root => _root ??= new Reference(nativeInstance.root);
-  Reference _root;
+  Reference get root => _root ??= Reference(nativeInstance.root);
+  Reference? _root;
 
   /// Gets a [Reference] for the location at the specified relative [path].
   ///
   /// The relative [path] can either be a simple child name (for example, "ada")
   /// or a deeper slash-separated path (for example, "ada/name/first").
-  Reference child(String path) => new Reference(nativeInstance.child(path));
+  Reference child(String path) => Reference(nativeInstance.child(path));
 
   /// Returns an [OnDisconnect] object.
   ///
   /// For more information on how to use it see
   /// [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities).
   dynamic onDisconnect() {
-    throw new UnimplementedError();
+    throw UnimplementedError();
   }
 
   /// Generates a new child location using a unique key and returns its
@@ -376,16 +373,16 @@ class Reference extends Query {
   /// so the resulting list of items will be chronologically sorted. The keys
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
-  FutureReference push<T>([T value]) {
+  FutureReference push<T>([T? value]) {
     if (value != null) {
       var futureRef = nativeInstance.push(jsify(value));
-      return new FutureReference(futureRef, promiseToFuture(futureRef));
+      return FutureReference(futureRef, promiseToFuture(futureRef));
     } else {
       // JS side returns regular Reference if value is not provided, but
       // we still convert it to FutureReference to be consistent with declared
       // return type.
       var newRef = nativeInstance.push();
-      return new FutureReference(newRef, new Future.value());
+      return FutureReference(newRef, Future.value());
     }
   }
 
@@ -421,7 +418,7 @@ class Reference extends Query {
   /// A single [setValue] will generate a single "value" event at the location
   /// where the `setValue()` was performed.
   Future<void> setValue<T>(T value) {
-    return promiseToFuture(nativeInstance.set(jsify(value)));
+    return promiseToFuture(nativeInstance.set(jsify(value!)));
   }
 
   /// Sets a priority for the data at this Database location.
@@ -444,7 +441,7 @@ class Reference extends Query {
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
   Future<void> setWithPriority<T>(T value, priority) {
     return promiseToFuture(
-        nativeInstance.setWithPriority(jsify(value), priority));
+        nativeInstance.setWithPriority(jsify(value!), priority));
   }
 
   /// Atomically modifies the data at this location.
@@ -489,15 +486,16 @@ class Reference extends Query {
       DatabaseTransactionHandler<T> handler,
       [bool applyLocally = true]) {
     var promise = nativeInstance.transaction(
-      allowInterop(_createTransactionHandler(handler)),
+      allowInterop(
+          _createTransactionHandler(handler) as dynamic Function(dynamic)),
       allowInterop(_onComplete),
       applyLocally,
     );
     return promiseToFuture(promise).then(
       (result) {
         final jsResult = result as js.TransactionResult;
-        return new DatabaseTransaction(
-            jsResult.committed, new DataSnapshot(jsResult.snapshot));
+        return DatabaseTransaction(
+            jsResult.committed, DataSnapshot(jsResult.snapshot));
       },
     );
   }
@@ -510,12 +508,9 @@ class Reference extends Query {
     return (currentData) {
       final data = dartify(currentData);
       final result = handler(data);
-      assert(
-          result != null,
-          'Transaction handler returned null and this is not allowed. '
-          'Make sure to always return an instance of TransactionResult.');
+
       if (result.aborted) return undefined;
-      return jsify(result.data);
+      return jsify(result.data!);
     };
   }
 
@@ -562,9 +557,9 @@ class TransactionResult<T> {
   final bool aborted;
   final T data;
 
-  static TransactionResult abort = new TransactionResult._(true, null);
+  static TransactionResult abort = TransactionResult._(true, null);
   static TransactionResult<T> success<T>(T data) =>
-      new TransactionResult._(false, data);
+      TransactionResult._(false, data);
 }
 
 /// Firebase Realtime Database transaction result returned from
@@ -612,7 +607,7 @@ class DataSnapshot<T> {
   String get key => nativeInstance.key;
 
   /// The [Reference] for the location that generated this [DataSnapshot].
-  Reference get ref => new Reference(nativeInstance.ref);
+  Reference get ref => Reference(nativeInstance.ref);
 
   /// Gets [DataSnapshot] for the location at the specified relative [path].
   ///
@@ -621,7 +616,7 @@ class DataSnapshot<T> {
   /// child location has no data, an empty DataSnapshot (that is, a
   /// DataSnapshot whose value is `null`) is returned.
   DataSnapshot<S> child<S>(String path) =>
-      new DataSnapshot(nativeInstance.child(path));
+      DataSnapshot(nativeInstance.child(path));
 
   /// Returns `true` if this DataSnapshot contains any data.
   ///
@@ -638,7 +633,7 @@ class DataSnapshot<T> {
   /// by priority).
   bool forEach<S>(bool action(DataSnapshot<S> child)) {
     bool wrapper(js.DataSnapshot child) {
-      return action(new DataSnapshot<S>(child));
+      return action(DataSnapshot<S>(child));
     }
 
     return nativeInstance.forEach(allowInterop(wrapper));
@@ -646,12 +641,12 @@ class DataSnapshot<T> {
 
   bool hasChild(String path) => nativeInstance.hasChild(path);
   bool hasChildren() => nativeInstance.hasChildren();
-  int numChildren() => nativeInstance.numChildren();
+  int numChildren() => nativeInstance.numChildren() as int;
 
-  T _value;
+  T? _value;
 
   /// Returns value stored in this data snapshot.
-  T val() {
+  T? val() {
     if (_value != null) return _value;
     if (!exists()) return null; // Don't attempt to dartify empty snapshot.
 

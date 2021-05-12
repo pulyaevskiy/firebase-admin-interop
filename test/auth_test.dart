@@ -10,14 +10,20 @@ import 'setup.dart';
 
 void main() {
   group('Auth', () {
-    App app;
+    late App app;
 
     setUpAll(() async {
       app = initFirebaseApp();
-      var user =
-          await app.auth().getUser('testuser').catchError((error) => null);
+      UserRecord? user;
+
+      try {
+        user = await app.auth().getUser('testuser');
+      } catch (e) {
+        // Fail gracefully: expected to fail when no user matches
+      }
+
       if (user == null) {
-        await app.auth().createUser(new CreateUserRequest(uid: 'testuser'));
+        await app.auth().createUser(CreateUserRequest(uid: 'testuser'));
       }
     });
 

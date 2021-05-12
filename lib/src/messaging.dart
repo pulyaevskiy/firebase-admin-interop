@@ -64,7 +64,7 @@ class Messaging {
   ///
   /// Returns Future<String> fulfilled with a unique message ID string after the
   /// message has been successfully handed off to the FCM service for delivery
-  Future<String> send(FcmMessage message, [bool dryRun]) {
+  Future<String> send(FcmMessage message, [bool? dryRun]) {
     if (dryRun != null)
       return promiseToFuture(nativeInstance.send(message, dryRun));
     else
@@ -75,7 +75,7 @@ class Messaging {
   ///
   /// Returns Future<BatchResponse> fulfilled with an object representing the
   /// result of the send operation.
-  Future<BatchResponse> sendAll(List<FcmMessage> messages, [bool dryRun]) {
+  Future<BatchResponse> sendAll(List<FcmMessage> messages, [bool? dryRun]) {
     if (dryRun != null)
       return promiseToFuture(nativeInstance.sendAll(messages, dryRun));
     else
@@ -87,7 +87,7 @@ class Messaging {
   ///
   /// Returns Future<BatchResponse> fulfilled with an object representing the
   /// result of the send operation.
-  Future<BatchResponse> sendMulticast(MulticastMessage message, [bool dryRun]) {
+  Future<BatchResponse> sendMulticast(MulticastMessage message, [bool? dryRun]) {
     if (dryRun != null)
       return promiseToFuture(nativeInstance.sendMulticast(message, dryRun));
     else
@@ -100,7 +100,7 @@ class Messaging {
   /// response after the message has been sent.
   Future<MessagingConditionResponse> sendToCondition(
       String condition, MessagingPayload payload,
-      [MessagingOptions options]) {
+      [MessagingOptions? options]) {
     if (options != null)
       return promiseToFuture(
           nativeInstance.sendToCondition(condition, payload, options));
@@ -116,7 +116,7 @@ class Messaging {
   /// response after the message has been sent.
   Future<MessagingDevicesResponse> sendToDevice(
       String registrationToken, MessagingPayload payload,
-      [MessagingOptions options]) {
+      [MessagingOptions? options]) {
     if (options != null)
       return promiseToFuture(
           nativeInstance.sendToDevice(registrationToken, payload, options));
@@ -132,7 +132,7 @@ class Messaging {
   /// response after the message has been sent.
   Future<MessagingDeviceGroupResponse> sendToDeviceGroup(
       String notificationKey, MessagingPayload payload,
-      [MessagingOptions options]) {
+      [MessagingOptions? options]) {
     if (options != null)
       return promiseToFuture(
           nativeInstance.sendToDeviceGroup(notificationKey, payload, options));
@@ -147,7 +147,7 @@ class Messaging {
   /// response after the message has been sent.
   Future<MessagingTopicResponse> sendToTopic(
       String topic, MessagingPayload payload,
-      [MessagingOptions options]) {
+      [MessagingOptions? options]) {
     if (options != null)
       return promiseToFuture(
           nativeInstance.sendToTopic(topic, payload, options));
