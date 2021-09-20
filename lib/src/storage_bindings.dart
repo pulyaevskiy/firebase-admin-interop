@@ -1,7 +1,7 @@
 @JS()
 library firebase_storage;
 
-import "package:js/js.dart";
+import 'package:js/js.dart';
 import 'package:node_interop/node.dart';
 
 import 'bindings.dart';

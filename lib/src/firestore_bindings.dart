@@ -1,18 +1,21 @@
 @JS()
 library firestore;
 
-import "package:js/js.dart";
-import "package:node_interop/node.dart";
-import "package:node_interop/stream.dart";
+import 'package:js/js.dart';
+import 'package:node_interop/node.dart';
+import 'package:node_interop/stream.dart';
 
 @JS()
 @anonymous
 abstract class FirestoreModule {
   /// Sets the log function for all active Firestore instances.
-  external void setLogFunction(void logger(String msg));
+  external void setLogFunction(void Function(String msg) logger);
 
+  // ignore: non_constant_identifier_names
   external Function get Firestore;
+  // ignore: non_constant_identifier_names
   external GeoPointUtil get GeoPoint;
+  // ignore: non_constant_identifier_names
   external FieldValues get FieldValue;
 
   /// Reference to constructor function of [FieldPath].
@@ -21,8 +24,10 @@ abstract class FirestoreModule {
   /// - [FieldPathPrototype] which exposes static members of this class.
   /// - [documentId] which is a convenience function to create sentinel
   ///   [FieldPath] to refer to the ID of a document.
+  // ignore: non_constant_identifier_names
   external dynamic get FieldPath;
 
+  // ignore: non_constant_identifier_names
   external TimestampProto get Timestamp;
 }
 
@@ -120,7 +125,7 @@ abstract class Firestore {
   /// transaction failed, a rejected Future with the corresponding failure error
   /// will be returned.
   external Promise runTransaction(
-      Promise updateFunction(Transaction transaction));
+      Promise Function(Transaction transaction) updateFunction);
 
   /// Creates a write batch, used for performing multiple writes as a single
   /// atomic operation.
@@ -196,7 +201,7 @@ abstract class Transaction {
   /// documents.
   /*external Promise<QuerySnapshot> get(Query query);*/
   external Promise /*Promise<DocumentSnapshot>|Promise<QuerySnapshot>*/ get(
-      dynamic /*DocumentReference|Query*/ documentRef_query);
+      dynamic /*DocumentReference|Query*/ documentRefQuery);
 
   /// Create the document referred to by the provided `DocumentReference`.
   /// The operation will fail the transaction if a document exists at the
@@ -229,8 +234,8 @@ abstract class Transaction {
   /// update.
   /*external Transaction update(DocumentReference documentRef, String|FieldPath field, dynamic value, [dynamic fieldsOrPrecondition1, dynamic fieldsOrPrecondition2, dynamic fieldsOrPrecondition3, dynamic fieldsOrPrecondition4, dynamic fieldsOrPrecondition5]);*/
   external Transaction update(
-      DocumentReference documentRef, dynamic /*String|FieldPath*/ data_field,
-      [dynamic /*Precondition|dynamic*/ precondition_value,
+      DocumentReference documentRef, dynamic /*String|FieldPath*/ dataField,
+      [dynamic /*Precondition|dynamic*/ preconditionValue,
       List<dynamic>? fieldsOrPrecondition]);
 
   /// Deletes the document referred to by the provided `DocumentReference`.
@@ -386,8 +391,8 @@ abstract class DocumentReference {
   /// is available.
   /// cancelled. No further callbacks will occur.
   /// the snapshot listener.
-  external Function onSnapshot(void onNext(DocumentSnapshot snapshot),
-      [void onError(Error error)?]);
+  external Function onSnapshot(void Function(DocumentSnapshot snapshot) onNext,
+      [void Function(Error error)? onError]);
 }
 
 /// A `DocumentSnapshot` contains data read from a document in your Firestore
@@ -427,7 +432,7 @@ abstract class DocumentSnapshot {
 
   /// Retrieves all fields in the document as an Object. Returns 'undefined' if
   /// the document doesn't exist.
-  external dynamic /*DocumentData|dynamic*/ data();
+  external DocumentData? data();
 
   /// Retrieves the field specified by `fieldPath`.
   /// field exists in the document.
@@ -446,16 +451,21 @@ abstract class DocumentSnapshot {
 @anonymous
 abstract class QueryDocumentSnapshot extends DocumentSnapshot {
   /// The time the document was created.
+  @override
   external Timestamp? get createTime;
+  @override
   external set createTime(Timestamp? v);
 
   /// The time the document was last updated (at the time the snapshot was
   /// generated).
+  @override
   external Timestamp? get updateTime;
+  @override
   external set updateTime(Timestamp? v);
 
   /// Retrieves all fields in the document as an Object.
   /// @override
+  @override
   external DocumentData data();
 }
 
@@ -531,7 +541,7 @@ abstract class DocumentQuery {
     dynamic fieldValues4,
     dynamic fieldValues5]);*/
   external DocumentQuery startAt(
-      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshot_fieldValues);
+      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshotFieldValues);
 
   /// Creates and returns a new Query that starts after the provided document
   /// (exclusive). The starting position is relative to the order of the query.
@@ -549,7 +559,7 @@ abstract class DocumentQuery {
     dynamic fieldValues4,
     dynamic fieldValues5]);*/
   external DocumentQuery startAfter(
-      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshot_fieldValues);
+      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshotFieldValues);
 
   /// Creates and returns a new Query that ends before the provided document
   /// (exclusive). The end position is relative to the order of the query. The
@@ -567,7 +577,7 @@ abstract class DocumentQuery {
     dynamic fieldValues4,
     dynamic fieldValues5]);*/
   external DocumentQuery endBefore(
-      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshot_fieldValues);
+      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshotFieldValues);
 
   /// Creates and returns a new Query that ends at the provided document
   /// (inclusive). The end position is relative to the order of the query. The
@@ -585,7 +595,7 @@ abstract class DocumentQuery {
     dynamic fieldValues4,
     dynamic fieldValues5]);*/
   external DocumentQuery endAt(
-      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshot_fieldValues);
+      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshotFieldValues);
 
   /// Executes the query and returns the results as a `QuerySnapshot`.
   external Promise get();
@@ -597,8 +607,8 @@ abstract class DocumentQuery {
   /// is available.
   /// cancelled. No further callbacks will occur.
   /// the snapshot listener.
-  external Function onSnapshot(void onNext(QuerySnapshot snapshot),
-      [void onError(Error error)?]);
+  external Function onSnapshot(void Function(QuerySnapshot snapshot) onNext,
+      [void Function(Error error)? onError]);
 }
 
 /// A `QuerySnapshot` contains zero or more `QueryDocumentSnapshot` objects
@@ -637,7 +647,7 @@ abstract class QuerySnapshot {
 
   /// Enumerates all of the documents in the QuerySnapshot.
   /// each document in the snapshot.
-  external void forEach(void callback(QueryDocumentSnapshot result),
+  external void forEach(void Function(QueryDocumentSnapshot result) callback,
       [dynamic thisArg]);
 }
 

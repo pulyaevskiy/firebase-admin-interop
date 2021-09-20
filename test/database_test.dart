@@ -10,7 +10,7 @@ import 'package:test/test.dart';
 import 'setup.dart';
 
 void main() {
-  App? app = initFirebaseApp();
+  var app = initFirebaseApp();
 
   group('Database', () {
     tearDownAll(() {
@@ -31,8 +31,8 @@ void main() {
 
       test('querying works', () async {
         var ref = app.database().ref('/app/users').endAt('Firebase');
-        var value = await ref.once('value');
-        var records = new Map<String, dynamic>.from(value.val());
+        var value = await ref.once<Map>('value');
+        var records = Map<String, dynamic>.from(value.val()!);
         expect(records, hasLength(2));
       });
 
@@ -52,7 +52,7 @@ void main() {
         final values = await result;
         expect(values, ['Firebase', 'Second', 'Last']);
         sub.cancel();
-        controller.close();
+        await controller.close();
       });
     });
 
@@ -114,11 +114,11 @@ void main() {
 
       test('update()', () async {
         await refUpdate.update({'num': 23, 'nested/thing': '1984'});
-        var snapshot = await refUpdate.once('value');
-        Map<String, dynamic> data = snapshot.val();
+        var snapshot = await refUpdate.once<Map>('value');
+        var data = snapshot.val()!;
         expect(data, hasLength(2));
         expect(data['num'], 23);
-        expect(data['nested']['thing'], '1984');
+        expect((data['nested'] as Map)['thing'], '1984');
       });
 
       test('transaction abort', () async {
@@ -134,21 +134,22 @@ void main() {
         var tx = await refUpdate.transaction((dynamic currentData) {
           // Not sure I fully understand why Firebase sends initial `null` value
           // here, but this should not have anything to do with our Dart code.
-          if (currentData == null)
+          if (currentData == null) {
             return TransactionResult.success(currentData);
-          final data = new Map<String, dynamic>.from(currentData);
+          }
+          final data = Map<String, dynamic>.from(currentData as Map);
           data['tx'] = true;
           return TransactionResult.success(data);
         });
         expect(tx.committed, isTrue);
-        Map<String, dynamic> value = tx.snapshot.val();
+        var value = tx.snapshot.val() as Map;
         expect(value['tx'], isTrue);
       });
     });
 
     group('DataSnapshot', () {
       var ref = app!.database().ref('/app/users/3/notifications');
-      late var childKey;
+      late String childKey;
 
       setUp(() async {
         await ref.remove();

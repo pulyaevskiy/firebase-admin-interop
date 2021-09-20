@@ -18,9 +18,8 @@ void main() {
       try {
         user = await app!.auth().getUser('testuser');
       } catch (_) {}
-      ;
       if (user == null) {
-        await app!.auth().createUser(new CreateUserRequest(uid: 'testuser'));
+        await app!.auth().createUser(CreateUserRequest(uid: 'testuser'));
       }
     });
 

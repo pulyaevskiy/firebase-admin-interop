@@ -3,6 +3,7 @@
 @JS()
 library firebase_admin;
 
+import 'package:firebase_admin_interop/js.dart';
 import 'package:js/js.dart';
 import 'package:node_interop/node.dart';
 
@@ -15,7 +16,7 @@ export 'firestore_bindings.dart';
 const defaultAppName = '[DEFAULT]';
 
 /// Singleton instance of [FirebaseAdmin] module.
-final FirebaseAdmin? admin = require('firebase-admin');
+final admin = require('firebase-admin') as FirebaseAdmin?;
 
 @JS()
 @anonymous
@@ -24,6 +25,7 @@ abstract class FirebaseAdmin {
   external App initializeApp([options, String? name]);
 
   /// The current SDK version.
+  // ignore: non_constant_identifier_names
   external String get SDK_VERSION;
 
   /// A (read-only) array of all initialized apps.
@@ -101,12 +103,20 @@ abstract class Credentials {
 @JS()
 @anonymous
 abstract class ServiceAccountConfig {
+  // ignore: non_constant_identifier_names
   external String get project_id;
+  // ignore: non_constant_identifier_names
   external String get client_email;
+  // ignore: non_constant_identifier_names
   external String get private_key;
 
   external factory ServiceAccountConfig(
-      {String? project_id, String? client_email, String? private_key});
+      // ignore: non_constant_identifier_names
+      {String? project_id,
+      // ignore: non_constant_identifier_names
+      String? client_email,
+      // ignore: non_constant_identifier_names
+      String? private_key});
 }
 
 /// Interface which provides Google OAuth2 access tokens used to authenticate
@@ -127,9 +137,11 @@ abstract class Credential {
 @anonymous
 abstract class AccessToken {
   /// The actual Google OAuth2 access token.
+  // ignore: non_constant_identifier_names
   external String get access_token;
 
   /// The number of seconds from when the token was issued that it expires.
+  // ignore: non_constant_identifier_names
   external num get expires_in;
 }
 
@@ -348,7 +360,7 @@ abstract class UserRecord {
   /// roles and propagated to an authenticated user's ID token.
   ///
   /// This is set via [Auth.setCustomUserClaims].
-  external get customClaims;
+  external Object? get customClaims;
 
   /// Whether or not the user is disabled: true for disabled; false for enabled.
   external bool get disabled;
@@ -472,6 +484,7 @@ abstract class DecodedIdToken {
   /// user initially logged in to this session. In a single session, the Firebase
   /// SDKs will refresh a user's ID tokens every hour. Each ID token will have a
   /// different [iat] value, but the same auth_time value.
+  // ignore: non_constant_identifier_names
   external num get auth_time;
 
   /// The ID token's expiration time, in seconds since the Unix epoch.
@@ -525,11 +538,12 @@ abstract class DecodedIdToken {
 abstract class FirebaseSignInInfo {
   /// Provider-specific identity details corresponding to the provider used to
   /// sign in the user.
-  external get identities;
+  external Object? get identities;
 
   /// The ID of the provider used to sign in the user. One of "anonymous",
   /// "password", "facebook.com", "github.com", "google.com", "twitter.com",
   /// or "custom".
+  // ignore: non_constant_identifier_names
   external String get sign_in_provider;
 }
 
@@ -538,10 +552,14 @@ abstract class FirebaseSignInInfo {
 @JS()
 @anonymous
 abstract class FirestoreService {
+  // ignore: non_constant_identifier_names
   external GeoPointUtil get GeoPoint;
+  // ignore: non_constant_identifier_names
   external FieldValues get FieldValue;
-  external dynamic get Timestamp;
-  external dynamic get FieldPath;
+  // ignore: non_constant_identifier_names
+  external Object get Timestamp;
+  // ignore: non_constant_identifier_names
+  external FieldPathPrototype get FieldPath;
 }
 
 // admin.messaging ================================================================
@@ -1527,7 +1545,8 @@ abstract class DatabaseService {
   // external Database call([App app]);
 
   /// Logs debugging information to the console.
-  external enableLogging([dynamic loggerOrBool, bool? persistent]);
+  external void enableLogging([dynamic loggerOrBool, bool? persistent]);
+  // ignore: non_constant_identifier_names
   external ServerValues get ServerValue;
 }
 
@@ -1536,6 +1555,7 @@ abstract class DatabaseService {
 @JS()
 @anonymous
 abstract class ServerValues {
+  // ignore: non_constant_identifier_names
   external num get TIMESTAMP;
 }
 
@@ -1611,7 +1631,7 @@ abstract class Reference extends Query {
   /// so the resulting list of items will be chronologically sorted. The keys
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
-  external ThenableReference push([value, onComplete(JsError error)?]);
+  external ThenableReference push([value, Function(JsError error)? onComplete]);
 
   /// Removes the data at this Database location.
   ///
@@ -1622,7 +1642,7 @@ abstract class Reference extends Query {
   /// Firebase servers will also be started, and the returned [Promise] will
   /// resolve when complete. If provided, the [onComplete] callback will be
   /// called asynchronously after synchronization has finished.
-  external Promise remove([onComplete(JsError error)?]);
+  external Promise remove([Function(JsError error)? onComplete]);
 
   /// Writes data to this Database location.
   ///
@@ -1646,7 +1666,7 @@ abstract class Reference extends Query {
   ///
   /// A single [set] will generate a single "value" event at the location where
   /// the `set()` was performed.
-  external Promise set(value, [onComplete(JsError error)?]);
+  external Promise set(value, [Function(JsError error)? onComplete]);
 
   /// Sets a priority for the data at this Database location.
   ///
@@ -1655,7 +1675,7 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise setPriority(priority, [onComplete(JsError error)?]);
+  external Promise setPriority(priority, [Function(JsError error)? onComplete]);
 
   /// Writes data the Database location. Like [set] but also specifies the
   /// [priority] for that data.
@@ -1666,7 +1686,7 @@ abstract class Reference extends Query {
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
   external Promise setWithPriority(value, priority,
-      [onComplete(JsError error)?]);
+      [Function(JsError error)? onComplete]);
 
   /// Atomically modifies the data at this location.
   ///
@@ -1692,8 +1712,10 @@ abstract class Reference extends Query {
   /// to perform a transaction. This is because the client-side nature of
   /// transactions requires the client to read the data in order to
   /// transactionally update it.
-  external Promise transaction(transactionUpdate(snapshot),
-      onComplete(error, bool committed, snapshot), bool applyLocally);
+  external Promise transaction(
+      Function(dynamic snapshot) transactionUpdate,
+      Function(dynamic error, bool committed, dynamic snapshot) onComplete,
+      bool applyLocally);
 
   /// Writes multiple values to the Database at once.
   ///
@@ -1722,7 +1744,7 @@ abstract class Reference extends Query {
   /// [transaction] to modify the same data.
   ///
   /// Passing `null` to [update] will remove the data at this location.
-  external Promise update(values, [onComplete(JsError error)?]);
+  external Promise update(values, [Function(JsError error)? onComplete]);
 }
 
 @JS()
@@ -1766,7 +1788,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise cancel([onComplete(JsError error)?]);
+  external Promise cancel([Function(JsError error)? onComplete]);
 
   /// Ensures the data at this location is deleted when the client is
   /// disconnected (due to closing the browser, navigating to a new page, or
@@ -1775,7 +1797,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise remove([onComplete(JsError error)?]);
+  external Promise remove([Function(JsError error)? onComplete]);
 
   /// Ensures the data at this location is set to the specified [value] when the
   /// client is disconnected (due to closing the browser, navigating to a new
@@ -1791,13 +1813,13 @@ abstract class OnDisconnect {
   ///
   /// See also:
   /// - [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities)
-  external Promise set(value, [onComplete(JsError error)?]);
+  external Promise set(value, [Function(JsError error)? onComplete]);
 
   /// Ensures the data at this location is set to the specified [value] and
   /// [priority] when the client is disconnected (due to closing the browser,
   /// navigating to a new page, or network issues).
   external Promise setWithPriority(value, priority,
-      [onComplete(JsError error)?]);
+      [Function(JsError error)? onComplete]);
 
   /// Writes multiple [values] at this location when the client is disconnected
   /// (due to closing the browser, navigating to a new page, or network issues).
@@ -1813,7 +1835,7 @@ abstract class OnDisconnect {
   ///
   /// See [Reference.update] for examples of using the connected version of
   /// update.
-  external Promise update(values, [onComplete(JsError error)?]);
+  external Promise update(values, [Function(JsError error)? onComplete]);
 }
 
 /// Sorts and filters the data at a [Database] location so only a subset of the
@@ -1994,6 +2016,7 @@ abstract class Query {
   /// Append '.json' to the returned URL when typed into a browser to download
   /// JSON-formatted data. If the location is secured (that is, not publicly
   /// readable), you will get a permission-denied error.
+  @override
   external String toString();
 }
 
@@ -2063,7 +2086,7 @@ abstract class DataSnapshot {
   /// If no explicit `orderBy*()` method is used, results are returned ordered
   /// by key (unless priorities are used, in which case, results are returned by
   /// priority).
-  external bool forEach(bool action(DataSnapshot child));
+  external bool forEach(bool Function(DataSnapshot child) action);
 
   /// Gets the priority value of the data in this DataSnapshot.
   ///
