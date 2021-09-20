@@ -29,23 +29,21 @@ class App {
   js.AppOptions get options => nativeInstance.options;
 
   /// Gets the [Auth] service for this application.
-  Auth auth() => _auth ??= new Auth(nativeInstance.auth());
-  Auth _auth;
+  Auth auth() => _auth ??= Auth(nativeInstance.auth());
+  Auth? _auth;
 
   /// Gets Realtime [Database] client for this application.
   Database database() =>
-      _database ??= new Database(this.nativeInstance.database(), this);
-  Database _database;
+      _database ??= Database(nativeInstance.database(), this);
+  Database? _database;
 
   /// Gets [Firestore] client for this application.
-  Firestore firestore() =>
-      _firestore ??= new Firestore(nativeInstance.firestore());
-  Firestore _firestore;
+  Firestore firestore() => _firestore ??= Firestore(nativeInstance.firestore());
+  Firestore? _firestore;
 
   /// Gets [Messaging] client for this application.
-  Messaging messaging() =>
-      _messaging ??= new Messaging(nativeInstance.messaging());
-  Messaging _messaging;
+  Messaging messaging() => _messaging ??= Messaging(nativeInstance.messaging());
+  Messaging? _messaging;
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.

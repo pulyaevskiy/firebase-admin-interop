@@ -1,18 +1,21 @@
 @JS()
 library firestore;
 
-import "package:js/js.dart";
-import "package:node_interop/node.dart";
-import "package:node_interop/stream.dart";
+import 'package:js/js.dart';
+import 'package:node_interop/node.dart';
+import 'package:node_interop/stream.dart';
 
 @JS()
 @anonymous
 abstract class FirestoreModule {
   /// Sets the log function for all active Firestore instances.
-  external void setLogFunction(void logger(String msg));
+  external void setLogFunction(void Function(String msg) logger);
 
+  // ignore: non_constant_identifier_names
   external Function get Firestore;
+  // ignore: non_constant_identifier_names
   external GeoPointUtil get GeoPoint;
+  // ignore: non_constant_identifier_names
   external FieldValues get FieldValue;
 
   /// Reference to constructor function of [FieldPath].
@@ -21,8 +24,10 @@ abstract class FirestoreModule {
   /// - [FieldPathPrototype] which exposes static members of this class.
   /// - [documentId] which is a convenience function to create sentinel
   ///   [FieldPath] to refer to the ID of a document.
+  // ignore: non_constant_identifier_names
   external dynamic get FieldPath;
 
+  // ignore: non_constant_identifier_names
   external TimestampProto get Timestamp;
 }
 
@@ -53,7 +58,7 @@ abstract class GeoPointUtil {
 @JS()
 @anonymous
 abstract class GeoPointProto {
-  external factory GeoPointProto({num latitude, num longitude});
+  external factory GeoPointProto({num? latitude, num? longitude});
   external num get latitude;
   external num get longitude;
 }
@@ -96,11 +101,11 @@ abstract class Firestore {
   /// Retrieves multiple documents from Firestore.
   /// snapshots.
   external Promise getAll(
-      [DocumentReference documentRef1,
-      DocumentReference documentRef2,
-      DocumentReference documentRef3,
-      DocumentReference documentRef4,
-      DocumentReference documentRef5]);
+      [DocumentReference? documentRef1,
+      DocumentReference? documentRef2,
+      DocumentReference? documentRef3,
+      DocumentReference? documentRef4,
+      DocumentReference? documentRef5]);
 
   /// Fetches the root collections that are associated with this Firestore
   /// database.
@@ -120,7 +125,7 @@ abstract class Firestore {
   /// transaction failed, a rejected Future with the corresponding failure error
   /// will be returned.
   external Promise runTransaction(
-      Promise updateFunction(Transaction transaction));
+      Promise Function(Transaction transaction) updateFunction);
 
   /// Creates a write batch, used for performing multiple writes as a single
   /// atomic operation.
@@ -165,9 +170,9 @@ abstract class FirestoreSettings {
   external bool get timestampsInSnapshots;
 
   external factory FirestoreSettings({
-    String projectId,
-    String keyFilename,
-    bool timestampsInSnapshots,
+    String? projectId,
+    String? keyFilename,
+    bool? timestampsInSnapshots,
   });
 }
 
@@ -196,18 +201,19 @@ abstract class Transaction {
   /// documents.
   /*external Promise<QuerySnapshot> get(Query query);*/
   external Promise /*Promise<DocumentSnapshot>|Promise<QuerySnapshot>*/ get(
-      dynamic /*DocumentReference|Query*/ documentRef_query);
+      dynamic /*DocumentReference|Query*/ documentRefQuery);
 
   /// Create the document referred to by the provided `DocumentReference`.
   /// The operation will fail the transaction if a document exists at the
   /// specified location.
-  external Transaction create(DocumentReference documentRef, DocumentData data);
+  external Transaction create(
+      DocumentReference documentRef, DocumentData? data);
 
   /// Writes to the document referred to by the provided `DocumentReference`.
   /// If the document does not exist yet, it will be created. If you pass
   /// `SetOptions`, the provided data can be merged into the existing document.
-  external Transaction set(DocumentReference documentRef, DocumentData data,
-      [SetOptions options]);
+  external Transaction set(DocumentReference documentRef, DocumentData? data,
+      [SetOptions? options]);
 
   /// Updates fields in the document referred to by the provided
   /// `DocumentReference`. The update will fail if applied to a document that
@@ -228,13 +234,13 @@ abstract class Transaction {
   /// update.
   /*external Transaction update(DocumentReference documentRef, String|FieldPath field, dynamic value, [dynamic fieldsOrPrecondition1, dynamic fieldsOrPrecondition2, dynamic fieldsOrPrecondition3, dynamic fieldsOrPrecondition4, dynamic fieldsOrPrecondition5]);*/
   external Transaction update(
-      DocumentReference documentRef, dynamic /*String|FieldPath*/ data_field,
-      [dynamic /*Precondition|dynamic*/ precondition_value,
-      List<dynamic> fieldsOrPrecondition]);
+      DocumentReference documentRef, dynamic /*String|FieldPath*/ dataField,
+      [dynamic /*Precondition|dynamic*/ preconditionValue,
+      List<dynamic>? fieldsOrPrecondition]);
 
   /// Deletes the document referred to by the provided `DocumentReference`.
   external Transaction delete(DocumentReference documentRef,
-      [Precondition precondition]);
+      [Precondition? precondition]);
 }
 
 /// A write batch, used to perform multiple writes as a single atomic unit.
@@ -257,14 +263,14 @@ abstract class WriteBatch {
   /// Write to the document referred to by the provided [DocumentReference].
   /// If the document does not exist yet, it will be created. If you pass
   /// [options], the provided data can be merged into the existing document.
-  external WriteBatch set(DocumentReference documentRef, DocumentData data,
-      [SetOptions options]);
+  external WriteBatch set(DocumentReference documentRef, DocumentData? data,
+      [SetOptions? options]);
 
   /// Updates fields in the document referred to by this DocumentReference.
   /// The update will fail if applied to a document that does not exist.
   ///
   /// Nested fields can be updated by providing dot-separated field path strings
-  external WriteBatch update(DocumentReference documentRef, UpdateData data);
+  external WriteBatch update(DocumentReference documentRef, UpdateData? data);
 
   /// Deletes the document referred to by the provided `DocumentReference`.
   external WriteBatch delete(DocumentReference documentRef);
@@ -284,7 +290,7 @@ abstract class Precondition {
   /// string).
   external Timestamp get lastUpdateTime;
   external set lastUpdateTime(Timestamp v);
-  external factory Precondition({Timestamp lastUpdateTime});
+  external factory Precondition({Timestamp? lastUpdateTime});
 }
 
 /// An options object that configures the behavior of `set()` calls in
@@ -299,7 +305,7 @@ abstract class SetOptions {
   /// untouched.
   external bool get merge;
   external set merge(bool v);
-  external factory SetOptions({bool merge});
+  external factory SetOptions({bool? merge});
 }
 
 /// A WriteResult wraps the write time set by the Firestore servers on `sets()`,
@@ -352,14 +358,14 @@ abstract class DocumentReference {
   /// Writes to the document referred to by this `DocumentReference`. If the
   /// document does not yet exist, it will be created. If you pass
   /// `SetOptions`, the provided data can be merged into an existing document.
-  external Promise set(DocumentData data, [SetOptions options]);
+  external Promise set(DocumentData? data, [SetOptions? options]);
 
   /// Updates fields in the document referred to by this `DocumentReference`.
   /// The update will fail if applied to a document that does not exist.
   /// Nested fields can be updated by providing dot-separated field path
   /// strings.
   /// update the document.
-  external Promise update(UpdateData data, [Precondition precondition]);
+  external Promise update(UpdateData? data, [Precondition? precondition]);
 
   /// Updates fields in the document referred to by this `DocumentReference`.
   /// The update will fail if applied to a document that does not exist.
@@ -375,7 +381,7 @@ abstract class DocumentReference {
   //     List<dynamic> moreFieldsOrPrecondition]);
 
   /// Deletes the document referred to by this `DocumentReference`.
-  external Promise delete([Precondition precondition]);
+  external Promise delete([Precondition? precondition]);
 
   /// Reads the document referred to by this `DocumentReference`.
   /// current document contents.
@@ -385,8 +391,8 @@ abstract class DocumentReference {
   /// is available.
   /// cancelled. No further callbacks will occur.
   /// the snapshot listener.
-  external Function onSnapshot(void onNext(DocumentSnapshot snapshot),
-      [void onError(Error error)]);
+  external Function onSnapshot(void Function(DocumentSnapshot snapshot) onNext,
+      [void Function(Error error)? onError]);
 }
 
 /// A `DocumentSnapshot` contains data read from a document in your Firestore
@@ -412,13 +418,13 @@ abstract class DocumentSnapshot {
 
   /// The time the document was created. Not set for documents that don't
   /// exist.
-  external Timestamp get createTime;
-  external set createTime(Timestamp v);
+  external Timestamp? get createTime;
+  external set createTime(Timestamp? v);
 
   /// The time the document was last updated (at the time the snapshot was
   /// generated). Not set for documents that don't exist.
-  external Timestamp get updateTime;
-  external set updateTime(Timestamp v);
+  external Timestamp? get updateTime;
+  external set updateTime(Timestamp? v);
 
   /// The time this snapshot was read.
   external Timestamp get readTime;
@@ -426,7 +432,7 @@ abstract class DocumentSnapshot {
 
   /// Retrieves all fields in the document as an Object. Returns 'undefined' if
   /// the document doesn't exist.
-  external dynamic /*DocumentData|dynamic*/ data();
+  external DocumentData? data();
 
   /// Retrieves the field specified by `fieldPath`.
   /// field exists in the document.
@@ -445,16 +451,21 @@ abstract class DocumentSnapshot {
 @anonymous
 abstract class QueryDocumentSnapshot extends DocumentSnapshot {
   /// The time the document was created.
-  external Timestamp get createTime;
-  external set createTime(Timestamp v);
+  @override
+  external Timestamp? get createTime;
+  @override
+  external set createTime(Timestamp? v);
 
   /// The time the document was last updated (at the time the snapshot was
   /// generated).
-  external Timestamp get updateTime;
-  external set updateTime(Timestamp v);
+  @override
+  external Timestamp? get updateTime;
+  @override
+  external set updateTime(Timestamp? v);
 
   /// Retrieves all fields in the document as an Object.
   /// @override
+  @override
   external DocumentData data();
 }
 
@@ -488,7 +499,7 @@ abstract class DocumentQuery {
   /// than modify the existing instance) to impose the order.
   /// not specified, order will be ascending.
   external DocumentQuery orderBy(dynamic /*String|FieldPath*/ fieldPath,
-      [String /*'desc'|'asc'*/ directionStr]);
+      [String? /*'desc'|'asc'*/ directionStr]);
 
   /// Creates and returns a new Query that's additionally limited to only
   /// return up to the specified number of documents.
@@ -530,7 +541,7 @@ abstract class DocumentQuery {
     dynamic fieldValues4,
     dynamic fieldValues5]);*/
   external DocumentQuery startAt(
-      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshot_fieldValues);
+      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshotFieldValues);
 
   /// Creates and returns a new Query that starts after the provided document
   /// (exclusive). The starting position is relative to the order of the query.
@@ -548,7 +559,7 @@ abstract class DocumentQuery {
     dynamic fieldValues4,
     dynamic fieldValues5]);*/
   external DocumentQuery startAfter(
-      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshot_fieldValues);
+      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshotFieldValues);
 
   /// Creates and returns a new Query that ends before the provided document
   /// (exclusive). The end position is relative to the order of the query. The
@@ -566,7 +577,7 @@ abstract class DocumentQuery {
     dynamic fieldValues4,
     dynamic fieldValues5]);*/
   external DocumentQuery endBefore(
-      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshot_fieldValues);
+      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshotFieldValues);
 
   /// Creates and returns a new Query that ends at the provided document
   /// (inclusive). The end position is relative to the order of the query. The
@@ -584,7 +595,7 @@ abstract class DocumentQuery {
     dynamic fieldValues4,
     dynamic fieldValues5]);*/
   external DocumentQuery endAt(
-      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshot_fieldValues);
+      dynamic /*DocumentSnapshot|List<dynamic>*/ snapshotFieldValues);
 
   /// Executes the query and returns the results as a `QuerySnapshot`.
   external Promise get();
@@ -596,8 +607,8 @@ abstract class DocumentQuery {
   /// is available.
   /// cancelled. No further callbacks will occur.
   /// the snapshot listener.
-  external Function onSnapshot(void onNext(QuerySnapshot snapshot),
-      [void onError(Error error)]);
+  external Function onSnapshot(void Function(QuerySnapshot snapshot) onNext,
+      [void Function(Error error)? onError]);
 }
 
 /// A `QuerySnapshot` contains zero or more `QueryDocumentSnapshot` objects
@@ -616,7 +627,7 @@ abstract class QuerySnapshot {
   /// An array of the documents that changed since the last snapshot. If this
   /// is the first snapshot, all documents will be in the list as added
   /// changes.
-  external List<DocumentChange> docChanges();
+  external List<DocumentChange>? docChanges();
 
   /// An array of all the documents in the QuerySnapshot.
   external List<QueryDocumentSnapshot> get docs;
@@ -636,7 +647,7 @@ abstract class QuerySnapshot {
 
   /// Enumerates all of the documents in the QuerySnapshot.
   /// each document in the snapshot.
-  external void forEach(void callback(QueryDocumentSnapshot result),
+  external void forEach(void Function(QueryDocumentSnapshot result) callback,
       [dynamic thisArg]);
 }
 
@@ -668,10 +679,10 @@ abstract class DocumentChange {
   external num get newIndex;
   external set newIndex(num v);
   external factory DocumentChange(
-      {String /*'added'|'removed'|'modified'*/ type,
-      QueryDocumentSnapshot doc,
-      num oldIndex,
-      num newIndex});
+      {String? /*'added'|'removed'|'modified'*/ type,
+      QueryDocumentSnapshot? doc,
+      num? oldIndex,
+      num? newIndex});
 }
 
 /// A `CollectionReference` object can be used for adding documents, getting
@@ -686,8 +697,8 @@ abstract class CollectionReference extends DocumentQuery {
 
   /// A reference to the containing Document if this is a subcollection, else
   /// null.
-  external DocumentReference /*DocumentReference|Null*/ get parent;
-  external set parent(DocumentReference /*DocumentReference|Null*/ v);
+  external DocumentReference? /*DocumentReference|Null*/ get parent;
+  external set parent(DocumentReference? /*DocumentReference|Null*/ v);
 
   /// A string representing the path of the referenced collection (relative
   /// to the root of the database).
@@ -697,12 +708,12 @@ abstract class CollectionReference extends DocumentQuery {
   /// Get a `DocumentReference` for the document within the collection at the
   /// specified path. If no path is specified, an automatically-generated
   /// unique ID will be used for the returned DocumentReference.
-  external DocumentReference doc([String documentPath]);
+  external DocumentReference doc([String? documentPath]);
 
   /// Add a new document to this collection with the specified data, assigning
   /// it a document ID automatically.
   /// newly created document after it has been written to the backend.
-  external Promise add(DocumentData data);
+  external Promise add(DocumentData? data);
 }
 
 /// Sentinel values that can be used when writing document fields with set()
@@ -759,9 +770,9 @@ abstract class FieldPath {
   /// Creates a FieldPath from the provided field names. If more than one field
   /// name is provided, the path will point to a nested field in a document.
   external factory FieldPath(
-      [String fieldNames1,
-      String fieldNames2,
-      String fieldNames3,
-      String fieldNames4,
-      String fieldNames5]);
+      [String? fieldNames1,
+      String? fieldNames2,
+      String? fieldNames3,
+      String? fieldNames4,
+      String? fieldNames5]);
 }

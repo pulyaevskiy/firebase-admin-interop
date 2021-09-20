@@ -1,8 +1,6 @@
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
-import 'package:meta/meta.dart';
-
 import 'app.dart';
 import 'bindings.dart' as js;
 
@@ -11,11 +9,11 @@ import 'bindings.dart' as js;
 /// To start using Firebase services initialize a Firebase application
 /// with [initializeApp] method.
 class FirebaseAdmin {
-  final js.FirebaseAdmin _admin;
-  final Map<String, App> _apps = new Map();
+  final js.FirebaseAdmin? _admin;
+  final Map<String, App> _apps = {};
 
-  static FirebaseAdmin get instance => _instance ??= new FirebaseAdmin._();
-  static FirebaseAdmin _instance;
+  static FirebaseAdmin get instance => _instance ??= FirebaseAdmin._();
+  static FirebaseAdmin? _instance;
 
   FirebaseAdmin._() : _admin = js.admin;
 
@@ -47,30 +45,30 @@ class FirebaseAdmin {
   ///   * [App]
   ///   * [cert]
   ///   * [certFromPath]
-  App initializeApp([js.AppOptions options, String name]) {
+  App? initializeApp([js.AppOptions? options, String? name]) {
     if (options == null && name == null) {
       // Special case for default app with Application Default Credentials.
       name = js.defaultAppName;
       if (!_apps.containsKey(name)) {
-        _apps[name] = new App(_admin.initializeApp());
+        _apps[name] = App(_admin!.initializeApp());
       }
       return _apps[name];
     }
 
     name ??= js.defaultAppName;
     if (!_apps.containsKey(name)) {
-      _apps[name] = new App(_admin.initializeApp(options, name));
+      _apps[name] = App(_admin!.initializeApp(options, name));
     }
     return _apps[name];
   }
 
   /// Creates [App] certificate.
   js.Credential cert({
-    @required String projectId,
-    @required String clientEmail,
-    @required String privateKey,
+    required String? projectId,
+    required String? clientEmail,
+    required String? privateKey,
   }) {
-    return _admin.credential.cert(new js.ServiceAccountConfig(
+    return _admin!.credential.cert(js.ServiceAccountConfig(
       project_id: projectId,
       client_email: clientEmail,
       private_key: privateKey,
@@ -79,6 +77,6 @@ class FirebaseAdmin {
 
   /// Creates app certificate from service account file at specified [path].
   js.Credential certFromPath(String path) {
-    return _admin.credential.cert(path);
+    return _admin!.credential.cert(path);
   }
 }

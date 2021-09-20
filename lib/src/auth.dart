@@ -39,9 +39,9 @@ class Auth {
   /// Returns a [Future] containing a custom token string for the provided [uid]
   /// and payload.
   Future<String> createCustomToken(String uid,
-          [Map<String, String> developerClaims]) =>
-      promiseToFuture(
-          nativeInstance.createCustomToken(uid, jsify(developerClaims)));
+          [Map<String, String>? developerClaims]) =>
+      promiseToFuture(nativeInstance.createCustomToken(
+          uid, jsify(developerClaims ?? <String, String>{})));
 
   /// Creates a new user.
   Future<UserRecord> createUser(CreateUserRequest properties) =>
@@ -67,7 +67,7 @@ class Auth {
   /// and starting from the offset as specified by [pageToken].
   ///
   /// This is used to retrieve all the users of a specified project in batches.
-  Future<ListUsersResult> listUsers([num maxResults, String pageToken]) {
+  Future<ListUsersResult> listUsers([num? maxResults, String? pageToken]) {
     if (pageToken != null && maxResults != null) {
       return promiseToFuture(nativeInstance.listUsers(maxResults, pageToken));
     } else if (maxResults != null) {
@@ -120,7 +120,7 @@ class Auth {
   /// of [DecodedIdToken]; otherwise, the future is completed with an error.
   /// An optional flag can be passed to additionally check whether the ID token
   /// was revoked.
-  Future<DecodedIdToken> verifyIdToken(String idToken, [bool checkRevoked]) {
+  Future<DecodedIdToken> verifyIdToken(String idToken, [bool? checkRevoked]) {
     if (checkRevoked != null) {
       return promiseToFuture(
           nativeInstance.verifyIdToken(idToken, checkRevoked));
