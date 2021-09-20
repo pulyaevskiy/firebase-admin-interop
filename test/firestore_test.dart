@@ -964,15 +964,16 @@ void main() {
         await Future.delayed(
             Duration(seconds: 1)); // to avoid too much contention errors
 
-        var result = app.firestore().runTransaction((Transaction tx) async {
+        var result =
+            app.firestore().runTransaction<Object?>((Transaction tx) async {
           var doc2 = (await tx.get(doc2Ref)).data;
           tx.update(
               doc1Ref, UpdateData()..setInt('value', doc2.getInt('value')),
               lastUpdateTime: doc1UpdateTime1);
           tx.delete(doc2Ref, lastUpdateTime: doc2UpdateTime1);
+          return null;
         });
 
-        // ignore: invalid_return_type_for_catch_error
         var error = await result.catchError((Object error) => error);
         expect(error.toString(),
             contains('does not match the required base version'));
