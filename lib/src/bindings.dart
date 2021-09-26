@@ -7,8 +7,6 @@ import 'package:firebase_admin_interop/js.dart';
 import 'package:js/js.dart';
 import 'package:node_interop/node.dart';
 
-import 'firestore_bindings.dart' show Firestore, GeoPointUtil, FieldValues;
-
 export 'firestore_bindings.dart';
 
 // admin =========================================================================
@@ -71,6 +69,7 @@ abstract class FirebaseError implements JsError {
 @anonymous
 abstract class FirebaseArrayIndexError {
   external FirebaseError get error;
+
   external num get index;
 }
 
@@ -105,8 +104,10 @@ abstract class Credentials {
 abstract class ServiceAccountConfig {
   // ignore: non_constant_identifier_names
   external String get project_id;
+
   // ignore: non_constant_identifier_names
   external String get client_email;
+
   // ignore: non_constant_identifier_names
   external String get private_key;
 
@@ -310,12 +311,19 @@ abstract class Auth {
 @anonymous
 abstract class CreateUserRequest {
   external bool get disabled;
+
   external String get displayName;
+
   external String get email;
+
   external bool get emailVerified;
+
   external String get password;
+
   external String get phoneNumber;
+
   external String get photoURL;
+
   external String get uid;
 
   external factory CreateUserRequest({
@@ -334,11 +342,17 @@ abstract class CreateUserRequest {
 @anonymous
 abstract class UpdateUserRequest {
   external bool get disabled;
+
   external String get displayName;
+
   external String get email;
+
   external bool get emailVerified;
+
   external String get password;
+
   external String get phoneNumber;
+
   external String get photoURL;
 
   external factory UpdateUserRequest({
@@ -462,6 +476,7 @@ abstract class UserInfo {
 @anonymous
 abstract class ListUsersResult {
   external String get pageToken;
+
   external List<UserRecord> get users;
 }
 
@@ -554,10 +569,13 @@ abstract class FirebaseSignInInfo {
 abstract class FirestoreService {
   // ignore: non_constant_identifier_names
   external GeoPointUtil get GeoPoint;
+
   // ignore: non_constant_identifier_names
   external FieldValues get FieldValue;
+
   // ignore: non_constant_identifier_names
   external Object get Timestamp;
+
   // ignore: non_constant_identifier_names
   external FieldPathPrototype get FieldPath;
 }
@@ -640,7 +658,9 @@ abstract class Messaging {
 @anonymous
 abstract class FcmMessage {
   external String get data;
+
   external Notification get notification;
+
   external String get token;
 
   external factory FcmMessage({
@@ -654,14 +674,20 @@ abstract class FcmMessage {
 @anonymous
 abstract class TopicMessage {
   external AndroidConfig get android;
+
   external ApnsConfig get apns;
+
   external dynamic get data;
+
   external String get key;
+
   external FcmOptions get fcmOptions;
+
   external Notification get notification;
 
   /// Required
   external String get topic;
+
   external WebpushConfig get webpush;
 
   external factory TopicMessage({
@@ -680,14 +706,20 @@ abstract class TopicMessage {
 @anonymous
 abstract class TokenMessage {
   external AndroidConfig get android;
+
   external ApnsConfig get apns;
+
   external dynamic get data;
+
   external String get key;
+
   external FcmOptions get fcmOptions;
+
   external Notification get notification;
 
   /// Required
   external String get token;
+
   external WebpushConfig get webpush;
 
   external factory TokenMessage({
@@ -706,14 +738,20 @@ abstract class TokenMessage {
 @anonymous
 abstract class ConditionMessage {
   external AndroidConfig get android;
+
   external ApnsConfig get apns;
 
   /// Required
   external String get condition;
+
   external dynamic get data;
+
   external String get key;
+
   external FcmOptions get fcmOptions;
+
   external Notification get notification;
+
   external WebpushConfig get webpush;
 
   external factory ConditionMessage({
@@ -732,14 +770,20 @@ abstract class ConditionMessage {
 @anonymous
 abstract class MulticastMessage {
   external AndroidConfig get android;
+
   external ApnsConfig get apns;
+
   external dynamic get data;
+
   external String get key;
+
   external FcmOptions get fcmOptions;
+
   external Notification get notification;
 
   /// Required
   external List<String> get tokens;
+
   external WebpushConfig get webpush;
 
   external factory MulticastMessage({
@@ -932,6 +976,7 @@ abstract class DataMessagePayload {
   /// Keys can be any custom string, except for the following reserved strings:
   /// "from" and anything starting with "google."
   external String get key;
+
   external dynamic get value;
 
   external factory DataMessagePayload({
@@ -1296,15 +1341,25 @@ abstract class Aps {
 @anonymous
 abstract class ApsAlert {
   external String get actionLocKey;
+
   external String get body;
+
   external String get launchImage;
+
   external List<String> get locArgs;
+
   external String get locKey;
+
   external String get subtitle;
+
   external List<String> get subtitleLocArgs;
+
   external String get subtitleLocKey;
+
   external String get title;
+
   external List<String> get titleLocArgs;
+
   external String get titleLocKey;
 
   external factory ApsAlert({
@@ -1546,6 +1601,7 @@ abstract class DatabaseService {
 
   /// Logs debugging information to the console.
   external void enableLogging([dynamic loggerOrBool, bool? persistent]);
+
   // ignore: non_constant_identifier_names
   external ServerValues get ServerValue;
 }
@@ -1751,6 +1807,7 @@ abstract class Reference extends Query {
 @anonymous
 abstract class TransactionResult {
   bool get committed;
+
   DataSnapshot get snapshot;
 }
 
