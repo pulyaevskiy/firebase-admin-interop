@@ -18,8 +18,8 @@ dev_dependencies:
   dev_test:
   tekartik_lints:
     git:
-      url: git://github.com/tekartik/common.dart
-      ref: null_safety
+      url: https://github.com/tekartik/common.dart
+      ref: dart2_3
       path: packages/lints
     version: '>=0.1.0'
  #  build_runner: ^1.7.4
