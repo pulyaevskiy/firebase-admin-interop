@@ -27,6 +27,13 @@ dependencies:
   firebase_admin_interop: [latest_version]
 ```
 
+Git:
+```yaml
+  firebase_admin_interop:
+    git:
+      url: https://github.com/tekartikdev/firebase-admin-interop
+      ref: dart2_3
+```
 Run `pub get`.
 
 2. Create `package.json` file to install Node.js modules used by this library:
