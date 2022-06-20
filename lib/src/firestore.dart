@@ -952,6 +952,9 @@ class DocumentQuery {
     dynamic isGreaterThanOrEqualTo,
     dynamic arrayContains,
     bool? isNull,
+    List? whereIn,
+    List? notIn,
+    List? arrayContainsAny,
   }) {
     var query = nativeInstance;
 
@@ -970,6 +973,15 @@ class DocumentQuery {
     }
     if (arrayContains != null) {
       addCondition(field, 'array-contains', arrayContains);
+    }
+    if (whereIn != null) {
+      addCondition(field, 'in', whereIn);
+    }
+    if (notIn != null) {
+      addCondition(field, 'not-in', whereIn);
+    }
+    if (arrayContainsAny != null) {
+      addCondition(field, 'array-contains-any', arrayContainsAny);
     }
 
     if (isNull != null) {
