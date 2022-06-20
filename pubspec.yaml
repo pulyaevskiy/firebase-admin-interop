@@ -1,6 +1,6 @@
 name: firebase_admin_interop
 description: Firebase Admin SDK for Dart written as a wrapper around official Node.js SDK.
-version: 2.2.0
+version: 2.3.0
 homepage: https://github.com/pulyaevskiy/firebase-admin-interop
 publish_to: none
 

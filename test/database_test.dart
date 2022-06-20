@@ -1,9 +1,11 @@
+@TestOn('node')
+library database_test;
+
 // Copyright (c) 2017, Anatoly Pulyaevskiy. All rights reserved. Use of this source code
 // is governed by a BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
 
-@TestOn('node')
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 import 'package:test/test.dart';
 
