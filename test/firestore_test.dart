@@ -91,7 +91,7 @@ void main() {
         data.setList(
             'fieldValueInList', [Firestore.fieldValues.serverTimestamp()]);
 
-        void _check() {
+        void doCheck() {
           expect(data.keys.length, 13);
           expect(data.getInt('intVal'), 1);
           expect(data.getDouble('doubleVal'), 1.5);
@@ -115,10 +115,10 @@ void main() {
               [Firestore.fieldValues.serverTimestamp()]);
         }
 
-        _check();
+        doCheck();
         // from/to map
         data = DocumentData.fromMap(data.toMap());
-        _check();
+        doCheck();
       });
 
       test('data types', () async {
@@ -631,7 +631,7 @@ void main() {
           'sub': ['a', 'b']
         }));
 
-        List<String> _querySnapshotDocIds(QuerySnapshot querySnapshot) {
+        List<String> querySnapshotDocIds(QuerySnapshot querySnapshot) {
           return querySnapshot.documents!
               .map((snapshot) => snapshot.documentID)
               .toList();
@@ -639,11 +639,11 @@ void main() {
 
         // complex object
         var querySnapshot = await collRef.where('sub', isEqualTo: ['a']).get();
-        expect(_querySnapshotDocIds(querySnapshot), ['doc2']);
+        expect(querySnapshotDocIds(querySnapshot), ['doc2']);
 
         // ordered by sub (complex object)
         querySnapshot = await collRef.orderBy('sub').get();
-        expect(_querySnapshotDocIds(querySnapshot), ['doc2', 'doc4', 'doc1']);
+        expect(querySnapshotDocIds(querySnapshot), ['doc2', 'doc4', 'doc1']);
       });
 
       test('query filter with map object', () async {
@@ -666,7 +666,7 @@ void main() {
           'sub': {'other': 'a', 'value': 'c'}
         }));
 
-        List<String> _querySnapshotDocIds(QuerySnapshot querySnapshot) {
+        List<String> querySnapshotDocIds(QuerySnapshot querySnapshot) {
           return querySnapshot.documents!
               .map((snapshot) => snapshot.documentID)
               .toList();
@@ -675,11 +675,11 @@ void main() {
         // complex object
         var querySnapshot =
             await collRef.where('sub', isEqualTo: {'value': 'a'}).get();
-        expect(_querySnapshotDocIds(querySnapshot), ['doc2']);
+        expect(querySnapshotDocIds(querySnapshot), ['doc2']);
 
         // ordered by sub (complex object)
         querySnapshot = await collRef.orderBy('sub').get();
-        expect(_querySnapshotDocIds(querySnapshot), ['doc4', 'doc2', 'doc1']);
+        expect(querySnapshotDocIds(querySnapshot), ['doc4', 'doc2', 'doc1']);
       });
 
       test('query filter with blob', () async {

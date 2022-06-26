@@ -258,14 +258,14 @@ class DocumentReference {
     // subscribers have cancelled; this analyzer warning is safe to ignore.
     late StreamController<DocumentSnapshot> controller; // ignore: close_sinks
 
-    void _onNextSnapshot(js.DocumentSnapshot jsSnapshot) {
+    void onNextSnapshot(js.DocumentSnapshot jsSnapshot) {
       controller.add(DocumentSnapshot(jsSnapshot, firestore));
     }
 
     controller = StreamController<DocumentSnapshot>.broadcast(
       onListen: () {
         cancelCallback =
-            nativeInstance.onSnapshot(allowInterop(_onNextSnapshot));
+            nativeInstance.onSnapshot(allowInterop(onNextSnapshot));
       },
       onCancel: () {
         (cancelCallback as Function())();
