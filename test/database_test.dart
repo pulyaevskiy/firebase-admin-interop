@@ -47,7 +47,7 @@ void main() {
 
         // This sleep is needed for the initial value to trigger the first
         // event.
-        await Future.delayed(Duration(seconds: 1));
+        await Future<void>.delayed(Duration(seconds: 1));
 
         await ref.setValue('Second');
         await ref.setValue('Last');
@@ -90,7 +90,7 @@ void main() {
 
       test('push()', () {
         var child = ref.child('notifications');
-        var item = child.push();
+        var item = child.push<Object?>();
         expect(item, const TypeMatcher<FutureReference>());
         expect(item.key, isNotEmpty);
         expect(item.key, isNot(child.key));
@@ -162,50 +162,50 @@ void main() {
       });
 
       test('get key', () async {
-        var snapshot = await ref.once('value');
+        var snapshot = await ref.once<Object?>('value');
         expect(snapshot.key, 'notifications');
       });
 
       test('exists()', () async {
-        var snapshot = await ref.once('value');
+        var snapshot = await ref.once<Object?>('value');
         expect(snapshot.exists(), isTrue);
       });
 
       test('child()', () async {
-        var snapshot = await ref.once('value');
+        var snapshot = await ref.once<Object?>('value');
         var childSnapshot = snapshot.child<String>(childKey);
         expect(childSnapshot.key, childKey);
         expect(childSnapshot.exists(), isTrue);
       });
 
       test('child() not exists', () async {
-        var snapshot = await ref.once('value');
+        var snapshot = await ref.once<Object?>('value');
         var childSnapshot = snapshot.child<String>('no-such-child');
         expect(childSnapshot.key, 'no-such-child');
         expect(childSnapshot.exists(), isFalse);
       });
 
       test('hasChild()', () async {
-        var snapshot = await ref.once('value');
+        var snapshot = await ref.once<Object?>('value');
         expect(snapshot.hasChild('no-such-child'), isFalse);
         expect(snapshot.hasChild(childKey), isTrue);
       });
 
       test('hasChildren()', () async {
-        var snapshot = await ref.once('value');
+        var snapshot = await ref.once<Object?>('value');
         expect(snapshot.hasChildren(), isTrue);
       });
 
       test('numChildren()', () async {
-        var snapshot = await ref.once('value');
+        var snapshot = await ref.once<Object?>('value');
         expect(snapshot.numChildren(), 2);
       });
 
       test('forEach', () async {
-        var snapshot = await ref.once('value');
-        var values = [];
+        var snapshot = await ref.once<Object?>('value');
+        var values = <String>[];
         snapshot.forEach<String>((child) {
-          values.add(child.val());
+          values.add(child.val()!);
           return false;
         });
         expect(values, ['You got a message', 'Stuff to do']);

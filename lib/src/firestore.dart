@@ -239,7 +239,7 @@ class DocumentReference {
   ///
   /// If no document exists, the read will return null.
   Future<DocumentSnapshot> get() {
-    return promiseToFuture(nativeInstance.get()).then((jsSnapshot) =>
+    return promiseToFuture<Object?>(nativeInstance.get()).then((jsSnapshot) =>
         DocumentSnapshot(jsSnapshot as js.DocumentSnapshot, firestore));
   }
 
@@ -268,7 +268,7 @@ class DocumentReference {
             nativeInstance.onSnapshot(allowInterop(onNextSnapshot));
       },
       onCancel: () {
-        (cancelCallback as Function())();
+        (cancelCallback as dynamic Function())();
       },
     );
     return controller.stream;
@@ -521,7 +521,7 @@ class _FirestoreData {
     setProperty(nativeInstance, key, value.nativeInstance);
   }
 
-  static bool _isPrimitive(value) =>
+  static bool _isPrimitive(Object? value) =>
       value == null ||
       value is int ||
       value is double ||
@@ -529,12 +529,12 @@ class _FirestoreData {
       value is bool;
 
   List? getList(String key) {
-    final data = getProperty(nativeInstance, key);
+    final data = getProperty<Object?>(nativeInstance, key);
     if (data == null) return null;
     if (data is! List) {
       throw StateError('Expected list but got ${data.runtimeType}.');
     }
-    final result = [];
+    final result = <Object?>[];
     for (var item in data) {
       item = _dartify(item);
       result.add(item);
@@ -571,7 +571,7 @@ class _FirestoreData {
   bool _isDate(Object value) =>
       hasProperty(value, 'toDateString') &&
       hasProperty(value, 'getTime') &&
-      getProperty(value, 'getTime') is Function;
+      getProperty<Object?>(value, 'getTime') is Function;
 
   bool _isGeoPoint(Object value) =>
       hasProperty(value, '_latitude') && hasProperty(value, '_longitude');
@@ -582,8 +582,8 @@ class _FirestoreData {
     } else {
       var proto = getProperty(value, '__proto__') as Object?;
       if (proto != null) {
-        return getProperty(proto, 'writeUInt8') is Function &&
-            getProperty(proto, 'readUInt8') is Function;
+        return getProperty<Object?>(proto, 'writeUInt8') is Function &&
+            getProperty<Object?>(proto, 'readUInt8') is Function;
       }
       return false;
     }
@@ -593,11 +593,11 @@ class _FirestoreData {
       hasProperty(value, 'firestore') &&
       hasProperty(value, 'id') &&
       hasProperty(value, 'onSnapshot') &&
-      getProperty(value, 'onSnapshot') is Function;
+      getProperty<Object?>(value, 'onSnapshot') is Function;
 
   // TODO: figure out how to handle array* field values. For now ignored as they
   // don't need js to dart conversion
-  bool _isFieldValue(value) {
+  bool _isFieldValue(Object? value) {
     if (value == js.admin!.firestore.FieldValue.delete() ||
         value == js.admin!.firestore.FieldValue.serverTimestamp()) {
       return true;
@@ -606,7 +606,7 @@ class _FirestoreData {
   }
 
   /// Supports nested List and maps.
-  static dynamic _jsify(item) {
+  static dynamic _jsify(Object? item) {
     if (_isPrimitive(item)) {
       return item;
     } else if (item is GeoPoint) {
@@ -688,7 +688,7 @@ class _FirestoreData {
   }
 
   static List _jsifyList(List list) {
-    var data = [];
+    var data = <Object?>[];
     for (dynamic item in list) {
       if (item is List) {
         // Otherwise this crashes in firestore
@@ -932,7 +932,7 @@ class DocumentQuery {
             .onSnapshot(allowInterop(onSnapshot), allowInterop(onError));
       },
       onCancel: () {
-        (unsubscribe as Function())();
+        (unsubscribe as dynamic Function())();
       },
     );
     return controller.stream;
@@ -1265,7 +1265,7 @@ class _FieldValueArrayUnion extends _FieldValueArray {
 
   @override
   dynamic _jsify() {
-    return callMethod(js.admin!.firestore.FieldValue, 'arrayUnion',
+    return callMethod<Object?>(js.admin!.firestore.FieldValue, 'arrayUnion',
         _FirestoreData._jsifyList(elements));
   }
 
@@ -1278,7 +1278,7 @@ class _FieldValueArrayRemove extends _FieldValueArray {
 
   @override
   dynamic _jsify() {
-    return callMethod(js.admin!.firestore.FieldValue, 'arrayRemove',
+    return callMethod<Object?>(js.admin!.firestore.FieldValue, 'arrayRemove',
         _FirestoreData._jsifyList(elements));
   }
 

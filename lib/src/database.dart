@@ -142,7 +142,7 @@ class Query {
   /// Optional [key] is only allowed if ordering by priority and defines the
   /// child key to end at, among the children with the previously specified
   /// priority.
-  Query endAt(value, [String? key]) {
+  Query endAt(Object? value, [String? key]) {
     if (key == null) {
       return Query(nativeInstance.endAt(value));
     }
@@ -162,7 +162,7 @@ class Query {
   /// query. If it is specified, then children that have exactly the specified
   /// value must also have exactly the specified key as their key name. This can
   /// be used to filter result sets with many matches for the same value.
-  Query equalTo(value, [String? key]) {
+  Query equalTo(Object? value, [String? key]) {
     if (key == null) {
       return Query(nativeInstance.equalTo(value));
     }
@@ -241,10 +241,10 @@ class Query {
   ///
   /// Returns [QuerySubscription] which can be used to cancel the subscription.
   QuerySubscription on<T>(
-      String eventType, Function(DataSnapshot<T> snapshot) callback,
-      [Function()? cancelCallback]) {
-    var fn = allowInterop(
-        (snapshot) => callback(DataSnapshot(snapshot as js.DataSnapshot)));
+      String eventType, dynamic Function(DataSnapshot<T> snapshot) callback,
+      [dynamic Function()? cancelCallback]) {
+    var fn = allowInterop((Object? snapshot) =>
+        callback(DataSnapshot(snapshot as js.DataSnapshot)));
     if (cancelCallback != null) {
       nativeInstance.on(eventType, fn, allowInterop(cancelCallback));
     } else {
@@ -297,7 +297,7 @@ class Query {
   ///
   /// See also:
   /// - [Filtering data](https://firebase.google.com/docs/database/web/lists-of-data#filtering_data)
-  Query startAt(value, [String? key]) {
+  Query startAt(Object? value, [String? key]) {
     if (key == null) {
       return Query(nativeInstance.startAt(value));
     }
@@ -429,7 +429,7 @@ class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  Future<void> setPriority(priority) =>
+  Future<void> setPriority(Object? priority) =>
       promiseToFuture(nativeInstance.setPriority(priority));
 
   /// Writes data the Database location. Like [setValue] but also specifies the
@@ -440,7 +440,7 @@ class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  Future<void> setWithPriority<T>(T value, priority) {
+  Future<void> setWithPriority<T>(T value, Object? priority) {
     return promiseToFuture(
         nativeInstance.setWithPriority(jsify(value!), priority));
   }
@@ -492,7 +492,7 @@ class Reference extends Query {
       allowInterop(_onComplete),
       applyLocally,
     );
-    return promiseToFuture(promise).then(
+    return promiseToFuture<Object?>(promise).then(
       (result) {
         final jsResult = result as js.TransactionResult;
         return DatabaseTransaction(
@@ -506,7 +506,7 @@ class Reference extends Query {
   }
 
   Function _createTransactionHandler<T>(DatabaseTransactionHandler<T> handler) {
-    return (currentData) {
+    return (Object? currentData) {
       final data = dartify<T>(currentData);
       final result = handler(data);
       if (result.aborted) return undefined;

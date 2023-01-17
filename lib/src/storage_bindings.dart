@@ -35,18 +35,18 @@ abstract class Bucket {
   /// [0] [StorageFile] - The new file.
   /// [1] [Object]      - The full API response.
   external Promise combine(List sources, dynamic destination,
-      [options, callback]);
+      [Object? options, Object? callback]);
 
   /// Create a bucket.
   ///
   /// Returns promise containing CreateBucketResponse.
-  external Promise create([CreateBucketRequest? metadata, callback]);
+  external Promise create([CreateBucketRequest? metadata, Object? callback]);
 
   /// Checks if the bucket exists.
   ///
   /// Returns promise containing list with following values:
   /// [0] [boolean] - Whether this bucket exists.
-  external Promise exists([BucketExistsOptions? options, callback]);
+  external Promise exists([BucketExistsOptions? options, Object? callback]);
 
   /// Creates a [StorageFile] object.
   ///
@@ -66,7 +66,8 @@ abstract class Bucket {
   /// For faster crc32c computation, you must manually install `fast-crc32c`:
   ///
   ///     npm install --save fast-crc32c
-  external Promise upload(String pathString, [options, callback]);
+  external Promise upload(String pathString,
+      [Object? options, Object? callback]);
 }
 
 @JS()

@@ -902,7 +902,7 @@ void main() {
         await doc3Ref.setData(DocumentData()..setInt('value', 3));
         await doc4Ref.setData(DocumentData()..setInt('value', doc4Value));
 
-        await Future.delayed(
+        await Future<void>.delayed(
             Duration(seconds: 1)); // to avoid too much contention errors
 
         var list = await app.firestore().runTransaction((Transaction tx) async {
@@ -953,7 +953,7 @@ void main() {
         var doc1UpdateTime1 = (await doc1Ref.get()).updateTime;
         var doc2UpdateTime1 = (await doc2Ref.get()).updateTime;
 
-        await Future.delayed(
+        await Future<void>.delayed(
             Duration(seconds: 1)); // to avoid too much contention errors
 
         await doc1Ref.setData(DocumentData()..setInt('value', 10));
@@ -961,7 +961,7 @@ void main() {
         var doc1UpdateTime2 = (await doc1Ref.get()).updateTime;
         var doc2UpdateTime2 = (await doc2Ref.get()).updateTime;
 
-        await Future.delayed(
+        await Future<void>.delayed(
             Duration(seconds: 1)); // to avoid too much contention errors
 
         var result =
@@ -1016,7 +1016,7 @@ void main() {
           futures.add(transaction.then((int val) {
             complete.add(val);
             return val;
-          }, onError: (e) {
+          }, onError: (Object e) {
             errors.add(e);
           }));
         }

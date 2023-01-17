@@ -52,7 +52,7 @@ abstract class Timestamp {
 @JS()
 @anonymous
 abstract class GeoPointUtil {
-  external GeoPoint fromProto(proto);
+  external GeoPoint fromProto(Object? proto);
 }
 
 @JS()

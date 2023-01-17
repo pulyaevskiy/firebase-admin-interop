@@ -26,7 +26,7 @@ void main() {
     });
 
     test('accessToken', () async {
-      var accessToken = await promiseToFuture(
+      var accessToken = await promiseToFuture<Object?>(
               js.admin!.credential.applicationDefault().getAccessToken())
           as js.AccessToken;
       expect(accessToken.access_token, isNotEmpty);

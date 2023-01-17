@@ -16,11 +16,13 @@ const defaultAppName = '[DEFAULT]';
 /// Singleton instance of [FirebaseAdmin] module.
 final admin = require('firebase-admin') as FirebaseAdmin?;
 
+typedef OnCompleteFunction = dynamic Function(JsError error)?;
+
 @JS()
 @anonymous
 abstract class FirebaseAdmin {
   /// Creates and initializes a Firebase app instance.
-  external App initializeApp([options, String? name]);
+  external App initializeApp([Object? options, String? name]);
 
   /// The current SDK version.
   // ignore: non_constant_identifier_names
@@ -90,13 +92,13 @@ abstract class Credentials {
   /// This credential can be used in the call to [initializeApp].
   /// [credentials] must be a path to a service account key JSON file or an
   /// object representing a service account key.
-  external Credential cert(credentials);
+  external Credential cert(Object? credentials);
 
   /// Returns [Credential] created from the provided refresh token that grants
   /// admin access to Firebase services.
   ///
   /// This credential can be used in the call to [initializeApp].
-  external Credential refreshToken(refreshTokenPathOrObject);
+  external Credential refreshToken(Object? refreshTokenPathOrObject);
 }
 
 @JS()
@@ -225,7 +227,7 @@ abstract class Auth {
   ///
   /// Returns a promise fulfilled with a custom token string for the provided uid
   /// and payload.
-  external Promise createCustomToken(String uid, developerClaims);
+  external Promise createCustomToken(String uid, Object? developerClaims);
 
   /// Creates a new user.
   ///
@@ -292,7 +294,7 @@ abstract class Auth {
   /// [customUserClaims] can be `null`.
   ///
   /// Returns a promise containing `void`.
-  external Promise setCustomUserClaims(String uid, customUserClaims);
+  external Promise setCustomUserClaims(String uid, Object? customUserClaims);
 
   /// Updates an existing user.
   ///
@@ -1687,7 +1689,8 @@ abstract class Reference extends Query {
   /// so the resulting list of items will be chronologically sorted. The keys
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
-  external ThenableReference push([value, Function(JsError error)? onComplete]);
+  external ThenableReference push(
+      [Object? value, OnCompleteFunction? onComplete]);
 
   /// Removes the data at this Database location.
   ///
@@ -1698,7 +1701,7 @@ abstract class Reference extends Query {
   /// Firebase servers will also be started, and the returned [Promise] will
   /// resolve when complete. If provided, the [onComplete] callback will be
   /// called asynchronously after synchronization has finished.
-  external Promise remove([Function(JsError error)? onComplete]);
+  external Promise remove([OnCompleteFunction? onComplete]);
 
   /// Writes data to this Database location.
   ///
@@ -1722,7 +1725,7 @@ abstract class Reference extends Query {
   ///
   /// A single [set] will generate a single "value" event at the location where
   /// the `set()` was performed.
-  external Promise set(value, [Function(JsError error)? onComplete]);
+  external Promise set(Object? value, [OnCompleteFunction? onComplete]);
 
   /// Sets a priority for the data at this Database location.
   ///
@@ -1731,7 +1734,8 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise setPriority(priority, [Function(JsError error)? onComplete]);
+  external Promise setPriority(Object? priority,
+      [OnCompleteFunction? onComplete]);
 
   /// Writes data the Database location. Like [set] but also specifies the
   /// [priority] for that data.
@@ -1741,8 +1745,8 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise setWithPriority(value, priority,
-      [Function(JsError error)? onComplete]);
+  external Promise setWithPriority(Object? value, Object? priority,
+      [OnCompleteFunction? onComplete]);
 
   /// Atomically modifies the data at this location.
   ///
@@ -1769,8 +1773,9 @@ abstract class Reference extends Query {
   /// transactions requires the client to read the data in order to
   /// transactionally update it.
   external Promise transaction(
-      Function(dynamic snapshot) transactionUpdate,
-      Function(dynamic error, bool committed, dynamic snapshot) onComplete,
+      dynamic Function(dynamic snapshot) transactionUpdate,
+      dynamic Function(dynamic error, bool committed, dynamic snapshot)
+          onComplete,
       bool applyLocally);
 
   /// Writes multiple values to the Database at once.
@@ -1800,7 +1805,7 @@ abstract class Reference extends Query {
   /// [transaction] to modify the same data.
   ///
   /// Passing `null` to [update] will remove the data at this location.
-  external Promise update(values, [Function(JsError error)? onComplete]);
+  external Promise update(Object? values, [OnCompleteFunction? onComplete]);
 }
 
 @JS()
@@ -1845,7 +1850,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise cancel([Function(JsError error)? onComplete]);
+  external Promise cancel([OnCompleteFunction? onComplete]);
 
   /// Ensures the data at this location is deleted when the client is
   /// disconnected (due to closing the browser, navigating to a new page, or
@@ -1854,7 +1859,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise remove([Function(JsError error)? onComplete]);
+  external Promise remove([OnCompleteFunction? onComplete]);
 
   /// Ensures the data at this location is set to the specified [value] when the
   /// client is disconnected (due to closing the browser, navigating to a new
@@ -1870,13 +1875,13 @@ abstract class OnDisconnect {
   ///
   /// See also:
   /// - [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities)
-  external Promise set(value, [Function(JsError error)? onComplete]);
+  external Promise set(Object? value, [OnCompleteFunction? onComplete]);
 
   /// Ensures the data at this location is set to the specified [value] and
   /// [priority] when the client is disconnected (due to closing the browser,
   /// navigating to a new page, or network issues).
-  external Promise setWithPriority(value, priority,
-      [Function(JsError error)? onComplete]);
+  external Promise setWithPriority(Object? value, Object? priority,
+      [OnCompleteFunction? onComplete]);
 
   /// Writes multiple [values] at this location when the client is disconnected
   /// (due to closing the browser, navigating to a new page, or network issues).
@@ -1892,7 +1897,7 @@ abstract class OnDisconnect {
   ///
   /// See [Reference.update] for examples of using the connected version of
   /// update.
-  external Promise update(values, [Function(JsError error)? onComplete]);
+  external Promise update(Object? values, [OnCompleteFunction? onComplete]);
 }
 
 /// Sorts and filters the data at a [Database] location so only a subset of the
@@ -1997,15 +2002,15 @@ abstract class Query {
   /// If a [callback] is not specified, all callbacks for the specified
   /// [eventType] will be removed. Similarly, if no [eventType] or [callback] is
   /// specified, all callbacks for the [Reference] will be removed.
-  external void off([String? eventType, callback, context]);
+  external void off([String? eventType, Object? callback, Object? context]);
 
   /// Listens for data changes at a particular location.
   ///
   /// This is the primary way to read data from a [Database]. Your callback will
   /// be triggered for the initial data and again whenever the data changes.
   /// Use [off] to stop receiving updates.
-  external void on(String eventType, callback,
-      [cancelCallbackOrContext, context]);
+  external void on(String eventType, Object? callback,
+      [Object? cancelCallbackOrContext, Object? context]);
 
   /// Listens for exactly one event of the specified [eventType], and then stops
   /// listening.
@@ -2013,7 +2018,9 @@ abstract class Query {
   /// This is equivalent to calling [on], and then calling [off] inside the
   /// callback function. See [on] for details on the event types.
   external Promise once(String eventType,
-      [successCallback, failureCallbackOrContext, context]);
+      [Object? successCallback,
+      Object? failureCallbackOrContext,
+      Object? context]);
 
   /// Generates a new [Query] object ordered by the specified child key.
   ///
