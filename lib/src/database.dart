@@ -6,7 +6,7 @@ import 'dart:js';
 
 import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart';
-import 'package:node_interop/util.dart';
+import 'package:node_interop/util.dart' as node;
 
 import 'app.dart';
 import 'bindings.dart' as js;
@@ -207,7 +207,8 @@ class Query {
   /// Listens for exactly one event of the specified [eventType], and then stops
   /// listening.
   Future<DataSnapshot<T>> once<T>(String eventType) {
-    return promiseToFuture<js.DataSnapshot>(nativeInstance.once(eventType))
+    return node
+        .promiseToFuture<js.DataSnapshot>(nativeInstance.once(eventType))
         .then((snapshot) => DataSnapshot(snapshot));
   }
 
@@ -376,8 +377,8 @@ class Reference extends Query {
   /// entropy).
   FutureReference push<T>([T? value]) {
     if (value != null) {
-      var futureRef = nativeInstance.push(jsify(value));
-      return FutureReference(futureRef, promiseToFuture(futureRef));
+      var futureRef = nativeInstance.push(node.jsify(value));
+      return FutureReference(futureRef, node.promiseToFuture(futureRef));
     } else {
       // JS side returns regular Reference if value is not provided, but
       // we still convert it to FutureReference to be consistent with declared
@@ -395,7 +396,7 @@ class Reference extends Query {
   /// event 'value' will be triggered. Synchronization of the remove to the
   /// Firebase servers will also be started, and the returned [Future] will
   /// resolve when complete.
-  Future<void> remove() => promiseToFuture(nativeInstance.remove());
+  Future<void> remove() => node.promiseToFuture(nativeInstance.remove());
 
   /// Writes data to this Database location.
   ///
@@ -419,7 +420,7 @@ class Reference extends Query {
   /// A single [setValue] will generate a single "value" event at the location
   /// where the `setValue()` was performed.
   Future<void> setValue<T>(T value) {
-    return promiseToFuture(nativeInstance.set(jsify(value!)));
+    return node.promiseToFuture(nativeInstance.set(node.jsify(value!)));
   }
 
   /// Sets a priority for the data at this Database location.
@@ -430,7 +431,7 @@ class Reference extends Query {
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
   Future<void> setPriority(Object? priority) =>
-      promiseToFuture(nativeInstance.setPriority(priority));
+      node.promiseToFuture(nativeInstance.setPriority(priority));
 
   /// Writes data the Database location. Like [setValue] but also specifies the
   /// [priority] for that data.
@@ -441,8 +442,8 @@ class Reference extends Query {
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
   Future<void> setWithPriority<T>(T value, Object? priority) {
-    return promiseToFuture(
-        nativeInstance.setWithPriority(jsify(value!), priority));
+    return node.promiseToFuture(
+        nativeInstance.setWithPriority(node.jsify(value!), priority));
   }
 
   /// Atomically modifies the data at this location.
@@ -492,7 +493,7 @@ class Reference extends Query {
       allowInterop(_onComplete),
       applyLocally,
     );
-    return promiseToFuture<Object?>(promise).then(
+    return node.promiseToFuture<Object?>(promise).then(
       (result) {
         final jsResult = result as js.TransactionResult;
         return DatabaseTransaction(
@@ -507,10 +508,10 @@ class Reference extends Query {
 
   Function _createTransactionHandler<T>(DatabaseTransactionHandler<T> handler) {
     return (Object? currentData) {
-      final data = dartify<T>(currentData);
+      final data = node.dartify<T>(currentData);
       final result = handler(data);
       if (result.aborted) return undefined;
-      return jsify(result.data!);
+      return node.jsify(result.data!);
     };
   }
 
@@ -539,7 +540,7 @@ class Reference extends Query {
   ///
   /// Passing `null` to [update] will remove the data at this location.
   Future<void> update(Map<String, dynamic> values) {
-    return promiseToFuture(nativeInstance.update(jsify(values)));
+    return node.promiseToFuture(nativeInstance.update(node.jsify(values)));
   }
 }
 
@@ -655,11 +656,11 @@ class DataSnapshot<T> {
     if (_value != null) return _value;
     if (!exists()) return null; // Don't attempt to dartify empty snapshot.
 
-    _value = dartify(nativeInstance.val());
+    _value = node.dartify(nativeInstance.val());
     return _value;
   }
 
   // NOTE: intentionally not following JS library name – using Dart convention.
   /// Returns a JSON-serializable representation of this data snapshot.
-  Object toJson() => dartify(nativeInstance.toJSON());
+  Object toJson() => node.dartify(nativeInstance.toJSON());
 }

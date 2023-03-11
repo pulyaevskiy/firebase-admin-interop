@@ -5,9 +5,9 @@ import 'dart:convert';
 
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 import 'package:node_interop/node.dart' as node;
-import 'package:node_interop/util.dart';
+import 'package:node_interop/util.dart' as node;
 
-final Map env = dartify(node.process.env);
+final Map env = node.dartify(node.process.env);
 
 App? initFirebaseApp() {
   if (!env.containsKey('FIREBASE_CONFIG') ||

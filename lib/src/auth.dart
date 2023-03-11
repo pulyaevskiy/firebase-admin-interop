@@ -4,7 +4,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:node_interop/util.dart';
+import 'package:node_interop/util.dart' as node;
 
 import 'bindings.dart' as js show Auth;
 import 'bindings.dart'
@@ -40,28 +40,28 @@ class Auth {
   /// and payload.
   Future<String> createCustomToken(String uid,
           [Map<String, String>? developerClaims]) =>
-      promiseToFuture(nativeInstance.createCustomToken(
-          uid, jsify(developerClaims ?? <String, String>{})));
+      node.promiseToFuture(nativeInstance.createCustomToken(
+          uid, node.jsify(developerClaims ?? <String, String>{})));
 
   /// Creates a new user.
   Future<UserRecord> createUser(CreateUserRequest properties) =>
-      promiseToFuture(nativeInstance.createUser(properties));
+      node.promiseToFuture(nativeInstance.createUser(properties));
 
   /// Deletes an existing user.
   Future<void> deleteUser(String uid) =>
-      promiseToFuture(nativeInstance.deleteUser(uid));
+      node.promiseToFuture(nativeInstance.deleteUser(uid));
 
   /// Gets the user data for the user corresponding to a given [uid].
   Future<UserRecord> getUser(String uid) =>
-      promiseToFuture(nativeInstance.getUser(uid));
+      node.promiseToFuture(nativeInstance.getUser(uid));
 
   /// Gets the user data for the user corresponding to a given [email].
   Future<UserRecord> getUserByEmail(String email) =>
-      promiseToFuture(nativeInstance.getUserByEmail(email));
+      node.promiseToFuture(nativeInstance.getUserByEmail(email));
 
   /// Gets the user data for the user corresponding to a given [phoneNumber].
   Future<UserRecord> getUserByPhoneNumber(String phoneNumber) =>
-      promiseToFuture(nativeInstance.getUserByPhoneNumber(phoneNumber));
+      node.promiseToFuture(nativeInstance.getUserByPhoneNumber(phoneNumber));
 
   /// Retrieves a list of users (single batch only) with a size of [maxResults]
   /// and starting from the offset as specified by [pageToken].
@@ -69,11 +69,12 @@ class Auth {
   /// This is used to retrieve all the users of a specified project in batches.
   Future<ListUsersResult> listUsers([num? maxResults, String? pageToken]) {
     if (pageToken != null && maxResults != null) {
-      return promiseToFuture(nativeInstance.listUsers(maxResults, pageToken));
+      return node
+          .promiseToFuture(nativeInstance.listUsers(maxResults, pageToken));
     } else if (maxResults != null) {
-      return promiseToFuture(nativeInstance.listUsers(maxResults));
+      return node.promiseToFuture(nativeInstance.listUsers(maxResults));
     } else {
-      return promiseToFuture(nativeInstance.listUsers());
+      return node.promiseToFuture(nativeInstance.listUsers());
     }
   }
 
@@ -89,7 +90,7 @@ class Auth {
   /// ID tokens are revoked, use [Auth.verifyIdToken] where `checkRevoked` is set to
   /// `true`.
   Future<void> revokeRefreshTokens(String uid) =>
-      promiseToFuture(nativeInstance.revokeRefreshTokens(uid));
+      node.promiseToFuture(nativeInstance.revokeRefreshTokens(uid));
 
   /// Sets additional developer claims on an existing user identified by the
   /// provided [uid], typically used to define user roles and levels of access.
@@ -107,12 +108,12 @@ class Auth {
   /// related user attributes, use database or other separate storage systems.
   Future<void> setCustomUserClaims(
           String uid, Map<String, dynamic> customUserClaims) =>
-      promiseToFuture(
-          nativeInstance.setCustomUserClaims(uid, jsify(customUserClaims)));
+      node.promiseToFuture(nativeInstance.setCustomUserClaims(
+          uid, node.jsify(customUserClaims)));
 
   /// Updates an existing user.
   Future<UserRecord> updateUser(String uid, UpdateUserRequest properties) =>
-      promiseToFuture(nativeInstance.updateUser(uid, properties));
+      node.promiseToFuture(nativeInstance.updateUser(uid, properties));
 
   /// Verifies a Firebase ID token (JWT).
   ///
@@ -122,10 +123,10 @@ class Auth {
   /// was revoked.
   Future<DecodedIdToken> verifyIdToken(String idToken, [bool? checkRevoked]) {
     if (checkRevoked != null) {
-      return promiseToFuture(
-          nativeInstance.verifyIdToken(idToken, checkRevoked));
+      return node
+          .promiseToFuture(nativeInstance.verifyIdToken(idToken, checkRevoked));
     } else {
-      return promiseToFuture(nativeInstance.verifyIdToken(idToken));
+      return node.promiseToFuture(nativeInstance.verifyIdToken(idToken));
     }
   }
 }

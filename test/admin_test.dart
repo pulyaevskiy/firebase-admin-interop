@@ -4,7 +4,7 @@
 @TestOn('node')
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
 import 'package:firebase_admin_interop/js.dart' as js;
-import 'package:node_interop/util.dart';
+import 'package:node_interop/util.dart' as node;
 import 'package:test/test.dart';
 
 import 'setup.dart';
@@ -26,7 +26,7 @@ void main() {
     });
 
     test('accessToken', () async {
-      var accessToken = await promiseToFuture<Object?>(
+      var accessToken = await node.promiseToFuture<Object?>(
               js.admin!.credential.applicationDefault().getAccessToken())
           as js.AccessToken;
       expect(accessToken.access_token, isNotEmpty);
