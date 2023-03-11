@@ -7,8 +7,8 @@ import 'dart:typed_data';
 
 import 'package:js/js.dart';
 import 'package:meta/meta.dart';
-import 'package:node_interop/js.dart';
-import 'package:node_interop/node.dart';
+import 'package:node_interop/js.dart' as node;
+import 'package:node_interop/node.dart' as node;
 import 'package:node_interop/util.dart';
 import 'package:quiver/core.dart';
 
@@ -106,7 +106,7 @@ class Firestore {
   /// with the same error.
   Future<T> runTransaction<T>(
       Future<T> Function(Transaction transaction) updateFunction) {
-    Promise jsUpdateFunction(js.Transaction transaction) {
+    node.Promise jsUpdateFunction(js.Transaction transaction) {
       return futureToPromise(updateFunction(Transaction(transaction)));
     }
 
@@ -131,7 +131,8 @@ class Firestore {
     final nativeRefs = refs
         .map((DocumentReference ref) => ref.nativeInstance)
         .toList(growable: false);
-    final promise = callMethod(nativeInstance, 'getAll', nativeRefs) as Promise;
+    final promise =
+        callMethod(nativeInstance, 'getAll', nativeRefs) as node.Promise;
     final result = await promiseToFuture<List>(promise);
     return result
         .map((nativeSnapshot) =>
@@ -464,7 +465,7 @@ class _FirestoreData {
 
   @Deprecated('Migrate to using Firestore Timestamps and "getTimestamp()".')
   DateTime? getDateTime(String key) {
-    final value = getProperty(nativeInstance, key) as Date?;
+    final value = getProperty(nativeInstance, key) as node.Date?;
     if (value == null) return null;
     assert(_isDate(value), 'Tried to get Date and got $value');
     return DateTime.fromMillisecondsSinceEpoch(value.getTime());
@@ -479,7 +480,7 @@ class _FirestoreData {
 
   @Deprecated('Migrate to using Firestore Timestamps and "setTimestamp()".')
   void setDateTime(String key, DateTime value) {
-    final data = Date(value.millisecondsSinceEpoch);
+    final data = node.Date(value.millisecondsSinceEpoch);
     setProperty(nativeInstance, key, data);
   }
 
@@ -620,7 +621,7 @@ class _FirestoreData {
       return blob.data;
     } else if (item is DateTime) {
       var date = item;
-      return Date(date.millisecondsSinceEpoch);
+      return node.Date(date.millisecondsSinceEpoch);
     } else if (item is Timestamp) {
       return _createJsTimestamp(item);
     } else if (item is FieldValue) {
@@ -675,7 +676,7 @@ class _FirestoreData {
       var ts = item as js.Timestamp;
       return Timestamp(ts.seconds, ts.nanoseconds);
     } else if (_isDate(item)) {
-      var date = item as Date;
+      var date = item as node.Date;
       return DateTime.fromMillisecondsSinceEpoch(date.getTime());
     } else if (_isFieldValue(item)) {
       return FieldValue._fromJs(item);
@@ -738,7 +739,7 @@ class DocumentData extends _FirestoreData {
   }
 
   /// List of keys in this document data.
-  List<String> get keys => objectKeys(nativeInstance);
+  List<String> get keys => node.objectKeys(nativeInstance);
 
   /// Converts this document data into a [Map].
   Map<String, dynamic> toMap() {

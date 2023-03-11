@@ -2,7 +2,7 @@
 library firestore;
 
 import 'package:js/js.dart';
-import 'package:node_interop/node.dart';
+import 'package:node_interop/node.dart' as node;
 import 'package:node_interop/stream.dart';
 
 @JS()
@@ -35,7 +35,7 @@ abstract class FirestoreModule {
 @anonymous
 abstract class TimestampProto {
   external Timestamp now();
-  external Timestamp fromDate(Date date);
+  external Timestamp fromDate(node.Date date);
   external Timestamp fromMillis(int milliseconds);
 }
 
@@ -45,7 +45,7 @@ abstract class Timestamp {
   external int get seconds;
   external int get nanoseconds;
 
-  external Date toDate();
+  external node.Date toDate();
   external int toMillis();
 }
 
@@ -100,7 +100,7 @@ abstract class Firestore {
 
   /// Retrieves multiple documents from Firestore.
   /// snapshots.
-  external Promise getAll(
+  external node.Promise getAll(
       [DocumentReference? documentRef1,
       DocumentReference? documentRef2,
       DocumentReference? documentRef3,
@@ -109,7 +109,7 @@ abstract class Firestore {
 
   /// Fetches the root collections that are associated with this Firestore
   /// database.
-  external Promise listCollections();
+  external node.Promise listCollections();
 
   /// Executes the given updateFunction and commits the changes applied within
   /// the transaction.
@@ -124,8 +124,8 @@ abstract class Firestore {
   /// returned by the updateFunction will be returned here. Else if the
   /// transaction failed, a rejected Future with the corresponding failure error
   /// will be returned.
-  external Promise runTransaction(
-      Promise Function(Transaction transaction) updateFunction);
+  external node.Promise runTransaction(
+      node.Promise Function(Transaction transaction) updateFunction);
 
   /// Creates a write batch, used for performing multiple writes as a single
   /// atomic operation.
@@ -196,12 +196,12 @@ abstract class GeoPoint {
 abstract class Transaction {
   /// Reads the document referenced by the provided `DocumentReference.`
   /// Holds a pessimistic lock on the returned document.
-  /*external Promise<DocumentSnapshot> get(DocumentReference documentRef);*/
+  /*external node.Promise<DocumentSnapshot> get(DocumentReference documentRef);*/
   /// Retrieves a query result. Holds a pessimistic lock on the returned
   /// documents.
-  /*external Promise<QuerySnapshot> get(Query query);*/
-  external Promise /*Promise<DocumentSnapshot>|Promise<QuerySnapshot>*/ get(
-      dynamic /*DocumentReference|Query*/ documentRefQuery);
+  /*external node.Promise<QuerySnapshot> get(Query query);*/
+  external node.Promise /*Promise<DocumentSnapshot>|Promise<QuerySnapshot>*/
+      get(dynamic /*DocumentReference|Query*/ documentRefQuery);
 
   /// Create the document referred to by the provided `DocumentReference`.
   /// The operation will fail the transaction if a document exists at the
@@ -276,7 +276,7 @@ abstract class WriteBatch {
   external WriteBatch delete(DocumentReference documentRef);
 
   /// Commits all of the writes in this write batch as a single atomic unit.
-  external Promise commit();
+  external node.Promise commit();
 }
 
 /// An options object that configures conditional behavior of `update()` and
@@ -349,23 +349,23 @@ abstract class DocumentReference {
   external CollectionReference collection(String collectionPath);
 
   /// Fetches the subcollections that are direct children of this document.
-  external Promise listCollections();
+  external node.Promise listCollections();
 
   /// Creates a document referred to by this `DocumentReference` with the
   /// provided object values. The write fails if the document already exists
-  external Promise create(DocumentData data);
+  external node.Promise create(DocumentData data);
 
   /// Writes to the document referred to by this `DocumentReference`. If the
   /// document does not yet exist, it will be created. If you pass
   /// `SetOptions`, the provided data can be merged into an existing document.
-  external Promise set(DocumentData? data, [SetOptions? options]);
+  external node.Promise set(DocumentData? data, [SetOptions? options]);
 
   /// Updates fields in the document referred to by this `DocumentReference`.
   /// The update will fail if applied to a document that does not exist.
   /// Nested fields can be updated by providing dot-separated field path
   /// strings.
   /// update the document.
-  external Promise update(UpdateData? data, [Precondition? precondition]);
+  external node.Promise update(UpdateData? data, [Precondition? precondition]);
 
   /// Updates fields in the document referred to by this `DocumentReference`.
   /// The update will fail if applied to a document that does not exist.
@@ -375,17 +375,17 @@ abstract class DocumentReference {
   /// argument.
   /// values to update, optionally followed by a `Precondition` to enforce on
   /// this update.
-  /*external Promise<WriteResult> update(String|FieldPath field, dynamic value, [dynamic moreFieldsOrPrecondition1, dynamic moreFieldsOrPrecondition2, dynamic moreFieldsOrPrecondition3, dynamic moreFieldsOrPrecondition4, dynamic moreFieldsOrPrecondition5]);*/
-  // external Promise update(dynamic /*String|FieldPath*/ data_field,
+  /*external node.Promise<WriteResult> update(String|FieldPath field, dynamic value, [dynamic moreFieldsOrPrecondition1, dynamic moreFieldsOrPrecondition2, dynamic moreFieldsOrPrecondition3, dynamic moreFieldsOrPrecondition4, dynamic moreFieldsOrPrecondition5]);*/
+  // external node.Promise update(dynamic /*String|FieldPath*/ data_field,
   //     [dynamic /*Precondition|dynamic*/ precondition_value,
   //     List<dynamic> moreFieldsOrPrecondition]);
 
   /// Deletes the document referred to by this `DocumentReference`.
-  external Promise delete([Precondition? precondition]);
+  external node.Promise delete([Precondition? precondition]);
 
   /// Reads the document referred to by this `DocumentReference`.
   /// current document contents.
-  external Promise get();
+  external node.Promise get();
 
   /// Attaches a listener for DocumentSnapshot events.
   /// is available.
@@ -598,7 +598,7 @@ abstract class DocumentQuery {
       dynamic /*DocumentSnapshot|List<dynamic>*/ snapshotFieldValues);
 
   /// Executes the query and returns the results as a `QuerySnapshot`.
-  external Promise get();
+  external node.Promise get();
 
   /// Executes the query and returns the results as Node Stream.
   external Readable stream();
@@ -713,7 +713,7 @@ abstract class CollectionReference extends DocumentQuery {
   /// Add a new document to this collection with the specified data, assigning
   /// it a document ID automatically.
   /// newly created document after it has been written to the backend.
-  external Promise add(DocumentData? data);
+  external node.Promise add(DocumentData? data);
 }
 
 /// Sentinel values that can be used when writing document fields with set()

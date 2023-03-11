@@ -248,7 +248,7 @@ as soon as possible. Read "Firestore Timestamps migration" in README.md for more
 
 ## 0.1.0-beta.3
 
-- Updated JS bindings with type arguments for Promises.
+- Updated JS bindings with type arguments for node.Promises.
 
 ## 0.1.0-beta.2
 

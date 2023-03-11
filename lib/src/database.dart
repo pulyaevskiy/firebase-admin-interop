@@ -502,7 +502,7 @@ class Reference extends Query {
   }
 
   dynamic _onComplete(error, bool committed, snapshot) {
-    // no-op, we use returned Promise instead.
+    // no-op, we use returned node.Promise instead.
   }
 
   Function _createTransactionHandler<T>(DatabaseTransactionHandler<T> handler) {
