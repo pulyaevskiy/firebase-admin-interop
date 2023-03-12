@@ -4,7 +4,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:node_interop/util.dart';
+import 'package:node_interop/util.dart' as node;
 
 import 'admin.dart';
 import 'auth.dart';
@@ -47,5 +47,5 @@ class App {
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.
-  Future<void> delete() => promiseToFuture<void>(nativeInstance.delete());
+  Future<void> delete() => node.promiseToFuture<void>(nativeInstance.delete());
 }

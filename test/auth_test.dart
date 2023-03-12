@@ -3,7 +3,7 @@
 
 @TestOn('node')
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
-import 'package:node_interop/node.dart';
+import 'package:node_interop/node.dart' as node;
 import 'package:test/test.dart';
 
 import 'setup.dart';
@@ -40,7 +40,7 @@ void main() {
 
     test('getUser which does not exist', () async {
       var result = app!.auth().getUser('noSuchUser');
-      expect(result, throwsA(const TypeMatcher<JsError>()));
+      expect(result, throwsA(const TypeMatcher<node.JsError>()));
     });
 
     test('listUsers', () async {

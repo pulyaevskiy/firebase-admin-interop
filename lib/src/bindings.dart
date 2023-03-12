@@ -5,7 +5,7 @@ library firebase_admin;
 
 import 'package:firebase_admin_interop/js.dart';
 import 'package:js/js.dart';
-import 'package:node_interop/node.dart';
+import 'package:node_interop/node.dart' as node;
 
 export 'firestore_bindings.dart';
 
@@ -14,13 +14,15 @@ export 'firestore_bindings.dart';
 const defaultAppName = '[DEFAULT]';
 
 /// Singleton instance of [FirebaseAdmin] module.
-final admin = require('firebase-admin') as FirebaseAdmin?;
+final admin = node.require('firebase-admin') as FirebaseAdmin?;
+
+typedef OnCompleteFunction = dynamic Function(node.JsError error)?;
 
 @JS()
 @anonymous
 abstract class FirebaseAdmin {
   /// Creates and initializes a Firebase app instance.
-  external App initializeApp([options, String? name]);
+  external App initializeApp([Object? options, String? name]);
 
   /// The current SDK version.
   // ignore: non_constant_identifier_names
@@ -55,7 +57,7 @@ abstract class FirebaseAdmin {
 
 @JS()
 @anonymous
-abstract class FirebaseError implements JsError {
+abstract class FirebaseError implements node.JsError {
   /// Error codes are strings using the following format:
   /// "service/string-code". Some examples include "auth/invalid-uid" and
   /// "messaging/invalid-recipient".
@@ -90,13 +92,13 @@ abstract class Credentials {
   /// This credential can be used in the call to [initializeApp].
   /// [credentials] must be a path to a service account key JSON file or an
   /// object representing a service account key.
-  external Credential cert(credentials);
+  external Credential cert(Object? credentials);
 
   /// Returns [Credential] created from the provided refresh token that grants
   /// admin access to Firebase services.
   ///
   /// This credential can be used in the call to [initializeApp].
-  external Credential refreshToken(refreshTokenPathOrObject);
+  external Credential refreshToken(Object? refreshTokenPathOrObject);
 }
 
 @JS()
@@ -128,8 +130,8 @@ abstract class Credential {
   /// Returns a Google OAuth2 [AccessToken] object used to authenticate with
   /// Firebase services.
   ///
-  /// Returns Promise<AccessToken>.
-  external Promise getAccessToken();
+  /// Returns node.Promise<AccessToken>.
+  external node.Promise getAccessToken();
 }
 
 /// Google OAuth2 access token object used to authenticate with Firebase
@@ -170,7 +172,7 @@ abstract class App {
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.
-  external Promise delete();
+  external node.Promise delete();
 
   /// Gets the [Firestore] client for this app.
   external Firestore firestore();
@@ -223,47 +225,47 @@ abstract class Auth {
   /// device to use to sign in with the client SDKs' signInWithCustomToken()
   /// methods.
   ///
-  /// Returns a promise fulfilled with a custom token string for the provided uid
+  /// Returns a node.Promise fulfilled with a custom token string for the provided uid
   /// and payload.
-  external Promise createCustomToken(String uid, developerClaims);
+  external node.Promise createCustomToken(String uid, Object? developerClaims);
 
   /// Creates a new user.
   ///
-  /// Returns a promise fulfilled with [UserRecord] corresponding to the newly
+  /// Returns a node.Promise fulfilled with [UserRecord] corresponding to the newly
   /// created user.
-  external Promise createUser(CreateUserRequest properties);
+  external node.Promise createUser(CreateUserRequest properties);
 
   /// Deletes an existing user.
   ///
-  /// Returns a promise containing `void`.
-  external Promise deleteUser(String uid);
+  /// Returns a node.Promise containing `void`.
+  external node.Promise deleteUser(String uid);
 
   /// Gets the user data for the user corresponding to a given [uid].
   ///
-  /// Returns a promise fulfilled with [UserRecord] corresponding to the provided
+  /// Returns a node.Promise fulfilled with [UserRecord] corresponding to the provided
   /// [uid].
-  external Promise getUser(String uid);
+  external node.Promise getUser(String uid);
 
   /// Gets the user data for the user corresponding to a given [email].
   ///
-  /// Returns a promise fulfilled with [UserRecord] corresponding to the provided
+  /// Returns a node.Promise fulfilled with [UserRecord] corresponding to the provided
   /// [email].
-  external Promise getUserByEmail(String email);
+  external node.Promise getUserByEmail(String email);
 
   /// Gets the user data for the user corresponding to a given [phoneNumber].
   ///
-  /// Returns a promise fulfilled with [UserRecord] corresponding to the provided
+  /// Returns a node.Promise fulfilled with [UserRecord] corresponding to the provided
   /// [phoneNumber].
-  external Promise getUserByPhoneNumber(String phoneNumber);
+  external node.Promise getUserByPhoneNumber(String phoneNumber);
 
   /// Retrieves a list of users (single batch only) with a size of [maxResults]
   /// and starting from the offset as specified by [pageToken].
   ///
   /// This is used to retrieve all the users of a specified project in batches.
   ///
-  /// Returns a promise that resolves with the current batch of downloaded users
+  /// Returns a node.Promise that resolves with the current batch of downloaded users
   /// and the next page token as an instance of [ListUsersResult].
-  external Promise listUsers([num? maxResults, String? pageToken]);
+  external node.Promise listUsers([num? maxResults, String? pageToken]);
 
   /// Revokes all refresh tokens for an existing user.
   ///
@@ -277,8 +279,8 @@ abstract class Auth {
   /// ID tokens are revoked, use [Auth.verifyIdToken] where `checkRevoked` is set
   /// to `true`.
   ///
-  /// Returns a promise containing `void`.
-  external Promise revokeRefreshTokens(String uid);
+  /// Returns a node.Promise containing `void`.
+  external node.Promise revokeRefreshTokens(String uid);
 
   /// Sets additional developer claims on an existing user identified by the
   /// provided uid, typically used to define user roles and levels of access.
@@ -291,20 +293,21 @@ abstract class Auth {
   ///
   /// [customUserClaims] can be `null`.
   ///
-  /// Returns a promise containing `void`.
-  external Promise setCustomUserClaims(String uid, customUserClaims);
+  /// Returns a node.Promise containing `void`.
+  external node.Promise setCustomUserClaims(
+      String uid, Object? customUserClaims);
 
   /// Updates an existing user.
   ///
-  /// Returns a promise containing updated [UserRecord].
-  external Promise updateUser(String uid, UpdateUserRequest properties);
+  /// Returns a node.Promise containing updated [UserRecord].
+  external node.Promise updateUser(String uid, UpdateUserRequest properties);
 
   /// Verifies a Firebase ID token (JWT).
   ///
-  /// If the token is valid, the returned promise is fulfilled with an instance of
-  /// [DecodedIdToken]; otherwise, the promise is rejected. An optional flag can
+  /// If the token is valid, the returned node.Promise is fulfilled with an instance of
+  /// [DecodedIdToken]; otherwise, the node.Promise is rejected. An optional flag can
   /// be passed to additionally check whether the ID token was revoked.
-  external Promise verifyIdToken(String idToken, [bool? checkRevoked]);
+  external node.Promise verifyIdToken(String idToken, [bool? checkRevoked]);
 }
 
 @JS()
@@ -591,66 +594,68 @@ abstract class Messaging {
 
   /// Sends the given message via FCM.
   ///
-  /// Returns Promise<string> fulfilled with a unique message ID string after the
+  /// Returns node.Promise<string> fulfilled with a unique message ID string after the
   /// message has been successfully handed off to the FCM service for delivery
-  external Promise send(FcmMessage message, [bool? dryRun]);
+  external node.Promise send(FcmMessage message, [bool? dryRun]);
 
   /// Sends all the messages in the given array via Firebase Cloud Messaging.
   ///
-  /// Returns Promise<BatchResponse> fulfilled with an object representing the
+  /// Returns node.Promise<BatchResponse> fulfilled with an object representing the
   /// result of the send operation.
-  external Promise sendAll(List<FcmMessage> messages, [bool? dryRun]);
+  external node.Promise sendAll(List<FcmMessage> messages, [bool? dryRun]);
 
   /// Sends the given multicast message to all the FCM registration tokens
   /// specified in it.
   ///
-  /// Returns Promise<BatchResponse> fulfilled with an object representing the
+  /// Returns node.Promise<BatchResponse> fulfilled with an object representing the
   /// result of the send operation.
-  external Promise sendMulticast(MulticastMessage message, [bool? dryRun]);
+  external node.Promise sendMulticast(MulticastMessage message, [bool? dryRun]);
 
   /// Sends an FCM message to a condition.
   ///
-  /// Returns Promise<MessagingConditionResponse> fulfilled with the server's
+  /// Returns node.Promise<MessagingConditionResponse> fulfilled with the server's
   /// response after the message has been sent.
-  external Promise sendToCondition(String condition, MessagingPayload payload,
+  external node.Promise sendToCondition(
+      String condition, MessagingPayload payload,
       [MessagingOptions? options]);
 
   /// Sends an FCM message to a single device corresponding to the provided
   /// registration token.
   ///
-  /// Returns Promise<MessagingDevicesResponse> fulfilled with the server's
+  /// Returns node.Promise<MessagingDevicesResponse> fulfilled with the server's
   /// response after the message has been sent.
-  external Promise sendToDevice(
+  external node.Promise sendToDevice(
       String registrationToken, MessagingPayload payload,
       [MessagingOptions? options]);
 
   /// Sends an FCM message to a device group corresponding to the provided
   /// notification key.
   ///
-  /// Returns Promise<MessagingDevicesResponse> fulfilled with the server's
+  /// Returns node.Promise<MessagingDevicesResponse> fulfilled with the server's
   /// response after the message has been sent.
-  external Promise sendToDeviceGroup(
+  external node.Promise sendToDeviceGroup(
       String notificationKey, MessagingPayload payload,
       [MessagingOptions? options]);
 
   /// Sends an FCM message to a topic.
   ///
-  /// Returns Promise<MessagingTopicResponse> fulfilled with the server's
+  /// Returns node.Promise<MessagingTopicResponse> fulfilled with the server's
   /// response after the message has been sent.
-  external Promise sendToTopic(String topic, MessagingPayload payload,
+  external node.Promise sendToTopic(String topic, MessagingPayload payload,
       [MessagingOptions? options]);
 
   /// Subscribes a device to an FCM topic.
   ///
-  /// Returns Promise<MessagingTopicManagementResponse> fulfilled with the
+  /// Returns node.Promise<MessagingTopicManagementResponse> fulfilled with the
   /// server's response after the device has been subscribed to the topic.
-  external Promise subscribeToTopic(String registrationTokens, String topic);
+  external node.Promise subscribeToTopic(
+      String registrationTokens, String topic);
 
   /// Unsubscribes a device from an FCM topic.
   ///
-  /// Returns Promise<MessagingTopicManagementResponse> fulfilled with the
+  /// Returns node.Promise<MessagingTopicManagementResponse> fulfilled with the
   /// server's response after the device has been subscribed to the topic.
-  external Promise unsubscribeFromTopic(
+  external node.Promise unsubscribeFromTopic(
       String registrationTokens, String topic);
 }
 
@@ -1687,7 +1692,8 @@ abstract class Reference extends Query {
   /// so the resulting list of items will be chronologically sorted. The keys
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
-  external ThenableReference push([value, Function(JsError error)? onComplete]);
+  external ThenableReference push(
+      [Object? value, OnCompleteFunction? onComplete]);
 
   /// Removes the data at this Database location.
   ///
@@ -1695,10 +1701,10 @@ abstract class Reference extends Query {
   ///
   /// The effect of the remove will be visible immediately and the corresponding
   /// event 'value' will be triggered. Synchronization of the remove to the
-  /// Firebase servers will also be started, and the returned [Promise] will
+  /// Firebase servers will also be started, and the returned [node.Promise] will
   /// resolve when complete. If provided, the [onComplete] callback will be
   /// called asynchronously after synchronization has finished.
-  external Promise remove([Function(JsError error)? onComplete]);
+  external node.Promise remove([OnCompleteFunction? onComplete]);
 
   /// Writes data to this Database location.
   ///
@@ -1707,7 +1713,7 @@ abstract class Reference extends Query {
   /// The effect of the write will be visible immediately, and the corresponding
   /// events ("value", "child_added", etc.) will be triggered. Synchronization
   /// of the data to the Firebase servers will also be started, and the returned
-  /// [Promise] will resolve when complete. If provided, the [onComplete]
+  /// [node.Promise] will resolve when complete. If provided, the [onComplete]
   /// callback will be called asynchronously after synchronization has finished.
   ///
   /// Passing `null` for the new value is equivalent to calling [remove];
@@ -1722,7 +1728,7 @@ abstract class Reference extends Query {
   ///
   /// A single [set] will generate a single "value" event at the location where
   /// the `set()` was performed.
-  external Promise set(value, [Function(JsError error)? onComplete]);
+  external node.Promise set(Object? value, [OnCompleteFunction? onComplete]);
 
   /// Sets a priority for the data at this Database location.
   ///
@@ -1731,7 +1737,8 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise setPriority(priority, [Function(JsError error)? onComplete]);
+  external node.Promise setPriority(Object? priority,
+      [OnCompleteFunction? onComplete]);
 
   /// Writes data the Database location. Like [set] but also specifies the
   /// [priority] for that data.
@@ -1741,8 +1748,8 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise setWithPriority(value, priority,
-      [Function(JsError error)? onComplete]);
+  external node.Promise setWithPriority(Object? value, Object? priority,
+      [OnCompleteFunction? onComplete]);
 
   /// Atomically modifies the data at this location.
   ///
@@ -1768,9 +1775,10 @@ abstract class Reference extends Query {
   /// to perform a transaction. This is because the client-side nature of
   /// transactions requires the client to read the data in order to
   /// transactionally update it.
-  external Promise transaction(
-      Function(dynamic snapshot) transactionUpdate,
-      Function(dynamic error, bool committed, dynamic snapshot) onComplete,
+  external node.Promise transaction(
+      dynamic Function(dynamic snapshot) transactionUpdate,
+      dynamic Function(dynamic error, bool committed, dynamic snapshot)
+          onComplete,
       bool applyLocally);
 
   /// Writes multiple values to the Database at once.
@@ -1787,7 +1795,7 @@ abstract class Reference extends Query {
   /// The effect of the write will be visible immediately, and the corresponding
   /// events ('value', 'child_added', etc.) will be triggered. Synchronization of
   /// the data to the Firebase servers will also be started, and the returned
-  /// `Promise` will resolve when complete.
+  /// `node.Promise` will resolve when complete.
   ///
   /// If provided, the [onComplete] callback will be called asynchronously after
   /// synchronization has finished.
@@ -1800,7 +1808,8 @@ abstract class Reference extends Query {
   /// [transaction] to modify the same data.
   ///
   /// Passing `null` to [update] will remove the data at this location.
-  external Promise update(values, [Function(JsError error)? onComplete]);
+  external node.Promise update(Object? values,
+      [OnCompleteFunction? onComplete]);
 }
 
 @JS()
@@ -1813,7 +1822,7 @@ abstract class TransactionResult {
 
 @JS()
 @anonymous
-abstract class ThenableReference extends Reference implements Promise {}
+abstract class ThenableReference extends Reference implements node.Promise {}
 
 /// Allows you to write or clear data when your client disconnects from the
 /// [Database] server. These updates occur whether your client disconnects
@@ -1845,7 +1854,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise cancel([Function(JsError error)? onComplete]);
+  external node.Promise cancel([OnCompleteFunction? onComplete]);
 
   /// Ensures the data at this location is deleted when the client is
   /// disconnected (due to closing the browser, navigating to a new page, or
@@ -1854,7 +1863,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise remove([Function(JsError error)? onComplete]);
+  external node.Promise remove([OnCompleteFunction? onComplete]);
 
   /// Ensures the data at this location is set to the specified [value] when the
   /// client is disconnected (due to closing the browser, navigating to a new
@@ -1870,13 +1879,13 @@ abstract class OnDisconnect {
   ///
   /// See also:
   /// - [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities)
-  external Promise set(value, [Function(JsError error)? onComplete]);
+  external node.Promise set(Object? value, [OnCompleteFunction? onComplete]);
 
   /// Ensures the data at this location is set to the specified [value] and
   /// [priority] when the client is disconnected (due to closing the browser,
   /// navigating to a new page, or network issues).
-  external Promise setWithPriority(value, priority,
-      [Function(JsError error)? onComplete]);
+  external node.Promise setWithPriority(Object? value, Object? priority,
+      [OnCompleteFunction? onComplete]);
 
   /// Writes multiple [values] at this location when the client is disconnected
   /// (due to closing the browser, navigating to a new page, or network issues).
@@ -1892,7 +1901,8 @@ abstract class OnDisconnect {
   ///
   /// See [Reference.update] for examples of using the connected version of
   /// update.
-  external Promise update(values, [Function(JsError error)? onComplete]);
+  external node.Promise update(Object? values,
+      [OnCompleteFunction? onComplete]);
 }
 
 /// Sorts and filters the data at a [Database] location so only a subset of the
@@ -1997,23 +2007,25 @@ abstract class Query {
   /// If a [callback] is not specified, all callbacks for the specified
   /// [eventType] will be removed. Similarly, if no [eventType] or [callback] is
   /// specified, all callbacks for the [Reference] will be removed.
-  external void off([String? eventType, callback, context]);
+  external void off([String? eventType, Object? callback, Object? context]);
 
   /// Listens for data changes at a particular location.
   ///
   /// This is the primary way to read data from a [Database]. Your callback will
   /// be triggered for the initial data and again whenever the data changes.
   /// Use [off] to stop receiving updates.
-  external void on(String eventType, callback,
-      [cancelCallbackOrContext, context]);
+  external void on(String eventType, Object? callback,
+      [Object? cancelCallbackOrContext, Object? context]);
 
   /// Listens for exactly one event of the specified [eventType], and then stops
   /// listening.
   ///
   /// This is equivalent to calling [on], and then calling [off] inside the
   /// callback function. See [on] for details on the event types.
-  external Promise once(String eventType,
-      [successCallback, failureCallbackOrContext, context]);
+  external node.Promise once(String eventType,
+      [Object? successCallback,
+      Object? failureCallbackOrContext,
+      Object? context]);
 
   /// Generates a new [Query] object ordered by the specified child key.
   ///
