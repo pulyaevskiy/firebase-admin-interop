@@ -1010,6 +1010,15 @@ class DocumentQuery {
     return DocumentQuery(nativeInstance!.orderBy(field, direction), firestore);
   }
 
+  /// Creates and returns a new [DocumentQuery] sorted by id. (no other sort order allowed)
+  DocumentQuery orderByKey({bool descending = false}) {
+    var direction = descending ? 'desc' : 'asc';
+    return DocumentQuery(
+        nativeInstance!
+            .orderBy(js.admin!.firestore.FieldPath.documentId(), direction),
+        firestore);
+  }
+
   /// Takes a [snapshot] or a list of [values], creates and returns a new [DocumentQuery]
   /// that starts after the provided fields relative to the order of the query.
   ///
