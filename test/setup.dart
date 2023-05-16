@@ -10,13 +10,16 @@ import 'package:node_interop/util.dart' as node;
 final Map env = node.dartify(node.process.env);
 
 App? initFirebaseApp() {
+  print(env);
   if (!env.containsKey('FIREBASE_CONFIG') ||
       !env.containsKey('FIREBASE_SERVICE_ACCOUNT_JSON')) {
-    throw StateError('Environment variables are not set.');
+    throw StateError(
+        'Environment variables FIREBASE_SERVICE_ACCOUNT_JSON and FIREBASE_CONFIG are not set.');
   }
 
   var certConfig =
       jsonDecode(env['FIREBASE_SERVICE_ACCOUNT_JSON'] as String) as Map;
+
   final cert = FirebaseAdmin.instance.cert(
     projectId: certConfig['project_id'] as String?,
     clientEmail: certConfig['client_email'] as String?,
