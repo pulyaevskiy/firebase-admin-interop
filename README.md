@@ -32,7 +32,7 @@ Git:
   firebase_admin_interop:
     git:
       url: https://github.com/tekartikdev/firebase-admin-interop
-      ref: dart2_3
+      ref: dart3a
 ```
 Run `pub get`.
 
