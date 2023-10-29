@@ -325,7 +325,7 @@ class Query {
 /// A Reference represents a specific location in your [Database] and can be
 /// used for reading or writing data to that Database location.
 class Reference extends Query {
-  Reference(js.Reference nativeInstance) : super(nativeInstance);
+  Reference(js.Reference super.nativeInstance);
 
   @override
   @protected
@@ -587,8 +587,7 @@ class DatabaseTransaction {
 class FutureReference extends Reference {
   final Future<void> done;
 
-  FutureReference(js.ThenableReference nativeInstance, this.done)
-      : super(nativeInstance);
+  FutureReference(js.ThenableReference super.nativeInstance, this.done);
 }
 
 /// A `DataSnapshot` contains data from a [Database] location.

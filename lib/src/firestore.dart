@@ -146,8 +146,7 @@ class Firestore {
 /// inherited from [DocumentQuery]).
 class CollectionReference extends DocumentQuery {
   CollectionReference(
-      js.CollectionReference nativeInstance, Firestore firestore)
-      : super(nativeInstance, firestore);
+      js.CollectionReference super.nativeInstance, super.firestore);
 
   @override
   @protected
@@ -730,7 +729,7 @@ class _FirestoreData {
 /// - [UpdateData] which is used to update a part of a document and follows
 ///   different pattern for handling nested fields.
 class DocumentData extends _FirestoreData {
-  DocumentData([js.DocumentData? nativeInstance]) : super(nativeInstance);
+  DocumentData([js.DocumentData? super.nativeInstance]);
 
   factory DocumentData.fromMap(Map<String, dynamic> data) {
     final doc = DocumentData();
@@ -777,7 +776,7 @@ class DocumentData extends _FirestoreData {
 ///     UpdateData data = new UpdateData();
 ///     data.setString("profile.name", "John");
 class UpdateData extends _FirestoreData {
-  UpdateData([js.UpdateData? nativeInstance]) : super(nativeInstance);
+  UpdateData([js.UpdateData? super.nativeInstance]);
 
   factory UpdateData.fromMap(Map<String, dynamic> data) {
     final doc = UpdateData();
@@ -1281,7 +1280,7 @@ abstract class _FieldValueArray implements FieldValue {
 }
 
 class _FieldValueArrayUnion extends _FieldValueArray {
-  _FieldValueArrayUnion(List elements) : super(elements);
+  _FieldValueArrayUnion(super.elements);
 
   @override
   dynamic _jsify() {
@@ -1294,7 +1293,7 @@ class _FieldValueArrayUnion extends _FieldValueArray {
 }
 
 class _FieldValueArrayRemove extends _FieldValueArray {
-  _FieldValueArrayRemove(List elements) : super(elements);
+  _FieldValueArrayRemove(super.elements);
 
   @override
   dynamic _jsify() {
