@@ -1,8 +1,8 @@
 @JS()
 library firebase_storage;
 
-import "package:js/js.dart";
-import 'package:node_interop/node.dart';
+import 'package:js/js.dart';
+import 'package:node_interop/node.dart' as node;
 
 import 'bindings.dart';
 
@@ -20,7 +20,7 @@ abstract class Storage {
   ///
   /// [name] of the bucket to be retrieved is optional. If [name] is not
   /// specified, retrieves a reference to the default bucket.
-  external Bucket bucket([String name]);
+  external Bucket bucket([String? name]);
 }
 
 @JS()
@@ -34,24 +34,26 @@ abstract class Bucket {
   /// Returns promise containing list with following values:
   /// [0] [StorageFile] - The new file.
   /// [1] [Object]      - The full API response.
-  external Promise combine(List sources, dynamic destination,
-      [options, callback]);
+  external node.Promise combine(List sources, dynamic destination,
+      [Object? options, Object? callback]);
 
   /// Create a bucket.
   ///
   /// Returns promise containing CreateBucketResponse.
-  external Promise create([CreateBucketRequest metadata, callback]);
+  external node.Promise create(
+      [CreateBucketRequest? metadata, Object? callback]);
 
   /// Checks if the bucket exists.
   ///
   /// Returns promise containing list with following values:
   /// [0] [boolean] - Whether this bucket exists.
-  external Promise exists([BucketExistsOptions options, callback]);
+  external node.Promise exists(
+      [BucketExistsOptions? options, Object? callback]);
 
   /// Creates a [StorageFile] object.
   ///
   /// See [StorageFile] to see for more details.
-  external StorageFile file(String name, [StorageFileOptions options]);
+  external StorageFile file(String name, [StorageFileOptions? options]);
 
   /// Upload a file to the bucket. This is a convenience method that wraps
   /// [StorageFile.createWriteStream].
@@ -66,7 +68,8 @@ abstract class Bucket {
   /// For faster crc32c computation, you must manually install `fast-crc32c`:
   ///
   ///     npm install --save fast-crc32c
-  external Promise upload(String pathString, [options, callback]);
+  external node.Promise upload(String pathString,
+      [Object? options, Object? callback]);
 }
 
 @JS()
@@ -81,7 +84,7 @@ abstract class CombineOptions {
   /// The ID of the project which will be billed for the request.
   external String get userProject;
 
-  external factory CombineOptions({String kmsKeyName, String userProject});
+  external factory CombineOptions({String? kmsKeyName, String? userProject});
 }
 
 @JS()
@@ -96,7 +99,7 @@ abstract class BucketExistsOptions {
   /// The ID of the project which will be billed for the request.
   external String get userProject;
 
-  external factory BucketExistsOptions({String userProject});
+  external factory BucketExistsOptions({String? userProject});
 }
 
 @JS()
@@ -115,7 +118,7 @@ abstract class StorageFileOptions {
   external String get kmsKeyName;
 
   external factory StorageFileOptions(
-      {String generation, String encryptionKey, String kmsKeyName});
+      {String? generation, String? encryptionKey, String? kmsKeyName});
 }
 
 @JS()

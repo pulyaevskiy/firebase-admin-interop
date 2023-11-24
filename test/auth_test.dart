@@ -3,46 +3,48 @@
 
 @TestOn('node')
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
-import 'package:node_interop/node.dart';
+import 'package:node_interop/node.dart' as node;
 import 'package:test/test.dart';
 
 import 'setup.dart';
 
 void main() {
   group('Auth', () {
-    App app;
+    App? app;
 
     setUpAll(() async {
       app = initFirebaseApp();
-      var user =
-          await app.auth().getUser('testuser').catchError((error) => null);
+      UserRecord? user;
+      try {
+        user = await app!.auth().getUser('testuser');
+      } catch (_) {}
       if (user == null) {
-        await app.auth().createUser(new CreateUserRequest(uid: 'testuser'));
+        await app!.auth().createUser(CreateUserRequest(uid: 'testuser'));
       }
     });
 
     tearDownAll(() {
-      return app.delete();
+      return app!.delete();
     });
 
     test('createCustomToken', () async {
       var token =
-          await app.auth().createCustomToken('testuser', {'role': 'admin'});
+          await app!.auth().createCustomToken('testuser', {'role': 'admin'});
       expect(token, isNotEmpty);
     });
 
     test('getUser', () async {
-      var user = await app.auth().getUser('testuser');
+      var user = await app!.auth().getUser('testuser');
       expect(user.uid, 'testuser');
     });
 
     test('getUser which does not exist', () async {
-      var result = app.auth().getUser('noSuchUser');
-      expect(result, throwsA(const TypeMatcher<JsError>()));
+      var result = app!.auth().getUser('noSuchUser');
+      expect(result, throwsA(const TypeMatcher<node.JsError>()));
     });
 
     test('listUsers', () async {
-      var result = await app.auth().listUsers();
+      var result = await app!.auth().listUsers();
       expect(result.users, isNotEmpty);
     });
   });

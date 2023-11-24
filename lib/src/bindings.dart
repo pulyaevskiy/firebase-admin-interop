@@ -3,10 +3,9 @@
 @JS()
 library firebase_admin;
 
+import 'package:firebase_admin_interop/js.dart';
 import 'package:js/js.dart';
-import 'package:node_interop/node.dart';
-
-import 'firestore_bindings.dart' show Firestore, GeoPointUtil, FieldValues;
+import 'package:node_interop/node.dart' as node;
 
 export 'firestore_bindings.dart';
 
@@ -15,15 +14,18 @@ export 'firestore_bindings.dart';
 const defaultAppName = '[DEFAULT]';
 
 /// Singleton instance of [FirebaseAdmin] module.
-final FirebaseAdmin admin = require('firebase-admin');
+final admin = node.require('firebase-admin') as FirebaseAdmin?;
+
+typedef OnCompleteFunction = dynamic Function(node.JsError error)?;
 
 @JS()
 @anonymous
 abstract class FirebaseAdmin {
   /// Creates and initializes a Firebase app instance.
-  external App initializeApp([options, String name]);
+  external App initializeApp([Object? options, String? name]);
 
   /// The current SDK version.
+  // ignore: non_constant_identifier_names
   external String get SDK_VERSION;
 
   /// A (read-only) array of all initialized apps.
@@ -36,10 +38,10 @@ abstract class FirebaseAdmin {
   ///
   /// An exception is thrown if the app being retrieved has not yet been
   /// initialized.
-  external App app([String name]);
+  external App app([String? name]);
 
   /// Gets the [Auth] service for the default app or a given [app].
-  external Auth auth([App app]);
+  external Auth auth([App? app]);
 
   /// Gets the [Database] service for the default app or a given [app].
   external DatabaseService get database;
@@ -50,12 +52,12 @@ abstract class FirebaseAdmin {
   external Credentials get credential;
 
   /// Gets the [Messaging] service for the default app or a given [app].
-  external Messaging messaging([App app]);
+  external Messaging messaging([App? app]);
 }
 
 @JS()
 @anonymous
-abstract class FirebaseError implements JsError {
+abstract class FirebaseError implements node.JsError {
   /// Error codes are strings using the following format:
   /// "service/string-code". Some examples include "auth/invalid-uid" and
   /// "messaging/invalid-recipient".
@@ -69,6 +71,7 @@ abstract class FirebaseError implements JsError {
 @anonymous
 abstract class FirebaseArrayIndexError {
   external FirebaseError get error;
+
   external num get index;
 }
 
@@ -89,24 +92,34 @@ abstract class Credentials {
   /// This credential can be used in the call to [initializeApp].
   /// [credentials] must be a path to a service account key JSON file or an
   /// object representing a service account key.
-  external Credential cert(credentials);
+  external Credential cert(Object? credentials);
 
   /// Returns [Credential] created from the provided refresh token that grants
   /// admin access to Firebase services.
   ///
   /// This credential can be used in the call to [initializeApp].
-  external Credential refreshToken(refreshTokenPathOrObject);
+  external Credential refreshToken(Object? refreshTokenPathOrObject);
 }
 
 @JS()
 @anonymous
 abstract class ServiceAccountConfig {
+  // ignore: non_constant_identifier_names
   external String get project_id;
+
+  // ignore: non_constant_identifier_names
   external String get client_email;
+
+  // ignore: non_constant_identifier_names
   external String get private_key;
 
   external factory ServiceAccountConfig(
-      {String project_id, String client_email, String private_key});
+      // ignore: non_constant_identifier_names
+      {String? project_id,
+      // ignore: non_constant_identifier_names
+      String? client_email,
+      // ignore: non_constant_identifier_names
+      String? private_key});
 }
 
 /// Interface which provides Google OAuth2 access tokens used to authenticate
@@ -116,7 +129,9 @@ abstract class ServiceAccountConfig {
 abstract class Credential {
   /// Returns a Google OAuth2 [AccessToken] object used to authenticate with
   /// Firebase services.
-  external AccessToken getAccessToken();
+  ///
+  /// Returns node.Promise<AccessToken>.
+  external node.Promise getAccessToken();
 }
 
 /// Google OAuth2 access token object used to authenticate with Firebase
@@ -125,9 +140,11 @@ abstract class Credential {
 @anonymous
 abstract class AccessToken {
   /// The actual Google OAuth2 access token.
+  // ignore: non_constant_identifier_names
   external String get access_token;
 
   /// The number of seconds from when the token was issued that it expires.
+  // ignore: non_constant_identifier_names
   external num get expires_in;
 }
 
@@ -155,7 +172,7 @@ abstract class App {
 
   /// Renders this app unusable and frees the resources of all associated
   /// services.
-  external Promise delete();
+  external node.Promise delete();
 
   /// Gets the [Firestore] client for this app.
   external Firestore firestore();
@@ -188,10 +205,10 @@ abstract class AppOptions {
 
   /// Creates new instance of [AppOptions].
   external factory AppOptions({
-    Credential credential,
-    String databaseURL,
-    String projectId,
-    String storageBucket,
+    Credential? credential,
+    String? databaseURL,
+    String? projectId,
+    String? storageBucket,
   });
 }
 
@@ -208,47 +225,47 @@ abstract class Auth {
   /// device to use to sign in with the client SDKs' signInWithCustomToken()
   /// methods.
   ///
-  /// Returns a promise fulfilled with a custom token string for the provided uid
+  /// Returns a node.Promise fulfilled with a custom token string for the provided uid
   /// and payload.
-  external Promise createCustomToken(String uid, developerClaims);
+  external node.Promise createCustomToken(String uid, Object? developerClaims);
 
   /// Creates a new user.
   ///
-  /// Returns a promise fulfilled with [UserRecord] corresponding to the newly
+  /// Returns a node.Promise fulfilled with [UserRecord] corresponding to the newly
   /// created user.
-  external Promise createUser(CreateUserRequest properties);
+  external node.Promise createUser(CreateUserRequest properties);
 
   /// Deletes an existing user.
   ///
-  /// Returns a promise containing `void`.
-  external Promise deleteUser(String uid);
+  /// Returns a node.Promise containing `void`.
+  external node.Promise deleteUser(String uid);
 
   /// Gets the user data for the user corresponding to a given [uid].
   ///
-  /// Returns a promise fulfilled with [UserRecord] corresponding to the provided
+  /// Returns a node.Promise fulfilled with [UserRecord] corresponding to the provided
   /// [uid].
-  external Promise getUser(String uid);
+  external node.Promise getUser(String uid);
 
   /// Gets the user data for the user corresponding to a given [email].
   ///
-  /// Returns a promise fulfilled with [UserRecord] corresponding to the provided
+  /// Returns a node.Promise fulfilled with [UserRecord] corresponding to the provided
   /// [email].
-  external Promise getUserByEmail(String email);
+  external node.Promise getUserByEmail(String email);
 
   /// Gets the user data for the user corresponding to a given [phoneNumber].
   ///
-  /// Returns a promise fulfilled with [UserRecord] corresponding to the provided
+  /// Returns a node.Promise fulfilled with [UserRecord] corresponding to the provided
   /// [phoneNumber].
-  external Promise getUserByPhoneNumber(String phoneNumber);
+  external node.Promise getUserByPhoneNumber(String phoneNumber);
 
   /// Retrieves a list of users (single batch only) with a size of [maxResults]
   /// and starting from the offset as specified by [pageToken].
   ///
   /// This is used to retrieve all the users of a specified project in batches.
   ///
-  /// Returns a promise that resolves with the current batch of downloaded users
+  /// Returns a node.Promise that resolves with the current batch of downloaded users
   /// and the next page token as an instance of [ListUsersResult].
-  external Promise listUsers([num maxResults, String pageToken]);
+  external node.Promise listUsers([num? maxResults, String? pageToken]);
 
   /// Revokes all refresh tokens for an existing user.
   ///
@@ -262,8 +279,8 @@ abstract class Auth {
   /// ID tokens are revoked, use [Auth.verifyIdToken] where `checkRevoked` is set
   /// to `true`.
   ///
-  /// Returns a promise containing `void`.
-  external Promise revokeRefreshTokens(String uid);
+  /// Returns a node.Promise containing `void`.
+  external node.Promise revokeRefreshTokens(String uid);
 
   /// Sets additional developer claims on an existing user identified by the
   /// provided uid, typically used to define user roles and levels of access.
@@ -276,43 +293,51 @@ abstract class Auth {
   ///
   /// [customUserClaims] can be `null`.
   ///
-  /// Returns a promise containing `void`.
-  external Promise setCustomUserClaims(String uid, customUserClaims);
+  /// Returns a node.Promise containing `void`.
+  external node.Promise setCustomUserClaims(
+      String uid, Object? customUserClaims);
 
   /// Updates an existing user.
   ///
-  /// Returns a promise containing updated [UserRecord].
-  external Promise updateUser(String uid, UpdateUserRequest properties);
+  /// Returns a node.Promise containing updated [UserRecord].
+  external node.Promise updateUser(String uid, UpdateUserRequest properties);
 
   /// Verifies a Firebase ID token (JWT).
   ///
-  /// If the token is valid, the returned promise is fulfilled with an instance of
-  /// [DecodedIdToken]; otherwise, the promise is rejected. An optional flag can
+  /// If the token is valid, the returned node.Promise is fulfilled with an instance of
+  /// [DecodedIdToken]; otherwise, the node.Promise is rejected. An optional flag can
   /// be passed to additionally check whether the ID token was revoked.
-  external Promise verifyIdToken(String idToken, [bool checkRevoked]);
+  external node.Promise verifyIdToken(String idToken, [bool? checkRevoked]);
 }
 
 @JS()
 @anonymous
 abstract class CreateUserRequest {
   external bool get disabled;
+
   external String get displayName;
+
   external String get email;
+
   external bool get emailVerified;
+
   external String get password;
+
   external String get phoneNumber;
+
   external String get photoURL;
+
   external String get uid;
 
   external factory CreateUserRequest({
-    bool disabled,
-    String displayName,
-    String email,
-    bool emailVerified,
-    String password,
-    String phoneNumber,
-    String photoURL,
-    String uid,
+    bool? disabled,
+    String? displayName,
+    String? email,
+    bool? emailVerified,
+    String? password,
+    String? phoneNumber,
+    String? photoURL,
+    String? uid,
   });
 }
 
@@ -320,21 +345,27 @@ abstract class CreateUserRequest {
 @anonymous
 abstract class UpdateUserRequest {
   external bool get disabled;
+
   external String get displayName;
+
   external String get email;
+
   external bool get emailVerified;
+
   external String get password;
+
   external String get phoneNumber;
+
   external String get photoURL;
 
   external factory UpdateUserRequest({
-    bool disabled,
-    String displayName,
-    String email,
-    bool emailVerified,
-    String password,
-    String phoneNumber,
-    String photoURL,
+    bool? disabled,
+    String? displayName,
+    String? email,
+    bool? emailVerified,
+    String? password,
+    String? phoneNumber,
+    String? photoURL,
   });
 }
 
@@ -346,7 +377,7 @@ abstract class UserRecord {
   /// roles and propagated to an authenticated user's ID token.
   ///
   /// This is set via [Auth.setCustomUserClaims].
-  external get customClaims;
+  external Object? get customClaims;
 
   /// Whether or not the user is disabled: true for disabled; false for enabled.
   external bool get disabled;
@@ -448,6 +479,7 @@ abstract class UserInfo {
 @anonymous
 abstract class ListUsersResult {
   external String get pageToken;
+
   external List<UserRecord> get users;
 }
 
@@ -470,6 +502,7 @@ abstract class DecodedIdToken {
   /// user initially logged in to this session. In a single session, the Firebase
   /// SDKs will refresh a user's ID tokens every hour. Each ID token will have a
   /// different [iat] value, but the same auth_time value.
+  // ignore: non_constant_identifier_names
   external num get auth_time;
 
   /// The ID token's expiration time, in seconds since the Unix epoch.
@@ -523,11 +556,12 @@ abstract class DecodedIdToken {
 abstract class FirebaseSignInInfo {
   /// Provider-specific identity details corresponding to the provider used to
   /// sign in the user.
-  external get identities;
+  external Object? get identities;
 
   /// The ID of the provider used to sign in the user. One of "anonymous",
   /// "password", "facebook.com", "github.com", "google.com", "twitter.com",
   /// or "custom".
+  // ignore: non_constant_identifier_names
   external String get sign_in_provider;
 }
 
@@ -536,10 +570,17 @@ abstract class FirebaseSignInInfo {
 @JS()
 @anonymous
 abstract class FirestoreService {
+  // ignore: non_constant_identifier_names
   external GeoPointUtil get GeoPoint;
+
+  // ignore: non_constant_identifier_names
   external FieldValues get FieldValue;
-  external dynamic get Timestamp;
-  external dynamic get FieldPath;
+
+  // ignore: non_constant_identifier_names
+  external Object get Timestamp;
+
+  // ignore: non_constant_identifier_names
+  external FieldPathPrototype get FieldPath;
 }
 
 // admin.messaging ================================================================
@@ -553,66 +594,68 @@ abstract class Messaging {
 
   /// Sends the given message via FCM.
   ///
-  /// Returns Promise<string> fulfilled with a unique message ID string after the
+  /// Returns node.Promise<string> fulfilled with a unique message ID string after the
   /// message has been successfully handed off to the FCM service for delivery
-  external Promise send(FcmMessage message, [bool dryRun]);
+  external node.Promise send(FcmMessage message, [bool? dryRun]);
 
   /// Sends all the messages in the given array via Firebase Cloud Messaging.
   ///
-  /// Returns Promise<BatchResponse> fulfilled with an object representing the
+  /// Returns node.Promise<BatchResponse> fulfilled with an object representing the
   /// result of the send operation.
-  external Promise sendAll(List<FcmMessage> messages, [bool dryRun]);
+  external node.Promise sendAll(List<FcmMessage> messages, [bool? dryRun]);
 
   /// Sends the given multicast message to all the FCM registration tokens
   /// specified in it.
   ///
-  /// Returns Promise<BatchResponse> fulfilled with an object representing the
+  /// Returns node.Promise<BatchResponse> fulfilled with an object representing the
   /// result of the send operation.
-  external Promise sendMulticast(MulticastMessage message, [bool dryRun]);
+  external node.Promise sendMulticast(MulticastMessage message, [bool? dryRun]);
 
   /// Sends an FCM message to a condition.
   ///
-  /// Returns Promise<MessagingConditionResponse> fulfilled with the server's
+  /// Returns node.Promise<MessagingConditionResponse> fulfilled with the server's
   /// response after the message has been sent.
-  external Promise sendToCondition(String condition, MessagingPayload payload,
-      [MessagingOptions options]);
+  external node.Promise sendToCondition(
+      String condition, MessagingPayload payload,
+      [MessagingOptions? options]);
 
   /// Sends an FCM message to a single device corresponding to the provided
   /// registration token.
   ///
-  /// Returns Promise<MessagingDevicesResponse> fulfilled with the server's
+  /// Returns node.Promise<MessagingDevicesResponse> fulfilled with the server's
   /// response after the message has been sent.
-  external Promise sendToDevice(
+  external node.Promise sendToDevice(
       String registrationToken, MessagingPayload payload,
-      [MessagingOptions options]);
+      [MessagingOptions? options]);
 
   /// Sends an FCM message to a device group corresponding to the provided
   /// notification key.
   ///
-  /// Returns Promise<MessagingDevicesResponse> fulfilled with the server's
+  /// Returns node.Promise<MessagingDevicesResponse> fulfilled with the server's
   /// response after the message has been sent.
-  external Promise sendToDeviceGroup(
+  external node.Promise sendToDeviceGroup(
       String notificationKey, MessagingPayload payload,
-      [MessagingOptions options]);
+      [MessagingOptions? options]);
 
   /// Sends an FCM message to a topic.
   ///
-  /// Returns Promise<MessagingTopicResponse> fulfilled with the server's
+  /// Returns node.Promise<MessagingTopicResponse> fulfilled with the server's
   /// response after the message has been sent.
-  external Promise sendToTopic(String topic, MessagingPayload payload,
-      [MessagingOptions options]);
+  external node.Promise sendToTopic(String topic, MessagingPayload payload,
+      [MessagingOptions? options]);
 
   /// Subscribes a device to an FCM topic.
   ///
-  /// Returns Promise<MessagingTopicManagementResponse> fulfilled with the
+  /// Returns node.Promise<MessagingTopicManagementResponse> fulfilled with the
   /// server's response after the device has been subscribed to the topic.
-  external Promise subscribeToTopic(String registrationTokens, String topic);
+  external node.Promise subscribeToTopic(
+      String registrationTokens, String topic);
 
   /// Unsubscribes a device from an FCM topic.
   ///
-  /// Returns Promise<MessagingTopicManagementResponse> fulfilled with the
+  /// Returns node.Promise<MessagingTopicManagementResponse> fulfilled with the
   /// server's response after the device has been subscribed to the topic.
-  external Promise unsubscribeFromTopic(
+  external node.Promise unsubscribeFromTopic(
       String registrationTokens, String topic);
 }
 
@@ -620,13 +663,15 @@ abstract class Messaging {
 @anonymous
 abstract class FcmMessage {
   external String get data;
+
   external Notification get notification;
+
   external String get token;
 
   external factory FcmMessage({
-    String data,
-    Notification notification,
-    String token,
+    String? data,
+    Notification? notification,
+    String? token,
   });
 }
 
@@ -634,25 +679,31 @@ abstract class FcmMessage {
 @anonymous
 abstract class TopicMessage {
   external AndroidConfig get android;
+
   external ApnsConfig get apns;
+
   external dynamic get data;
+
   external String get key;
+
   external FcmOptions get fcmOptions;
+
   external Notification get notification;
 
   /// Required
   external String get topic;
+
   external WebpushConfig get webpush;
 
   external factory TopicMessage({
-    AndroidConfig android,
-    ApnsConfig apns,
+    AndroidConfig? android,
+    ApnsConfig? apns,
     dynamic data,
-    String key,
-    FcmOptions fcmOptions,
-    Notification notification,
-    String topic,
-    WebpushConfig webpush,
+    String? key,
+    FcmOptions? fcmOptions,
+    Notification? notification,
+    String? topic,
+    WebpushConfig? webpush,
   });
 }
 
@@ -660,25 +711,31 @@ abstract class TopicMessage {
 @anonymous
 abstract class TokenMessage {
   external AndroidConfig get android;
+
   external ApnsConfig get apns;
+
   external dynamic get data;
+
   external String get key;
+
   external FcmOptions get fcmOptions;
+
   external Notification get notification;
 
   /// Required
   external String get token;
+
   external WebpushConfig get webpush;
 
   external factory TokenMessage({
-    AndroidConfig android,
-    ApnsConfig apns,
+    AndroidConfig? android,
+    ApnsConfig? apns,
     dynamic data,
-    String key,
-    FcmOptions fcmOptions,
-    Notification notification,
-    String token,
-    WebpushConfig webpush,
+    String? key,
+    FcmOptions? fcmOptions,
+    Notification? notification,
+    String? token,
+    WebpushConfig? webpush,
   });
 }
 
@@ -686,25 +743,31 @@ abstract class TokenMessage {
 @anonymous
 abstract class ConditionMessage {
   external AndroidConfig get android;
+
   external ApnsConfig get apns;
 
   /// Required
   external String get condition;
+
   external dynamic get data;
+
   external String get key;
+
   external FcmOptions get fcmOptions;
+
   external Notification get notification;
+
   external WebpushConfig get webpush;
 
   external factory ConditionMessage({
-    AndroidConfig android,
-    ApnsConfig apns,
-    String condition,
+    AndroidConfig? android,
+    ApnsConfig? apns,
+    String? condition,
     dynamic data,
-    String key,
-    FcmOptions fcmOptions,
-    Notification notification,
-    WebpushConfig webpush,
+    String? key,
+    FcmOptions? fcmOptions,
+    Notification? notification,
+    WebpushConfig? webpush,
   });
 }
 
@@ -712,25 +775,31 @@ abstract class ConditionMessage {
 @anonymous
 abstract class MulticastMessage {
   external AndroidConfig get android;
+
   external ApnsConfig get apns;
+
   external dynamic get data;
+
   external String get key;
+
   external FcmOptions get fcmOptions;
+
   external Notification get notification;
 
   /// Required
   external List<String> get tokens;
+
   external WebpushConfig get webpush;
 
   external factory MulticastMessage({
-    AndroidConfig android,
-    ApnsConfig apns,
+    AndroidConfig? android,
+    ApnsConfig? apns,
     dynamic data,
-    String key,
-    FcmOptions fcmOptions,
-    Notification notification,
-    List<String> tokens,
-    WebpushConfig webpush,
+    String? key,
+    FcmOptions? fcmOptions,
+    Notification? notification,
+    List<String>? tokens,
+    WebpushConfig? webpush,
   });
 }
 
@@ -748,9 +817,9 @@ abstract class Notification {
   external String get title;
 
   external factory Notification({
-    String body,
-    String imageUrl,
-    String title,
+    String? body,
+    String? imageUrl,
+    String? title,
   });
 }
 
@@ -816,21 +885,21 @@ abstract class WebpushNotification {
   external num get vibrate;
 
   external factory WebpushNotification({
-    List<dynamic> actions,
-    String badge,
-    String body,
+    List<dynamic>? actions,
+    String? badge,
+    String? body,
     dynamic data,
-    String dir,
-    String icon,
-    String image,
-    String lang,
-    bool renotify,
-    bool requireInteraction,
-    bool silent,
-    String tag,
-    num timestamp,
-    String title,
-    num vibrate,
+    String? dir,
+    String? icon,
+    String? image,
+    String? lang,
+    bool? renotify,
+    bool? requireInteraction,
+    bool? silent,
+    String? tag,
+    num? timestamp,
+    String? title,
+    num? vibrate,
   });
 }
 
@@ -853,9 +922,9 @@ abstract class WebpushConfig {
 
   external factory WebpushConfig({
     dynamic data,
-    FcmOptions fcmOptions,
+    FcmOptions? fcmOptions,
     dynamic headers,
-    WebpushNotification notification,
+    WebpushNotification? notification,
   });
 }
 
@@ -869,7 +938,7 @@ abstract class WebpushFcmOptions {
   external String get link;
 
   external factory WebpushFcmOptions({
-    String link,
+    String? link,
   });
 }
 
@@ -881,7 +950,7 @@ abstract class FcmOptions {
   external String get analyticsLabel;
 
   external factory FcmOptions({
-    String analyticsLabel,
+    String? analyticsLabel,
   });
 }
 
@@ -897,8 +966,8 @@ abstract class MessagingPayload {
   external NotificationMessagePayload get notification;
 
   external factory MessagingPayload({
-    DataMessagePayload data,
-    NotificationMessagePayload notification,
+    DataMessagePayload? data,
+    NotificationMessagePayload? notification,
   });
 }
 
@@ -912,10 +981,11 @@ abstract class DataMessagePayload {
   /// Keys can be any custom string, except for the following reserved strings:
   /// "from" and anything starting with "google."
   external String get key;
+
   external dynamic get value;
 
   external factory DataMessagePayload({
-    String key,
+    String? key,
     dynamic value,
   });
 }
@@ -979,19 +1049,19 @@ abstract class NotificationMessagePayload {
   external String get titleLocKey;
 
   external factory NotificationMessagePayload({
-    List<dynamic> actions,
-    String badge,
-    String body,
-    String bodyLocArgs,
-    String bodyLocKey,
-    String clickAction,
-    String color,
-    String icon,
-    String sound,
-    String tag,
-    String title,
-    String titleLocArgs,
-    String titleLocKey,
+    List<dynamic>? actions,
+    String? badge,
+    String? body,
+    String? bodyLocArgs,
+    String? bodyLocKey,
+    String? clickAction,
+    String? color,
+    String? icon,
+    String? sound,
+    String? tag,
+    String? title,
+    String? titleLocArgs,
+    String? titleLocKey,
   });
 }
 
@@ -1043,13 +1113,13 @@ abstract class MessagingOptions {
   external num get timeToLive;
 
   external factory MessagingOptions({
-    String collapseKey,
-    bool contentAvailable,
-    bool dryRun,
-    bool mutableContent,
-    String priority,
-    String restrictedPackageName,
-    num timeToLive,
+    String? collapseKey,
+    bool? contentAvailable,
+    bool? dryRun,
+    bool? mutableContent,
+    String? priority,
+    String? restrictedPackageName,
+    num? timeToLive,
   });
 }
 
@@ -1089,13 +1159,13 @@ abstract class AndroidConfig {
   external num get ttl;
 
   external factory AndroidConfig({
-    String collapseKey,
+    String? collapseKey,
     dynamic data,
-    AndroidFcmOptions fcmOptions,
-    AndroidNotification notification,
-    String priority,
-    String restrictedPackageName,
-    num ttl,
+    AndroidFcmOptions? fcmOptions,
+    AndroidNotification? notification,
+    String? priority,
+    String? restrictedPackageName,
+    num? ttl,
   });
 }
 
@@ -1107,7 +1177,7 @@ abstract class AndroidFcmOptions {
   external String get analyticsLabel;
 
   external factory AndroidFcmOptions({
-    String analyticsLabel,
+    String? analyticsLabel,
   });
 }
 
@@ -1170,19 +1240,19 @@ abstract class AndroidNotification {
   external String get titleLocKey;
 
   external factory AndroidNotification({
-    String body,
-    List<String> bodyLocArgs,
-    String bodyLocKey,
-    String channelId,
-    String clickAction,
-    String color,
-    String icon,
-    String imageUrl,
-    String sound,
-    String tag,
-    String title,
-    List<String> titleLocArgs,
-    String titleLocKey,
+    String? body,
+    List<String>? bodyLocArgs,
+    String? bodyLocKey,
+    String? channelId,
+    String? clickAction,
+    String? color,
+    String? icon,
+    String? imageUrl,
+    String? sound,
+    String? tag,
+    String? title,
+    List<String>? titleLocArgs,
+    String? titleLocKey,
   });
 }
 
@@ -1201,9 +1271,9 @@ abstract class ApnsConfig {
   external ApnsPayload get payload;
 
   external factory ApnsConfig({
-    ApnsFcmOptions fcmOptions,
+    ApnsFcmOptions? fcmOptions,
     dynamic headers,
-    ApnsPayload payload,
+    ApnsPayload? payload,
   });
 }
 
@@ -1217,7 +1287,7 @@ abstract class ApnsFcmOptions {
   /// URL of an image to be displayed in the notification.
   external String get imageUrl;
 
-  external factory ApnsFcmOptions({String analyticsLabel, String imageUrl});
+  external factory ApnsFcmOptions({String? analyticsLabel, String? imageUrl});
 }
 
 /// Represents options for features provided by the FCM SDK for iOS.
@@ -1228,7 +1298,7 @@ abstract class ApnsPayload {
   external Aps get aps;
 
   external factory ApnsPayload({
-    Aps aps,
+    Aps? aps,
   });
 }
 
@@ -1263,12 +1333,12 @@ abstract class Aps {
   external String get threadId;
 
   external factory Aps({
-    String alert,
-    num badge,
-    String category,
-    bool contentAvailable,
-    bool mutableContent,
-    String sound,
+    String? alert,
+    num? badge,
+    String? category,
+    bool? contentAvailable,
+    bool? mutableContent,
+    String? sound,
   });
 }
 
@@ -1276,29 +1346,39 @@ abstract class Aps {
 @anonymous
 abstract class ApsAlert {
   external String get actionLocKey;
+
   external String get body;
+
   external String get launchImage;
+
   external List<String> get locArgs;
+
   external String get locKey;
+
   external String get subtitle;
+
   external List<String> get subtitleLocArgs;
+
   external String get subtitleLocKey;
+
   external String get title;
+
   external List<String> get titleLocArgs;
+
   external String get titleLocKey;
 
   external factory ApsAlert({
-    String actionLocKey,
-    String body,
-    String launchImage,
-    List<String> locArgs,
-    String locKey,
-    String subtitle,
-    List<String> subtitleLocArgs,
-    String subtitleLocKey,
-    String title,
-    List<String> titleLocArgs,
-    String titleLocKey,
+    String? actionLocKey,
+    String? body,
+    String? launchImage,
+    List<String>? locArgs,
+    String? locKey,
+    String? subtitle,
+    List<String>? subtitleLocArgs,
+    String? subtitleLocKey,
+    String? title,
+    List<String>? titleLocArgs,
+    String? titleLocKey,
   });
 }
 
@@ -1322,9 +1402,9 @@ abstract class CriticalSound {
   external num get volume;
 
   external factory CriticalSound({
-    bool critical,
-    String name,
-    num volume,
+    bool? critical,
+    String? name,
+    num? volume,
   });
 }
 
@@ -1343,9 +1423,9 @@ abstract class BatchResponse {
   external num get successCount;
 
   external factory BatchResponse({
-    num failureCount,
-    List<SendResponse> responses,
-    num successCount,
+    num? failureCount,
+    List<SendResponse>? responses,
+    num? successCount,
   });
 }
 
@@ -1369,9 +1449,9 @@ abstract class SendResponse {
   external bool get success;
 
   external factory SendResponse({
-    FirebaseError error,
-    String messageId,
-    bool success,
+    FirebaseError? error,
+    String? messageId,
+    bool? success,
   });
 }
 
@@ -1385,7 +1465,7 @@ abstract class MessagingConditionResponse {
   external num get messageId;
 
   external factory MessagingConditionResponse({
-    num messageId,
+    num? messageId,
   });
 }
 
@@ -1404,9 +1484,9 @@ abstract class MessagingDeviceGroupResponse {
   external num get successCount;
 
   external factory MessagingDeviceGroupResponse({
-    List<String> failedRegistrationTokens,
-    num failureCount,
-    num successCount,
+    List<String>? failedRegistrationTokens,
+    num? failureCount,
+    num? successCount,
   });
 }
 
@@ -1429,9 +1509,9 @@ abstract class MessagingDeviceResult {
   external String get messageId;
 
   external factory MessagingDeviceResult({
-    String canonicalRegistrationToken,
-    FirebaseError error,
-    String messageId,
+    String? canonicalRegistrationToken,
+    FirebaseError? error,
+    String? messageId,
   });
 }
 
@@ -1468,11 +1548,11 @@ abstract class MessagingDevicesResponse {
   external num get successCount;
 
   external factory MessagingDevicesResponse({
-    num canonicalRegistrationTokenCount,
-    num failureCount,
-    num multicastId,
-    List<MessagingDeviceResult> results,
-    num successCount,
+    num? canonicalRegistrationTokenCount,
+    num? failureCount,
+    num? multicastId,
+    List<MessagingDeviceResult>? results,
+    num? successCount,
   });
 }
 
@@ -1486,7 +1566,7 @@ abstract class MessagingTopicResponse {
   external num get messageId;
 
   external factory MessagingTopicResponse({
-    num messageId,
+    num? messageId,
   });
 }
 
@@ -1510,9 +1590,9 @@ abstract class MessagingTopicManagementResponse {
   external num get successCount;
 
   external factory MessagingTopicManagementResponse({
-    List<FirebaseArrayIndexError> errors,
-    num failureCount,
-    num successCount,
+    List<FirebaseArrayIndexError>? errors,
+    num? failureCount,
+    num? successCount,
   });
 }
 
@@ -1525,7 +1605,9 @@ abstract class DatabaseService {
   // external Database call([App app]);
 
   /// Logs debugging information to the console.
-  external enableLogging([dynamic loggerOrBool, bool persistent]);
+  external void enableLogging([dynamic loggerOrBool, bool? persistent]);
+
+  // ignore: non_constant_identifier_names
   external ServerValues get ServerValue;
 }
 
@@ -1534,6 +1616,7 @@ abstract class DatabaseService {
 @JS()
 @anonymous
 abstract class ServerValues {
+  // ignore: non_constant_identifier_names
   external num get TIMESTAMP;
 }
 
@@ -1557,7 +1640,7 @@ abstract class Database {
   /// Returns a [Reference] representing the location in the Database
   /// corresponding to the provided [path]. If no path is provided, the
   /// Reference will point to the root of the Database.
-  external Reference ref([String path]);
+  external Reference ref([String? path]);
 
   /// Returns a Reference representing the location in the Database
   /// corresponding to the provided Firebase URL.
@@ -1609,7 +1692,8 @@ abstract class Reference extends Query {
   /// so the resulting list of items will be chronologically sorted. The keys
   /// are also designed to be unguessable (they contain 72 random bits of
   /// entropy).
-  external ThenableReference push([value, onComplete(JsError error)]);
+  external ThenableReference push(
+      [Object? value, OnCompleteFunction? onComplete]);
 
   /// Removes the data at this Database location.
   ///
@@ -1617,10 +1701,10 @@ abstract class Reference extends Query {
   ///
   /// The effect of the remove will be visible immediately and the corresponding
   /// event 'value' will be triggered. Synchronization of the remove to the
-  /// Firebase servers will also be started, and the returned [Promise] will
+  /// Firebase servers will also be started, and the returned [node.Promise] will
   /// resolve when complete. If provided, the [onComplete] callback will be
   /// called asynchronously after synchronization has finished.
-  external Promise remove([onComplete(JsError error)]);
+  external node.Promise remove([OnCompleteFunction? onComplete]);
 
   /// Writes data to this Database location.
   ///
@@ -1629,7 +1713,7 @@ abstract class Reference extends Query {
   /// The effect of the write will be visible immediately, and the corresponding
   /// events ("value", "child_added", etc.) will be triggered. Synchronization
   /// of the data to the Firebase servers will also be started, and the returned
-  /// [Promise] will resolve when complete. If provided, the [onComplete]
+  /// [node.Promise] will resolve when complete. If provided, the [onComplete]
   /// callback will be called asynchronously after synchronization has finished.
   ///
   /// Passing `null` for the new value is equivalent to calling [remove];
@@ -1644,7 +1728,7 @@ abstract class Reference extends Query {
   ///
   /// A single [set] will generate a single "value" event at the location where
   /// the `set()` was performed.
-  external Promise set(value, [onComplete(JsError error)]);
+  external node.Promise set(Object? value, [OnCompleteFunction? onComplete]);
 
   /// Sets a priority for the data at this Database location.
   ///
@@ -1653,7 +1737,8 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise setPriority(priority, [onComplete(JsError error)]);
+  external node.Promise setPriority(Object? priority,
+      [OnCompleteFunction? onComplete]);
 
   /// Writes data the Database location. Like [set] but also specifies the
   /// [priority] for that data.
@@ -1663,8 +1748,8 @@ abstract class Reference extends Query {
   ///
   /// See also:
   /// - [Sorting and filtering data](https://firebase.google.com/docs/database/web/lists-of-data#sorting_and_filtering_data)
-  external Promise setWithPriority(value, priority,
-      [onComplete(JsError error)]);
+  external node.Promise setWithPriority(Object? value, Object? priority,
+      [OnCompleteFunction? onComplete]);
 
   /// Atomically modifies the data at this location.
   ///
@@ -1690,8 +1775,11 @@ abstract class Reference extends Query {
   /// to perform a transaction. This is because the client-side nature of
   /// transactions requires the client to read the data in order to
   /// transactionally update it.
-  external Promise transaction(transactionUpdate(snapshot),
-      onComplete(error, bool committed, snapshot), bool applyLocally);
+  external node.Promise transaction(
+      dynamic Function(dynamic snapshot) transactionUpdate,
+      dynamic Function(dynamic error, bool committed, dynamic snapshot)
+          onComplete,
+      bool applyLocally);
 
   /// Writes multiple values to the Database at once.
   ///
@@ -1707,7 +1795,7 @@ abstract class Reference extends Query {
   /// The effect of the write will be visible immediately, and the corresponding
   /// events ('value', 'child_added', etc.) will be triggered. Synchronization of
   /// the data to the Firebase servers will also be started, and the returned
-  /// `Promise` will resolve when complete.
+  /// `node.Promise` will resolve when complete.
   ///
   /// If provided, the [onComplete] callback will be called asynchronously after
   /// synchronization has finished.
@@ -1720,19 +1808,21 @@ abstract class Reference extends Query {
   /// [transaction] to modify the same data.
   ///
   /// Passing `null` to [update] will remove the data at this location.
-  external Promise update(values, [onComplete(JsError error)]);
+  external node.Promise update(Object? values,
+      [OnCompleteFunction? onComplete]);
 }
 
 @JS()
 @anonymous
 abstract class TransactionResult {
   bool get committed;
+
   DataSnapshot get snapshot;
 }
 
 @JS()
 @anonymous
-abstract class ThenableReference extends Reference implements Promise {}
+abstract class ThenableReference extends Reference implements node.Promise {}
 
 /// Allows you to write or clear data when your client disconnects from the
 /// [Database] server. These updates occur whether your client disconnects
@@ -1764,7 +1854,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise cancel([onComplete(JsError error)]);
+  external node.Promise cancel([OnCompleteFunction? onComplete]);
 
   /// Ensures the data at this location is deleted when the client is
   /// disconnected (due to closing the browser, navigating to a new page, or
@@ -1773,7 +1863,7 @@ abstract class OnDisconnect {
   /// Optional [onComplete] function that will be called when synchronization to
   /// the server has completed. The callback will be passed a single parameter:
   /// `null` for success, or a [JsError] object indicating a failure.
-  external Promise remove([onComplete(JsError error)]);
+  external node.Promise remove([OnCompleteFunction? onComplete]);
 
   /// Ensures the data at this location is set to the specified [value] when the
   /// client is disconnected (due to closing the browser, navigating to a new
@@ -1789,13 +1879,13 @@ abstract class OnDisconnect {
   ///
   /// See also:
   /// - [Enabling Offline Capabilities in JavaScript](https://firebase.google.com/docs/database/web/offline-capabilities)
-  external Promise set(value, [onComplete(JsError error)]);
+  external node.Promise set(Object? value, [OnCompleteFunction? onComplete]);
 
   /// Ensures the data at this location is set to the specified [value] and
   /// [priority] when the client is disconnected (due to closing the browser,
   /// navigating to a new page, or network issues).
-  external Promise setWithPriority(value, priority,
-      [onComplete(JsError error)]);
+  external node.Promise setWithPriority(Object? value, Object? priority,
+      [OnCompleteFunction? onComplete]);
 
   /// Writes multiple [values] at this location when the client is disconnected
   /// (due to closing the browser, navigating to a new page, or network issues).
@@ -1811,7 +1901,8 @@ abstract class OnDisconnect {
   ///
   /// See [Reference.update] for examples of using the connected version of
   /// update.
-  external Promise update(values, [onComplete(JsError error)]);
+  external node.Promise update(Object? values,
+      [OnCompleteFunction? onComplete]);
 }
 
 /// Sorts and filters the data at a [Database] location so only a subset of the
@@ -1852,7 +1943,7 @@ abstract class Query {
   /// Optional [key] is only allowed if ordering by priority and defines the
   /// child key to end at, among the children with the previously specified
   /// priority.
-  external Query endAt(dynamic value, [String key]);
+  external Query endAt(dynamic value, [String? key]);
 
   /// Creates a [Query] that includes children that match the specified value.
   ///
@@ -1867,7 +1958,7 @@ abstract class Query {
   /// query. If it is specified, then children that have exactly the specified
   /// value must also have exactly the specified key as their key name. This can
   /// be used to filter result sets with many matches for the same value.
-  external Query equalTo(dynamic value, [String key]);
+  external Query equalTo(dynamic value, [String? key]);
 
   /// Returns `true` if this and [other] query are equal.
   ///
@@ -1916,23 +2007,25 @@ abstract class Query {
   /// If a [callback] is not specified, all callbacks for the specified
   /// [eventType] will be removed. Similarly, if no [eventType] or [callback] is
   /// specified, all callbacks for the [Reference] will be removed.
-  external void off([String eventType, callback, context]);
+  external void off([String? eventType, Object? callback, Object? context]);
 
   /// Listens for data changes at a particular location.
   ///
   /// This is the primary way to read data from a [Database]. Your callback will
   /// be triggered for the initial data and again whenever the data changes.
   /// Use [off] to stop receiving updates.
-  external void on(String eventType, callback,
-      [cancelCallbackOrContext, context]);
+  external void on(String eventType, Object? callback,
+      [Object? cancelCallbackOrContext, Object? context]);
 
   /// Listens for exactly one event of the specified [eventType], and then stops
   /// listening.
   ///
   /// This is equivalent to calling [on], and then calling [off] inside the
   /// callback function. See [on] for details on the event types.
-  external Promise once(String eventType,
-      [successCallback, failureCallbackOrContext, context]);
+  external node.Promise once(String eventType,
+      [Object? successCallback,
+      Object? failureCallbackOrContext,
+      Object? context]);
 
   /// Generates a new [Query] object ordered by the specified child key.
   ///
@@ -1978,7 +2071,7 @@ abstract class Query {
   ///
   /// See also:
   /// - [Filtering data](https://firebase.google.com/docs/database/web/lists-of-data#filtering_data)
-  external Query startAt(dynamic value, [String key]);
+  external Query startAt(dynamic value, [String? key]);
 
   /// Returns a JSON-serializable representation of this object.
   external dynamic toJSON();
@@ -1992,6 +2085,7 @@ abstract class Query {
   /// Append '.json' to the returned URL when typed into a browser to download
   /// JSON-formatted data. If the location is secured (that is, not publicly
   /// readable), you will get a permission-denied error.
+  @override
   external String toString();
 }
 
@@ -2061,7 +2155,7 @@ abstract class DataSnapshot {
   /// If no explicit `orderBy*()` method is used, results are returned ordered
   /// by key (unless priorities are used, in which case, results are returned by
   /// priority).
-  external bool forEach(bool action(DataSnapshot child));
+  external bool forEach(bool Function(DataSnapshot child) action);
 
   /// Gets the priority value of the data in this DataSnapshot.
   ///

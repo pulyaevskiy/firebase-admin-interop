@@ -4,7 +4,7 @@
 import 'dart:async';
 
 import 'package:meta/meta.dart';
-import 'package:node_interop/util.dart';
+import 'package:node_interop/util.dart' as node;
 
 import 'bindings.dart' as js show Messaging;
 import 'bindings.dart'
@@ -64,22 +64,24 @@ class Messaging {
   ///
   /// Returns Future<String> fulfilled with a unique message ID string after the
   /// message has been successfully handed off to the FCM service for delivery
-  Future<String> send(FcmMessage message, [bool dryRun]) {
-    if (dryRun != null)
-      return promiseToFuture(nativeInstance.send(message, dryRun));
-    else
-      return promiseToFuture(nativeInstance.send(message));
+  Future<String> send(FcmMessage message, [bool? dryRun]) {
+    if (dryRun != null) {
+      return node.promiseToFuture(nativeInstance.send(message, dryRun));
+    } else {
+      return node.promiseToFuture(nativeInstance.send(message));
+    }
   }
 
   /// Sends all the [messages] in the given array via Firebase Cloud Messaging.
   ///
   /// Returns Future<BatchResponse> fulfilled with an object representing the
   /// result of the send operation.
-  Future<BatchResponse> sendAll(List<FcmMessage> messages, [bool dryRun]) {
-    if (dryRun != null)
-      return promiseToFuture(nativeInstance.sendAll(messages, dryRun));
-    else
-      return promiseToFuture(nativeInstance.sendAll(messages));
+  Future<BatchResponse> sendAll(List<FcmMessage> messages, [bool? dryRun]) {
+    if (dryRun != null) {
+      return node.promiseToFuture(nativeInstance.sendAll(messages, dryRun));
+    } else {
+      return node.promiseToFuture(nativeInstance.sendAll(messages));
+    }
   }
 
   /// Sends the given multicast [message] to all the FCM registration tokens
@@ -87,11 +89,14 @@ class Messaging {
   ///
   /// Returns Future<BatchResponse> fulfilled with an object representing the
   /// result of the send operation.
-  Future<BatchResponse> sendMulticast(MulticastMessage message, [bool dryRun]) {
-    if (dryRun != null)
-      return promiseToFuture(nativeInstance.sendMulticast(message, dryRun));
-    else
-      return promiseToFuture(nativeInstance.sendMulticast(message));
+  Future<BatchResponse> sendMulticast(MulticastMessage message,
+      [bool? dryRun]) {
+    if (dryRun != null) {
+      return node
+          .promiseToFuture(nativeInstance.sendMulticast(message, dryRun));
+    } else {
+      return node.promiseToFuture(nativeInstance.sendMulticast(message));
+    }
   }
 
   /// Sends an FCM message to a [condition].
@@ -100,13 +105,14 @@ class Messaging {
   /// response after the message has been sent.
   Future<MessagingConditionResponse> sendToCondition(
       String condition, MessagingPayload payload,
-      [MessagingOptions options]) {
-    if (options != null)
-      return promiseToFuture(
+      [MessagingOptions? options]) {
+    if (options != null) {
+      return node.promiseToFuture(
           nativeInstance.sendToCondition(condition, payload, options));
-    else
-      return promiseToFuture(
-          nativeInstance.sendToCondition(condition, payload));
+    } else {
+      return node
+          .promiseToFuture(nativeInstance.sendToCondition(condition, payload));
+    }
   }
 
   /// Sends an FCM message to a single device corresponding to the provided
@@ -116,13 +122,14 @@ class Messaging {
   /// response after the message has been sent.
   Future<MessagingDevicesResponse> sendToDevice(
       String registrationToken, MessagingPayload payload,
-      [MessagingOptions options]) {
-    if (options != null)
-      return promiseToFuture(
+      [MessagingOptions? options]) {
+    if (options != null) {
+      return node.promiseToFuture(
           nativeInstance.sendToDevice(registrationToken, payload, options));
-    else
-      return promiseToFuture(
+    } else {
+      return node.promiseToFuture(
           nativeInstance.sendToDevice(registrationToken, payload));
+    }
   }
 
   /// Sends an FCM message to a device group corresponding to the provided
@@ -132,13 +139,14 @@ class Messaging {
   /// response after the message has been sent.
   Future<MessagingDeviceGroupResponse> sendToDeviceGroup(
       String notificationKey, MessagingPayload payload,
-      [MessagingOptions options]) {
-    if (options != null)
-      return promiseToFuture(
+      [MessagingOptions? options]) {
+    if (options != null) {
+      return node.promiseToFuture(
           nativeInstance.sendToDeviceGroup(notificationKey, payload, options));
-    else
-      return promiseToFuture(
+    } else {
+      return node.promiseToFuture(
           nativeInstance.sendToDeviceGroup(notificationKey, payload));
+    }
   }
 
   /// Sends an FCM message to a [topic].
@@ -147,12 +155,13 @@ class Messaging {
   /// response after the message has been sent.
   Future<MessagingTopicResponse> sendToTopic(
       String topic, MessagingPayload payload,
-      [MessagingOptions options]) {
-    if (options != null)
-      return promiseToFuture(
-          nativeInstance.sendToTopic(topic, payload, options));
-    else
-      return promiseToFuture(nativeInstance.sendToTopic(topic, payload));
+      [MessagingOptions? options]) {
+    if (options != null) {
+      return node
+          .promiseToFuture(nativeInstance.sendToTopic(topic, payload, options));
+    } else {
+      return node.promiseToFuture(nativeInstance.sendToTopic(topic, payload));
+    }
   }
 
   /// Subscribes a device to an FCM [topic].
@@ -161,7 +170,7 @@ class Messaging {
   /// server's response after the device has been subscribed to the topic.
   Future<MessagingTopicManagementResponse> subscribeToTopic(
           String registrationTokens, String topic) =>
-      promiseToFuture(
+      node.promiseToFuture(
           nativeInstance.subscribeToTopic(registrationTokens, topic));
 
   /// Unsubscribes a device from an FCM [topic].
@@ -170,6 +179,6 @@ class Messaging {
   /// server's response after the device has been subscribed to the topic.
   Future<MessagingTopicManagementResponse> unsubscribeFromTopic(
           String registrationTokens, String topic) =>
-      promiseToFuture(
+      node.promiseToFuture(
           nativeInstance.unsubscribeFromTopic(registrationTokens, topic));
 }

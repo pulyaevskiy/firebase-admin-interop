@@ -3,25 +3,30 @@
 
 import 'dart:convert';
 
-import 'package:node_interop/node.dart';
-import 'package:node_interop/util.dart';
 import 'package:firebase_admin_interop/firebase_admin_interop.dart';
+import 'package:node_interop/node.dart' as node;
+import 'package:node_interop/util.dart' as node;
 
-final Map env = dartify(process.env);
+final Map env = node.dartify(node.process.env);
 
-App initFirebaseApp() {
+App? initFirebaseApp() {
+  print(env);
   if (!env.containsKey('FIREBASE_CONFIG') ||
-      !env.containsKey('FIREBASE_SERVICE_ACCOUNT_JSON'))
-    throw new StateError('Environment variables are not set.');
+      !env.containsKey('FIREBASE_SERVICE_ACCOUNT_JSON')) {
+    throw StateError(
+        'Environment variables FIREBASE_SERVICE_ACCOUNT_JSON and FIREBASE_CONFIG are not set.');
+  }
 
-  Map certConfig = jsonDecode(env['FIREBASE_SERVICE_ACCOUNT_JSON']);
+  var certConfig =
+      jsonDecode(env['FIREBASE_SERVICE_ACCOUNT_JSON'] as String) as Map;
+
   final cert = FirebaseAdmin.instance.cert(
-    projectId: certConfig['project_id'],
-    clientEmail: certConfig['client_email'],
-    privateKey: certConfig['private_key'],
+    projectId: certConfig['project_id'] as String?,
+    clientEmail: certConfig['client_email'] as String?,
+    privateKey: certConfig['private_key'] as String?,
   );
-  final Map config = jsonDecode(env['FIREBASE_CONFIG']);
-  final databaseUrl = config['databaseURL'];
-  return FirebaseAdmin.instance.initializeApp(
-      new AppOptions(credential: cert, databaseURL: databaseUrl));
+  final config = jsonDecode(env['FIREBASE_CONFIG'] as String) as Map;
+  final databaseUrl = config['databaseURL'] as String?;
+  return FirebaseAdmin.instance
+      .initializeApp(AppOptions(credential: cert, databaseURL: databaseUrl));
 }
