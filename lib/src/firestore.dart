@@ -3,9 +3,9 @@
 
 import 'dart:async';
 import 'dart:js';
+import 'dart:js_interop_unsafe';
 import 'dart:typed_data';
 
-import 'package:js/js.dart';
 import 'package:meta/meta.dart';
 import 'package:node_interop/js.dart' as node;
 import 'package:node_interop/node.dart' as node;
@@ -13,6 +13,8 @@ import 'package:node_interop/util.dart' as node;
 import 'package:quiver/core.dart';
 
 import 'bindings.dart' as js;
+// ignore: unused_import
+import 'dev_utils.dart';
 
 @Deprecated('This function will be hidden from public API in future versions.')
 js.GeoPoint createGeoPoint(num latitude, num longitude) =>
@@ -1107,6 +1109,41 @@ class DocumentQuery {
             as js.DocumentQuery,
         firestore);
   }
+
+  /// Calculates the number of documents in the result set of the given query without actually downloading the documents.
+  Future<int> count() async {
+    var aggregateQuery = nativeInstance!.count();
+    var result = await node
+        .promiseToFuture<js.AggregateQuerySnapshot>(aggregateQuery.get());
+    return result.data()['count'] as int;
+  }
+
+  js.AggregateField toNativeAggregateField(AggregateField field) {
+    /*devPrint('js.admin: ${js.admin}');
+    devPrint('js.Timestamp: ${js.admin!.firestore.Timestamp}');
+    devPrint('js.FieldValue: ${js.admin!.firestore.FieldValue}');
+    devPrint('js.AggregateField: ${js.admin!.firestore.AggregateField}');*/
+
+    if (field is AggregateFieldSum) {
+      return js.admin!.firestore.AggregateField.sum((field).field!);
+    } else if (field is AggregateFieldAverage) {
+      return js.admin!.firestore.AggregateField.average((field).field!);
+    } else if (field is AggregateFieldCount) {
+      return js.admin!.firestore.AggregateField.count();
+    } else {
+      throw ArgumentError('Unsupported aggregate field type $field.');
+    }
+  }
+
+  AggregateQuery aggregate(List<AggregateField> fields) {
+    var param = js.AggregateSpec();
+    for (var field in fields) {
+      var withAlias = field as AggregateFieldWithAlias;
+      var nativeField = toNativeAggregateField(field);
+      node.setProperty(param, withAlias.alias, nativeField);
+    }
+    return AggregateQuery(nativeInstance!.aggregate(param));
+  }
 }
 
 /// A reference to a transaction.
@@ -1356,4 +1393,54 @@ class FieldValues {
 
   final FieldValue _serverTimestamp = _FieldValueServerTimestamp();
   final FieldValue _delete = _FieldValueDelete();
+}
+
+class AggregateQuery {
+  final js.AggregateQuery nativeInstance;
+
+  AggregateQuery(this.nativeInstance);
+
+  Future<AggregateQuerySnapshot> get() {
+    return node
+        .promiseToFuture<js.AggregateQuerySnapshot>(nativeInstance.get())
+        .then((jsSnapshot) => AggregateQuerySnapshot(jsSnapshot));
+  }
+}
+
+class AggregateQuerySnapshot {
+  final js.AggregateQuerySnapshot nativeInstance;
+
+  AggregateQuerySnapshot(this.nativeInstance);
+
+  int? get count => nativeInstance.data()['count'] as int?;
+
+  num? getAlias(String alias) => nativeInstance.data()[alias] as num?;
+}
+
+abstract class AggregateField {}
+
+abstract class AggregateFieldWithAlias implements AggregateField {
+  final String alias;
+  final String? field;
+
+  AggregateFieldWithAlias(this.alias, this.field);
+}
+
+class AggregateFieldCount extends AggregateFieldWithAlias {
+  AggregateFieldCount() : super('count', null);
+
+  @override
+  String toString() => 'AggregateFieldCount()';
+}
+
+class AggregateFieldSum extends AggregateFieldWithAlias {
+  AggregateFieldSum(super.alias, super.field);
+  @override
+  String toString() => 'AggregateFieldSum($alias, $field)';
+}
+
+class AggregateFieldAverage extends AggregateFieldWithAlias {
+  AggregateFieldAverage(super.alias, super.field);
+  @override
+  String toString() => 'AggregateFieldAverage($alias, $field)';
 }

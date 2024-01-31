@@ -17,5 +17,10 @@ tool/build_example.sh
 *.json
 !package.json
 
-# Intellij/WebStorm
+# Intellij/WebStorm/VSCode
 .idea/
+*.iml
+.vscode/
+
+# Local
+/.local/

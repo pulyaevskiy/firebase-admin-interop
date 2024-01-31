@@ -1076,5 +1076,15 @@ void main() {
         expect(snapshot.documents, hasLength(2));
       });
     });
+    group('Aggregate', () {
+      test('AggregateField', () async {
+        var collRef =
+            app.firestore().collection('tests/aggregate/empty_collection');
+        expect(await collRef.count(), 0);
+        var aggregateQuery = collRef.aggregate([AggregateFieldCount()]);
+        var snapshot = await aggregateQuery.get();
+        expect(snapshot.count, 0);
+      });
+    });
   });
 }

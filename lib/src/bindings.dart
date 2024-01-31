@@ -581,6 +581,9 @@ abstract class FirestoreService {
 
   // ignore: non_constant_identifier_names
   external FieldPathPrototype get FieldPath;
+
+  // ignore: non_constant_identifier_names
+  external AggregateFields get AggregateField;
 }
 
 // admin.messaging ================================================================

@@ -1,6 +1,8 @@
 @JS()
 library firestore;
 
+import 'dart:js_interop';
+
 import 'package:js/js.dart';
 import 'package:node_interop/node.dart' as node;
 import 'package:node_interop/stream.dart';
@@ -609,6 +611,13 @@ abstract class DocumentQuery {
   /// the snapshot listener.
   external Function onSnapshot(void Function(QuerySnapshot snapshot) onNext,
       [void Function(Error error)? onError]);
+
+  /// Returns a query that counts the documents in the result set of this query.
+  external AggregateQuery count();
+
+  // https://cloud.google.com/nodejs/docs/reference/firestore/latest/firestore/query
+  /// Returns a query that can perform the given aggregations.
+  external AggregateQuery aggregate(dynamic aggregateSpecs);
 }
 
 /// A `QuerySnapshot` contains zero or more `QueryDocumentSnapshot` objects
@@ -775,4 +784,66 @@ abstract class FieldPath {
       String? fieldNames3,
       String? fieldNames4,
       String? fieldNames5]);
+}
+
+@JS()
+@anonymous
+@staticInterop
+abstract class AggregateFields {}
+
+extension AggregateFieldsExt on AggregateFields {
+  external AggregateField count();
+  external AggregateField sum(String fieldPath);
+  external AggregateField average(String fieldPath);
+}
+
+@JS()
+@anonymous
+@staticInterop
+class AggregateSpec {
+  external factory AggregateSpec();
+}
+
+extension AggregateSpecExt on AggregateSpec {
+  external void count();
+  external AggregateField sum(String fieldPath);
+  external AggregateField average(String fieldPath);
+}
+
+@JS()
+@anonymous
+@staticInterop
+abstract class AggregateField {}
+
+extension AggregateFieldExt on AggregateField {
+  external String get type;
+}
+
+@JS()
+@anonymous
+@staticInterop
+abstract class AggregateFieldCount extends AggregateField {}
+
+/// Aggregation query.
+@JS()
+@anonymous
+@staticInterop
+abstract class AggregateQuery {}
+
+/// Aggregation query.
+extension AggregateQueryExt on AggregateQuery {
+  /// Executes the query and returns the results as a `AggregateQuerySnapshot`.
+  external node.Promise get();
+}
+
+/// The results of executing an aggregation query.
+@JS()
+@anonymous
+@staticInterop
+abstract class AggregateQuerySnapshot {}
+
+/// The results of executing an aggregation query.
+extension AggregateQuerySnapshotExt on AggregateQuerySnapshot {
+  /// Executes the query and returns the results as a `AggregateQuerySnapshot`.
+  external JSObject data();
 }

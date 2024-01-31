@@ -48,5 +48,5 @@ export 'src/app.dart';
 export 'src/auth.dart';
 export 'src/bindings.dart' show AppOptions, SetOptions, FirestoreSettings;
 export 'src/database.dart';
-export 'src/firestore.dart';
+export 'src/firestore.dart' hide AggregateFieldWithAlias;
 export 'src/messaging.dart';
